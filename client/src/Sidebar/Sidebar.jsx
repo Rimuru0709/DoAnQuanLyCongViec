@@ -1,5 +1,5 @@
 import "./Sidebar.css";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 import {
     FaHome,
@@ -17,68 +17,133 @@ import {
 function Sidebar() {
     return (
         <aside className="sidebar">
-            <h2>ProjectMaster</h2>
+
+            <div className="logo">
+                <h2>ProjectMaster</h2>
+            </div>
 
             <nav>
-                <Link to="/">
+
+                <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaHome />
                     <span>Tổng quan</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/project">
+                <NavLink
+                    to="/project"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaFolderOpen />
                     <span>Dự án</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/task">
+                <NavLink
+                    to="/task"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaTasks />
                     <span>Công việc</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/kanban">
+                <NavLink
+                    to="/kanban"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaColumns />
                     <span>Kanban</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/calendar">
+                <NavLink
+                    to="/calendar"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaCalendarAlt />
                     <span>Lịch</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/member">
+                <NavLink
+                    to="/member"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaUsers />
                     <span>Thành viên</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/report">
+                <NavLink
+                    to="/report"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaChartBar />
                     <span>Báo cáo</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/document">
+                <NavLink
+                    to="/document"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaFileAlt />
                     <span>Tài liệu</span>
-                </Link>
+                </NavLink>
 
-                <Link to="/notification">
+                <NavLink
+                    to="/notification"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaBell />
                     <span>Thông báo</span>
-                </Link>
 
-                <Link to="/setting">
+                    <div className="badge">
+                        5
+                    </div>
+                </NavLink>
+
+                <NavLink
+                    to="/setting"
+                    className={({ isActive }) =>
+                        isActive ? "menu active" : "menu"
+                    }
+                >
                     <FaCog />
                     <span>Cài đặt</span>
-                </Link>
+                </NavLink>
+
             </nav>
 
             <div className="user-box">
-                <div className="avatar">A</div>
+
+                <div className="avatar">
+                    D
+                </div>
 
                 <div>
-                    <b>Nguyễn Văn A</b>
-                    <p>Quản trị viên</p>
+                    <h4>Đào Quang Duy</h4>
+                    <p>Administrator</p>
                 </div>
+
             </div>
+
         </aside>
     );
 }
