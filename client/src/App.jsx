@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./Home/Home";
 import Project from "./Project/Project";
+import ProjectDetail from "./Project/ProjectDetail";
 import Task from "./Task/Task";
 import Kanban from "./Kanban/Kanban";
 import Calendar from "./Calendar/Calendar";
@@ -17,6 +18,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/project" element={<Project />} />
+                <Route path="/project/:id" element={<ProjectDetail />} />
                 <Route path="/task" element={<Task />} />
                 <Route path="/kanban" element={<Kanban />} />
                 <Route path="/calendar" element={<Calendar />} />
