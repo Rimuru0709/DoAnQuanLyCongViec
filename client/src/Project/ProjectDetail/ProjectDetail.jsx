@@ -1,13 +1,15 @@
-import "./ProjectDetail.css";
-import Sidebar from "../Sidebar/Sidebar";
+import "../ProjectDetail.css";
+import Sidebar from "../../Sidebar/Sidebar";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import TaskModal from "./TaskModal";
+import Kanban from "./Kanban";
+
 import {
     FaPlus,
     FaEllipsisH,
     FaCalendarAlt,
     FaUsers,
-    FaCircle,
     FaFilePdf,
     FaFileExcel,
 } from "react-icons/fa";
@@ -19,18 +21,16 @@ function ProjectDetail() {
     const [tasks, setTasks] = useState([]);
     const [activeTab, setActiveTab] = useState("overview");
     const [showExportMenu, setShowExportMenu] = useState(false);
-    const [showTaskForm, setShowTaskForm] = useState(false);
 
-    const [newTask, setNewTask] = useState({
-        title: "",
-        description: "",
-        assigned_to: "",
-        start_date: "",
-        end_date: "",
-        status: "CHUA_LAM",
-        priority: "TRUNG_BINH",
-        progress: 0,
-    });
+    const [showTaskModal, setShowTaskModal] = useState(false);
+    const [selectedTask, setSelectedTask] = useState(null);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTaskId, setDeleteTaskId] = useState(null);
+
+    const [taskSearch, setTaskSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const tasksPerPage = 5;
 
     const statusText = {
         DANG_THUC_HIEN: "Đang thực hiện",
@@ -46,6 +46,14 @@ function ProjectDetail() {
         DANG_REVIEW: "Đang review",
         HOAN_THANH: "Hoàn thành",
         QUA_HAN: "Quá hạn",
+    };
+
+    const getTaskStatusClass = (status) => {
+        if (status === "HOAN_THANH") return "done";
+        if (status === "DANG_LAM") return "doing";
+        if (status === "DANG_REVIEW") return "review";
+        if (status === "CHUA_LAM") return "todo";
+        return "overdue";
     };
 
     const formatDate = (date) => {
@@ -72,54 +80,46 @@ function ProjectDetail() {
         loadTasks();
     }, [id]);
 
-    const handleTaskChange = (e) => {
-        const { name, value } = e.target;
-
-        setNewTask({
-            ...newTask,
-            [name]: value,
-        });
+    const openAddTaskModal = () => {
+        setSelectedTask(null);
+        setShowTaskModal(true);
     };
 
-    const handleAddTask = async (e) => {
-        e.preventDefault();
+    const openEditTaskModal = (task) => {
+        setSelectedTask(task);
+        setShowTaskModal(true);
+    };
 
-        const taskData = {
-            ...newTask,
-            project_id: id,
-            assigned_to: newTask.assigned_to || null,
-        };
+    const closeTaskModal = () => {
+        setShowTaskModal(false);
+        setSelectedTask(null);
+    };
 
-        const res = await fetch("http://localhost:5000/api/tasks", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(taskData),
-        });
-
-        if (!res.ok) {
-            alert("Thêm công việc thất bại");
-            return;
-        }
-
-        alert("Thêm công việc thành công");
-
-        setShowTaskForm(false);
-        setActiveTab("tasks");
-
-        setNewTask({
-            title: "",
-            description: "",
-            assigned_to: "",
-            start_date: "",
-            end_date: "",
-            status: "CHUA_LAM",
-            priority: "TRUNG_BINH",
-            progress: 0,
-        });
-
+    const handleTaskSuccess = () => {
         loadTasks();
+        loadProject();
+    };
+
+    const openDeleteModal = (task) => {
+        setDeleteTaskId(task.id);
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteTask = async () => {
+        try {
+            await fetch(`http://localhost:5000/api/tasks/${deleteTaskId}`, {
+                method: "DELETE",
+            });
+
+            loadTasks();
+            loadProject();
+
+            setShowDeleteModal(false);
+            setShowTaskModal(false);
+            setDeleteTaskId(null);
+        } catch (err) {
+            console.log(err);
+        }
     };
 
     const exportPDF = () => {
@@ -132,6 +132,39 @@ function ProjectDetail() {
         setShowExportMenu(false);
     };
 
+    const totalTasks = tasks.length;
+    const doneTasks = tasks.filter((task) => task.status === "HOAN_THANH").length;
+    const doingTasks = tasks.filter((task) => task.status === "DANG_LAM").length;
+    const todoTasks = tasks.filter((task) => task.status === "CHUA_LAM").length;
+    const overdueTasks = tasks.filter((task) => task.status === "QUA_HAN").length;
+
+    const calculatedProgress =
+        totalTasks === 0
+            ? 0
+            : Math.round(
+                tasks.reduce(
+                    (sum, task) => sum + Number(task.progress || 0),
+                    0
+                ) / totalTasks
+            );
+
+    const filteredTasks = tasks.filter((task) => {
+        const keyword = taskSearch.toLowerCase();
+
+        return (
+            task.title?.toLowerCase().includes(keyword) ||
+            task.assignee_name?.toLowerCase().includes(keyword) ||
+            taskStatusText[task.status]?.toLowerCase().includes(keyword)
+        );
+    });
+
+    const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+
+    const paginatedTasks = filteredTasks.slice(
+        (currentPage - 1) * tasksPerPage,
+        currentPage * tasksPerPage
+    );
+
     if (!project) {
         return (
             <div className="detail-layout">
@@ -142,6 +175,45 @@ function ProjectDetail() {
             </div>
         );
     }
+
+    const handleChangeTaskStatus = async (task, newStatus) => {
+        let progress = task.progress;
+
+        if (newStatus === "CHUA_LAM") progress = 0;
+        if (newStatus === "DANG_REVIEW") progress = 90;
+        if (newStatus === "HOAN_THANH") progress = 100;
+
+        const updatedTask = {
+            ...task,
+            status: newStatus,
+            progress,
+            start_date: task.start_date ? task.start_date.slice(0, 10) : "",
+            end_date: task.end_date ? task.end_date.slice(0, 10) : "",
+        };
+
+        await fetch(`http://localhost:5000/api/tasks/${task.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedTask),
+        });
+
+        loadTasks();
+        loadProject();
+    };
+
+    if (!project) {
+        return (
+            <div className="detail-layout">
+                <Sidebar />
+                <div className="detail-page">
+                    <h2>Đang tải dữ liệu...</h2>
+                </div>
+            </div>
+        );
+    }
+
 
     return (
         <div className="detail-layout">
@@ -174,7 +246,7 @@ function ProjectDetail() {
                     </div>
 
                     <div className="header-actions">
-                        <button onClick={() => setShowTaskForm(true)}>
+                        <button onClick={openAddTaskModal}>
                             <FaPlus /> Thêm công việc
                         </button>
 
@@ -230,20 +302,20 @@ function ProjectDetail() {
                                 <div
                                     className="circle-progress"
                                     style={{
-                                        background: `conic-gradient(#22c55e 0% ${project.progress}%, #35516f ${project.progress}% 100%)`,
+                                        background: `conic-gradient(#22c55e 0% ${calculatedProgress}%, #35516f ${calculatedProgress}% 100%)`,
                                     }}
                                 >
-                                    <div className="circle-inner">{project.progress}%</div>
+                                    <div className="circle-inner">{calculatedProgress}%</div>
                                 </div>
 
                                 <p className="center-text">{statusText[project.status]}</p>
 
                                 <ul className="progress-list">
-                                    <li><span className="dot gray"></span>Tổng công việc <b>{tasks.length}</b></li>
-                                    <li><span className="dot green"></span>Hoàn thành <b>{tasks.filter(t => t.status === "HOAN_THANH").length}</b></li>
-                                    <li><span className="dot blue"></span>Đang thực hiện <b>{tasks.filter(t => t.status === "DANG_LAM").length}</b></li>
-                                    <li><span className="dot orange"></span>Chưa làm <b>{tasks.filter(t => t.status === "CHUA_LAM").length}</b></li>
-                                    <li><span className="dot red"></span>Quá hạn <b>{tasks.filter(t => t.status === "QUA_HAN").length}</b></li>
+                                    <li><span className="dot gray"></span>Tổng công việc <b>{totalTasks}</b></li>
+                                    <li><span className="dot green"></span>Hoàn thành <b>{doneTasks}</b></li>
+                                    <li><span className="dot blue"></span>Đang thực hiện <b>{doingTasks}</b></li>
+                                    <li><span className="dot orange"></span>Chưa làm <b>{todoTasks}</b></li>
+                                    <li><span className="dot red"></span>Quá hạn <b>{overdueTasks}</b></li>
                                 </ul>
                             </div>
 
@@ -272,7 +344,7 @@ function ProjectDetail() {
 
                                 <div className="info-row">
                                     <span>Tiến độ</span>
-                                    <b>{project.progress}%</b>
+                                    <b>{calculatedProgress}%</b>
                                 </div>
 
                                 <div className="info-row desc">
@@ -292,10 +364,7 @@ function ProjectDetail() {
                                     ["Hoàng Văn E", "Designer"],
                                 ].map((member, index) => (
                                     <div className="member-item" key={index}>
-                                        <img
-                                            src={`https://i.pravatar.cc/40?img=${index + 10}`}
-                                            alt=""
-                                        />
+                                        <img src={`https://i.pravatar.cc/40?img=${index + 10}`} alt="" />
 
                                         <div>
                                             <h4>{member[0]}</h4>
@@ -324,10 +393,7 @@ function ProjectDetail() {
                                             <td>› {task.title}</td>
                                             <td>{task.assignee_name || "Chưa phân công"}</td>
                                             <td>
-                                                <span
-                                                    className={`task-status ${task.status === "HOAN_THANH" ? "done" : "doing"
-                                                        }`}
-                                                >
+                                                <span className={`task-status ${getTaskStatusClass(task.status)}`}>
                                                     {taskStatusText[task.status]}
                                                 </span>
                                             </td>
@@ -343,6 +409,19 @@ function ProjectDetail() {
 
                 {activeTab === "tasks" && (
                     <div className="detail-card recent-task">
+
+                        <div className="task-toolbar">
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm công việc, người phụ trách, trạng thái..."
+                                value={taskSearch}
+                                onChange={(e) => {
+                                    setTaskSearch(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
+
                         <table>
                             <thead>
                                 <tr>
@@ -351,29 +430,67 @@ function ProjectDetail() {
                                     <th>Trạng thái</th>
                                     <th>Tiến độ</th>
                                     <th>Deadline</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {tasks.map((task) => (
+                                {paginatedTasks.map((task) => (
                                     <tr key={task.id}>
                                         <td>{task.title}</td>
                                         <td>{task.assignee_name || "Chưa phân công"}</td>
-                                        <td>{taskStatusText[task.status]}</td>
+                                        <td>
+                                            <span className={`task-status ${getTaskStatusClass(task.status)}`}>
+                                                {taskStatusText[task.status]}
+                                            </span>
+                                        </td>
                                         <td>{task.progress}%</td>
                                         <td>{formatDate(task.end_date)}</td>
+                                        <td>
+                                            <button
+                                                className="btn-edit-task"
+                                                onClick={() => openEditTaskModal(task)}
+                                            >
+                                                Sửa
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+
+                        <div className="task-pagination">
+                            <span>
+                                Hiển thị {paginatedTasks.length} / {filteredTasks.length} công việc
+                            </span>
+
+                            <div>
+                                <button
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(currentPage - 1)}
+                                >
+                                    Trước
+                                </button>
+
+                                <span>Trang {currentPage} / {totalPages || 1}</span>
+
+                                <button
+                                    disabled={currentPage === totalPages || totalPages === 0}
+                                    onClick={() => setCurrentPage(currentPage + 1)}
+                                >
+                                    Sau
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
                 {activeTab === "kanban" && (
-                    <div className="detail-card tab-content">
-                        <h2>Bảng Kanban</h2>
-                        <p>Hiển thị các cột: Chưa làm, Đang làm, Review, Hoàn thành.</p>
-                    </div>
+                    <Kanban
+                        tasks={tasks}
+                        onTaskClick={openEditTaskModal}
+                        onStatusChange={handleChangeTaskStatus}
+                    />
                 )}
 
                 {activeTab === "gantt" && (
@@ -405,112 +522,56 @@ function ProjectDetail() {
                 )}
             </div>
 
-            {showTaskForm && (
+            <TaskModal
+                open={showTaskModal}
+                task={selectedTask}
+                projectId={project.id}
+                onClose={() => setShowTaskModal(false)}
+                onSuccess={() => {
+                    loadTasks();
+                    loadProject();
+                }}
+                onDelete={openDeleteModal}
+            />
+
+            {showDeleteModal && (
                 <div className="task-modal-overlay">
-                    <div className="task-modal">
-                        <h2>Thêm công việc mới</h2>
 
-                        <form onSubmit={handleAddTask}>
-                            <label>Tên công việc</label>
-                            <input
-                                type="text"
-                                name="title"
-                                value={newTask.title}
-                                onChange={handleTaskChange}
-                                required
-                            />
+                    <div
+                        className="task-modal"
+                        style={{ width: "380px" }}
+                    >
 
-                            <label>Mô tả</label>
-                            <textarea
-                                name="description"
-                                value={newTask.description}
-                                onChange={handleTaskChange}
-                            />
+                        <h2>Xóa công việc</h2>
 
-                            <label>ID người phụ trách</label>
-                            <input
-                                type="number"
-                                name="assigned_to"
-                                value={newTask.assigned_to}
-                                onChange={handleTaskChange}
-                                placeholder="Ví dụ: 2"
-                            />
+                        <p style={{ marginTop: 20 }}>
+                            Bạn có chắc muốn xóa công việc này không?
+                        </p>
 
-                            <div className="task-form-row">
-                                <div>
-                                    <label>Ngày bắt đầu</label>
-                                    <input
-                                        type="date"
-                                        name="start_date"
-                                        value={newTask.start_date}
-                                        onChange={handleTaskChange}
-                                    />
-                                </div>
+                        <div className="task-modal-actions">
 
-                                <div>
-                                    <label>Deadline</label>
-                                    <input
-                                        type="date"
-                                        name="end_date"
-                                        value={newTask.end_date}
-                                        onChange={handleTaskChange}
-                                    />
-                                </div>
-                            </div>
-
-                            <label>Trạng thái</label>
-                            <select
-                                name="status"
-                                value={newTask.status}
-                                onChange={handleTaskChange}
+                            <button
+                                className="btn-cancel"
+                                onClick={() => setShowDeleteModal(false)}
                             >
-                                <option value="CHUA_LAM">Chưa làm</option>
-                                <option value="DANG_LAM">Đang làm</option>
-                                <option value="DANG_REVIEW">Đang review</option>
-                                <option value="HOAN_THANH">Hoàn thành</option>
-                                <option value="QUA_HAN">Quá hạn</option>
-                            </select>
+                                Hủy
+                            </button>
 
-                            <label>Độ ưu tiên</label>
-                            <select
-                                name="priority"
-                                value={newTask.priority}
-                                onChange={handleTaskChange}
+                            <button
+                                className="btn-delete"
+                                onClick={handleDeleteTask}
                             >
-                                <option value="THAP">Thấp</option>
-                                <option value="TRUNG_BINH">Trung bình</option>
-                                <option value="CAO">Cao</option>
-                            </select>
+                                Xóa
+                            </button>
 
-                            <label>Tiến độ (%)</label>
-                            <input
-                                type="number"
-                                name="progress"
-                                min="0"
-                                max="100"
-                                value={newTask.progress}
-                                onChange={handleTaskChange}
-                            />
+                        </div>
 
-                            <div className="task-modal-actions">
-                                <button
-                                    type="button"
-                                    className="btn-cancel"
-                                    onClick={() => setShowTaskForm(false)}
-                                >
-                                    Hủy
-                                </button>
-
-                                <button type="submit" className="btn-save">
-                                    Lưu công việc
-                                </button>
-                            </div>
-                        </form>
                     </div>
+
                 </div>
             )}
         </div>
     );
 }
 
-export default ProjectDetail;
+export default ProjectDetail;   

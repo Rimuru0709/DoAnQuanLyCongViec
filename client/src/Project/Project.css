@@ -369,62 +369,77 @@ tr:hover {
     background: #071527;
     border: 1px solid #243b5a;
     color: white;
-    padding: 12px;
+    padding: 10px 12px; 
     border-radius: 10px;
     outline: none;
 }
 
+.modal-box {
+    width: 460px;
+    max-width: 90%;
+    background: #0c1d32;
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+    padding: 20px 22px;
+    color: white;
+}
+
+.modal-box h2 {
+    margin-top: 0;
+    margin-bottom: 14px;
+    font-size: 24px;
+}
+
+.modal-box label {
+    display: block;
+    margin: 8px 0 4px;
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.modal-box input,
+.modal-box textarea,
+.modal-box select {
+    width: 100%;
+    background: #071527;
+    border: 1px solid #243b5a;
+    color: white;
+    padding: 9px 12px;
+    border-radius: 9px;
+    outline: none;
+    font-size: 14px;
+}
+
 .modal-box textarea {
-    min-height: 90px;
+    min-height: 65px;
     resize: none;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    gap: 10px;
 }
 
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 22px;
+    gap: 10px;
+    margin-top: 18px;
 }
 
-.btn-cancel {
-    background: #1e293b;
-    color: white;
-    border: 1px solid #334155;
-    padding: 12px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.btn-save {
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.delete-modal {
-    width: 420px;
-}
-
-.delete-text {
-    margin: 20px 0;
-    color: #cbd5e1;
-    line-height: 1.5;
-}
-
+.btn-cancel,
+.btn-save,
 .btn-delete {
-    background: #ef4444;
-    color: white;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
     border: none;
-    padding: 12px 18px;
-    border-radius: 10px;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 9px;
+}   
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
     cursor: pointer;
+    opacity: 1;
 }
