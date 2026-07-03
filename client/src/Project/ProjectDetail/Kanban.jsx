@@ -1,3 +1,5 @@
+import "./Kanban.css";
+
 function Kanban({ tasks, onTaskClick, onStatusChange }) {
     const columns = [
         { key: "CHUA_LAM", title: "Chưa làm" },

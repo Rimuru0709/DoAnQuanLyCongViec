@@ -1,9 +1,11 @@
-import "../ProjectDetail.css";
+import "./ProjectDetail.css";
 import Sidebar from "../../Sidebar/Sidebar";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import TaskModal from "./TaskModal";
 import Kanban from "./Kanban";
+import Gantt from "./Gantt";
+import Document from "./Document";
 
 import {
     FaPlus,
@@ -494,18 +496,15 @@ function ProjectDetail() {
                 )}
 
                 {activeTab === "gantt" && (
-                    <div className="detail-card tab-content">
-                        <h2>Biểu đồ Gantt</h2>
-                        <p>Timeline tiến độ dự án sẽ hiển thị ở đây.</p>
-                    </div>
-                )}
+    <Gantt
+        tasks={tasks}
+        onTaskClick={openEditTaskModal}
+    />
+)}
 
                 {activeTab === "documents" && (
-                    <div className="detail-card tab-content">
-                        <h2>Tài liệu dự án</h2>
-                        <p>Danh sách tài liệu, file đính kèm của dự án.</p>
-                    </div>
-                )}
+    <Document projectId={project.id} />
+)}
 
                 {activeTab === "members" && (
                     <div className="detail-card tab-content">
