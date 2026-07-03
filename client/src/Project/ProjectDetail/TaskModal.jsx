@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./TaskModal.css";
 
 function TaskModal({ open, task, projectId, onClose, onSuccess, onDelete }) {
     const isEdit = !!task;
