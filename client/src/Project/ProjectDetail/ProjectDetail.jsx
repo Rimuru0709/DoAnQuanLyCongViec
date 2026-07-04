@@ -7,6 +7,7 @@ import Kanban from "./Kanban";
 import Gantt from "./Gantt";
 import Document from "./Document";
 import Member from "./Member";
+import Setting from "./Setting";
 
 import {
     FaPlus,
@@ -512,10 +513,11 @@ function ProjectDetail() {
                 )}
 
                 {activeTab === "settings" && (
-                    <div className="detail-card tab-content">
-                        <h2>Cài đặt dự án</h2>
-                        <p>Chỉnh sửa thông tin và cấu hình dự án.</p>
-                    </div>
+                    <Setting
+                        project={project}
+                        onProjectUpdated={loadProject}
+                        onProjectDeleted={() => window.location.href = "/project"}
+                    />
                 )}
             </div>
 
