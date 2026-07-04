@@ -1,0 +1,173 @@
+.project-setting-page {
+    margin-top: 20px;
+    color: white;
+}
+
+.setting-header {
+    margin-bottom: 20px;
+}
+
+.setting-header h2 {
+    margin: 0;
+    font-size: 26px;
+}
+
+.setting-header p {
+    margin-top: 6px;
+    color: #94a3b8;
+}
+
+.setting-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+}
+
+.setting-card {
+    background: #0c1d32;
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.setting-card h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+.setting-card label {
+    display: block;
+    margin: 12px 0 6px;
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.setting-card input,
+.setting-card textarea,
+.setting-card select {
+    width: 100%;
+    background: #071527;
+    border: 1px solid #243b5a;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 9px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.setting-card textarea {
+    min-height: 90px;
+    resize: none;
+}
+
+.setting-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.setting-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-setting-save {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-setting-save:hover {
+    background: #1d4ed8;
+}
+
+.setting-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.setting-info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid #1e3a5f;
+}
+
+.setting-info-row:last-child {
+    border-bottom: none;
+}
+
+.setting-info-row span {
+    color: #94a3b8;
+}
+
+.setting-info-row b {
+    color: white;
+    text-align: right;
+}
+
+.danger-zone {
+    border-color: rgba(239, 68, 68, 0.6);
+}
+
+.danger-zone h3 {
+    color: #ef4444;
+}
+
+.danger-zone p {
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+.btn-setting-delete {
+    width: 100%;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 12px;
+}
+
+.btn-setting-delete:hover {
+    background: #dc2626;
+}
+
+.setting-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #16a34a;
+    color: white;
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    z-index: 99999;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.project-setting-page input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    cursor: pointer;
+}
+
+@media (max-width: 1000px) {
+    .setting-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .setting-form-row {
+        grid-template-columns: 1fr;
+    }
+}

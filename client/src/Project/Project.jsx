@@ -34,7 +34,6 @@ function Project() {
         start_date: "",
         end_date: "",
         status: "SAP_TOI",
-        progress: 0,
         created_by: 1,
     });
 
@@ -72,7 +71,6 @@ function Project() {
             start_date: "",
             end_date: "",
             status: "SAP_TOI",
-            progress: 0,
             created_by: 1,
         });
         setShowForm(true);
@@ -147,7 +145,6 @@ function Project() {
             start_date: "",
             end_date: "",
             status: "SAP_TOI",
-            progress: 0,
             created_by: 1,
         });
 
@@ -493,15 +490,6 @@ function Project() {
                                 <option value="QUA_HAN">Quá hạn</option>
                             </select>
 
-                            <label>Tiến độ (%)</label>
-                            <input
-                                type="number"
-                                name="progress"
-                                min="0"
-                                max="100"
-                                value={formData.progress}
-                                onChange={handleChange}
-                            />
 
                             <div className="modal-actions">
                                 <button
