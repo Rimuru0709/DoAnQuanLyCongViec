@@ -6,6 +6,7 @@ import TaskModal from "./TaskModal";
 import Kanban from "./Kanban";
 import Gantt from "./Gantt";
 import Document from "./Document";
+import Member from "./Member";
 
 import {
     FaPlus,
@@ -496,21 +497,18 @@ function ProjectDetail() {
                 )}
 
                 {activeTab === "gantt" && (
-    <Gantt
-        tasks={tasks}
-        onTaskClick={openEditTaskModal}
-    />
-)}
+                    <Gantt
+                        tasks={tasks}
+                        onTaskClick={openEditTaskModal}
+                    />
+                )}
 
                 {activeTab === "documents" && (
-    <Document projectId={project.id} />
-)}
+                    <Document projectId={project.id} />
+                )}
 
                 {activeTab === "members" && (
-                    <div className="detail-card tab-content">
-                        <h2>Thành viên dự án</h2>
-                        <p>Quản lý thành viên tham gia dự án.</p>
-                    </div>
+                    <Member projectId={project.id} />
                 )}
 
                 {activeTab === "settings" && (

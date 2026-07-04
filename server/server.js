@@ -6,6 +6,7 @@ const cors = require("cors");
 const projectRoutes = require("./Project/projectRoutes");
 const taskRoutes = require("./Task/taskRoutes");
 const documentRoutes = require("./Document/documentRoutes");
+const memberRoutes = require("./Member/memberRoutes");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/members", memberRoutes);
 
 const PORT = process.env.PORT || 5000;
 
