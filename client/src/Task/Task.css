@@ -1,0 +1,146 @@
+.task-main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.task-main-header h1 {
+    margin: 0;
+    color: white;
+    font-size: 32px;
+}
+
+.task-main-header p {
+    margin-top: 6px;
+    color: #94a3b8;
+}
+
+.task-filter-box {
+    display: grid;
+    grid-template-columns: 1fr 220px 220px;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.task-filter-box input,
+.task-filter-box select {
+    background: #071527;
+    border: 1px solid #243b5a;
+    color: white;
+    padding: 12px 14px;
+    border-radius: 10px;
+    outline: none;
+}
+
+.task-global-table {
+    background: #0c1d32;
+    border: 1px solid #243b5a;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.task-global-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.task-global-table thead {
+    background: #122743;
+}
+
+.task-global-table th {
+    color: white;
+    text-align: left;
+    padding: 15px;
+    font-weight: 700;
+}
+
+.task-global-table td {
+    color: #e5e7eb;
+    padding: 15px;
+    border-top: 1px solid #1f3654;
+}
+
+.task-global-table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.task-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.task-status.CHUA_LAM {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.task-status.DANG_LAM {
+    background: rgba(59, 130, 246, 0.2);
+    color: #38bdf8;
+}
+
+.task-status.DANG_REVIEW {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+}
+
+.task-status.HOAN_THANH {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.task-status.QUA_HAN {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.task-progress {
+    min-width: 130px;
+}
+
+.task-progress span {
+    display: block;
+    margin-bottom: 6px;
+    color: white;
+    font-weight: 700;
+}
+
+.task-progress div {
+    width: 100%;
+    height: 8px;
+    background: #1e3a5f;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.task-progress b {
+    display: block;
+    height: 100%;
+    background: #22c55e;
+    border-radius: 999px;
+}
+
+.task-empty {
+    text-align: center;
+    padding: 45px;
+    color: #94a3b8;
+}
+
+@media (max-width: 1000px) {
+    .task-filter-box {
+        grid-template-columns: 1fr;
+    }
+
+    .task-global-table {
+        overflow-x: auto;
+    }
+
+    .task-global-table table {
+        min-width: 950px;
+    }
+}
