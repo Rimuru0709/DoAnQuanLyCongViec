@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const db = require("../db");
 
 // Lấy công việc theo dự án
 const getTasksByProject = (req, res) => {

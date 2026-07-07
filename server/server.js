@@ -2,13 +2,11 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 
-const projectRoutes = require("./routes/projectRoutes");
-const taskRoutes = require("./routes/taskRoutes");
-const documentRoutes = require("./routes/documentRoutes");
-const memberRoutes = require("./routes/memberRoutes");
-const authRoutes = require("./routes/authRoutes");
+const projectRoutes = require("./Project/projectRoutes");
+const taskRoutes = require("./Task/taskRoutes");
+const documentRoutes = require("./Document/documentRoutes");
+const memberRoutes = require("./Member/memberRoutes");
 
 const app = express();
 
@@ -16,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 // Cho phép truy cập file upload
-app.use("/uploads", express.static(path.join(__dirname, "../Uploads")));
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
     res.send("ProjectMaster API đang chạy");
@@ -27,7 +25,6 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/members", memberRoutes);
-app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 5000;
 

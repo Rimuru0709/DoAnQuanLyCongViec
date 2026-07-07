@@ -1,9 +1,9 @@
-const db = require("../config/db");
+const db = require("../db");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-const uploadDir = path.join(__dirname, "../../Uploads");
+const uploadDir = path.join(__dirname, "../uploads");
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
@@ -112,12 +112,7 @@ const deleteDocument = (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy tài liệu" });
         }
 
-        let relativePath = result[0].file_path;
-        if (relativePath.startsWith("uploads/")) {
-            relativePath = relativePath.replace("uploads/", "Uploads/");
-        }
-
-        const filePath = path.join(__dirname, "../../", relativePath);
+        const filePath = path.join(__dirname, "../", result[0].file_path);
 
         db.query("DELETE FROM documents WHERE id = ?", [id], (err) => {
             if (err) return res.status(500).json(err);

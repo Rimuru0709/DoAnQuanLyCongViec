@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const db = require("../db");
 
 const getProjects = (req, res) => {
     const sql = `
@@ -45,6 +45,7 @@ const addProject = (req, res) => {
     const {
         name,
         description,
+        customer,
         manager_name,
         start_date,
         end_date,
@@ -55,8 +56,8 @@ const addProject = (req, res) => {
 
     const sql = `
         INSERT INTO projects
-        (name, description, manager_name, start_date, end_date, status, progress, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (name, description, customer, manager_name, start_date, end_date, status, progress, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     db.query(
@@ -64,6 +65,7 @@ const addProject = (req, res) => {
         [
             name,
             description,
+            customer,
             manager_name,
             start_date,
             end_date,
@@ -88,6 +90,7 @@ const updateProject = (req, res) => {
     const {
         name,
         description,
+        customer,
         manager_name,
         start_date,
         end_date,
@@ -97,7 +100,7 @@ const updateProject = (req, res) => {
 
     const sql = `
         UPDATE projects
-        SET name = ?, description = ?, manager_name = ?, start_date = ?, end_date = ?, status = ?, progress = ?
+        SET name = ?, description = ?, customer = ?, manager_name = ?, start_date = ?, end_date = ?, status = ?, progress = ?
         WHERE id = ?
     `;
 
@@ -106,6 +109,7 @@ const updateProject = (req, res) => {
         [
             name,
             description,
+            customer,
             manager_name,
             start_date,
             end_date,
@@ -150,10 +154,11 @@ const duplicateProject = (req, res) => {
 
     const sql = `
         INSERT INTO projects
-        (name, description, manager_name, start_date, end_date, status, progress, created_by)
+        (name, description, customer, manager_name, start_date, end_date, status, progress, created_by)
         SELECT 
             CONCAT(name, ' (Copy)'), 
             description,
+            customer,
             manager_name,
             start_date, 
             end_date, 

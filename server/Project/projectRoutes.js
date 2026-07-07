@@ -9,7 +9,7 @@ const {
     deleteProject,
     archiveProject,
     duplicateProject
-} = require("../controllers/projectController");
+} = require("./projectController");
 
 router.get("/", getProjects);
 router.get("/:id", getProjectById);

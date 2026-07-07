@@ -7,7 +7,7 @@ const {
     updateMember,
     deleteMember,
     getAllUsers
-} = require("../controllers/memberController");
+} = require("./memberController");
 
 router.get("/users", getAllUsers);
 router.get("/:projectId", getMembersByProject);
