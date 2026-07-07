@@ -98,7 +98,6 @@ function Task() {
                             <tr>
                                 <th>Tên công việc</th>
                                 <th>Dự án</th>
-                                <th>Khách hàng</th>
                                 <th>Người làm</th>
                                 <th>Deadline</th>
                                 <th>Trạng thái</th>
@@ -118,7 +117,6 @@ function Task() {
                                     <tr key={task.id}>
                                         <td>{task.title}</td>
                                         <td>{task.project_name}</td>
-                                        <td>{task.customer || "Không có"}</td>
                                         <td>{task.assignee_name || "Chưa phân công"}</td>
                                         <td>{formatDate(task.end_date)}</td>
                                         <td>

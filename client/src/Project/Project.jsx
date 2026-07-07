@@ -29,7 +29,6 @@ function Project() {
     const [newProject, setNewProject] = useState({
         name: "",
         description: "",
-        customer: "",
         manager_name: "",
         start_date: "",
         end_date: "",
@@ -66,7 +65,6 @@ function Project() {
         setNewProject({
             name: "",
             description: "",
-            customer: "",
             manager_name: "",
             start_date: "",
             end_date: "",
@@ -140,7 +138,6 @@ function Project() {
         setNewProject({
             name: "",
             description: "",
-            customer: "",
             manager_name: "",
             start_date: "",
             end_date: "",
@@ -433,15 +430,6 @@ function Project() {
                                 value={formData.description}
                                 onChange={handleChange}
                                 required
-                            />
-
-                            <label>Khách hàng</label>
-                            <input
-                                type="text"
-                                name="customer"
-                                value={formData.customer || ""}
-                                onChange={handleChange}
-                                placeholder="Ví dụ: Công ty TNHH ABC"
                             />
 
                             <label>Quản lý dự án</label>

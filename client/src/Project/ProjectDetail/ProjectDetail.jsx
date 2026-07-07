@@ -327,11 +327,6 @@ function ProjectDetail() {
                                 <h3>Thông tin dự án</h3>
 
                                 <div className="info-row">
-                                    <span>Khách hàng</span>
-                                    <b>{project.customer || "Chưa có khách hàng"}</b>
-                                </div>
-
-                                <div className="info-row">
                                     <span>Quản lý dự án</span>
                                     <b>{project.manager_name || "Chưa có quản lý"}</b>
                                 </div>
