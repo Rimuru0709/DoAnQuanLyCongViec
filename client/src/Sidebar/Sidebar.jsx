@@ -15,6 +15,17 @@ import {
 } from "react-icons/fa";
 
 function Sidebar() {
+    const userJson = localStorage.getItem("user");
+    const user = userJson ? JSON.parse(userJson) : null;
+    const name = user ? user.name : "Đào Quang Duy";
+    const initial = name ? name.charAt(0).toUpperCase() : "D";
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+    };
+
     return (
         <aside className="sidebar">
 
@@ -131,17 +142,78 @@ function Sidebar() {
 
             </nav>
 
-            <div className="user-box">
-
-                <div className="avatar">
-                    D
-                </div>
-
-                <div>
-                    <h4>Đào Quang Duy</h4>
-                    <p>Administrator</p>
-                </div>
-
+            <div className="user-box" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "stretch" }}>
+                {user ? (
+                    <>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <div className="avatar">
+                                {initial}
+                            </div>
+                            <div>
+                                <h4 style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: "150px" }}>{name}</h4>
+                                <p style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: "150px" }}>{user?.email || "Administrator"}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            style={{
+                                background: "rgba(239, 68, 68, 0.15)",
+                                border: "1px solid rgba(239, 68, 68, 0.3)",
+                                color: "#f87171",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                transition: "background 0.2s, border-color 0.2s"
+                            }}
+                            onMouseOver={(e) => {
+                                e.target.style.background = "rgba(239, 68, 68, 0.25)";
+                                e.target.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.background = "rgba(239, 68, 68, 0.15)";
+                                e.target.style.borderColor = "rgba(239, 68, 68, 0.3)";
+                            }}
+                        >
+                            Đăng xuất
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <div className="avatar" style={{ background: "#4b5563" }}>
+                                ?
+                            </div>
+                            <div>
+                                <h4>Khách (Guest)</h4>
+                                <p>Chưa đăng nhập</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => window.location.href = "/login"}
+                            style={{
+                                background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                                border: "none",
+                                color: "#ffffff",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                transition: "background 0.2s"
+                            }}
+                            onMouseOver={(e) => {
+                                e.target.style.background = "linear-gradient(135deg, #3b82f6, #2563eb)";
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.background = "linear-gradient(135deg, #2563eb, #1d4ed8)";
+                            }}
+                        >
+                            Đăng nhập
+                        </button>
+                    </>
+                )}
             </div>
 
         </aside>

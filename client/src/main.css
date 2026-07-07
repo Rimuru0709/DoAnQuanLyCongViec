@@ -1,0 +1,13 @@
+/* CSS toàn cục (Thiết lập màu nền Darkmode, Font chữ hệ thống) */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #071527;
+    color: #fff;
+    min-height: 100vh;
+}
