@@ -1,15 +1,7 @@
 const db = require("../db");
 
 const getProjects = (req, res) => {
-    const sql = `
-        SELECT 
-            p.*,
-            IFNULL(ROUND(AVG(t.progress)), 0) AS progress
-        FROM projects p
-        LEFT JOIN tasks t ON p.id = t.project_id
-        GROUP BY p.id
-        ORDER BY p.id DESC
-    `;
+    const sql = "SELECT * FROM projects ORDER BY id DESC";
 
     db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
@@ -20,15 +12,7 @@ const getProjects = (req, res) => {
 const getProjectById = (req, res) => {
     const { id } = req.params;
 
-    const sql = `
-        SELECT 
-            p.*,
-            IFNULL(ROUND(AVG(t.progress)), 0) AS progress
-        FROM projects p
-        LEFT JOIN tasks t ON p.id = t.project_id
-        WHERE p.id = ?
-        GROUP BY p.id
-    `;
+    const sql = "SELECT * FROM projects WHERE id = ?";
 
     db.query(sql, [id], (err, result) => {
         if (err) return res.status(500).json(err);
