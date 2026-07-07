@@ -7,7 +7,6 @@ function Setting({ project, onProjectUpdated, onProjectDeleted }) {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        customer: "",
         manager_name: "",
         start_date: "",
         end_date: "",
@@ -33,7 +32,6 @@ function Setting({ project, onProjectUpdated, onProjectDeleted }) {
             setFormData({
                 name: project.name || "",
                 description: project.description || "",
-                customer: project.customer || "",
                 manager_name: project.manager_name || "",
                 start_date: formatDateInput(project.start_date),
                 end_date: formatDateInput(project.end_date),
@@ -138,15 +136,6 @@ function Setting({ project, onProjectUpdated, onProjectDeleted }) {
                     />
 
                     <div className="setting-form-row">
-                        <div>
-                            <label>Khách hàng</label>
-                            <input
-                                type="text"
-                                name="customer"
-                                value={formData.customer}
-                                onChange={handleChange}
-                            />
-                        </div>
 
                         <div>
                             <label>Quản lý dự án</label>
@@ -208,11 +197,6 @@ function Setting({ project, onProjectUpdated, onProjectDeleted }) {
                         <div className="setting-info-row">
                             <span>Chủ dự án</span>
                             <b>{project.manager_name || "Chưa có"}</b>
-                        </div>
-
-                        <div className="setting-info-row">
-                            <span>Khách hàng</span>
-                            <b>{project.customer || "Chưa có"}</b>
                         </div>
 
                         <div className="setting-info-row">
