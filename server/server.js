@@ -8,11 +8,13 @@ const projectRoutes = require("./src/routes/projectRoutes");
 const taskRoutes = require("./src/routes/taskRoutes");
 const memberRoutes = require("./src/routes/memberRoutes");
 const documentRoutes = require("./src/routes/documentRoutes");
+const userRoutes = require("./src/routes/userRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/users", userRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

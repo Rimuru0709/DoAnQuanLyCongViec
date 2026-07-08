@@ -14,24 +14,17 @@ import Setting from "./Setting/Setting";
 import Login from "./Login/Login";
 import Register from "./Register/Register";
 
-// Wrapper Component để bảo vệ các Router yêu cầu Đăng Nhập (Cài đặt, Thông báo...)
-function ProtectedRoute({ children }) {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        // Nếu chưa đăng nhập, đưa về trang đăng nhập
-        return <Navigate to="/login" replace />;
-    }
-    return children;
-}
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Các Route Công Cộng (Không cần đăng nhập) */}
+                <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/" element={<Home />} />
+
                 <Route path="/project" element={<Project />} />
                 <Route path="/project/:id" element={<ProjectDetail />} />
                 <Route path="/task" element={<Task />} />
@@ -40,23 +33,21 @@ function App() {
                 <Route path="/member" element={<Member />} />
                 <Route path="/report" element={<Report />} />
                 <Route path="/document" element={<Document />} />
+                <Route path="/notification" element={<Notification />} />
+                <Route path="/setting" element={<Setting />} />
 
-                {/* Các Route Riêng Tư (Cần đăng nhập) */}
-                <Route path="/notification" element={
-                    <ProtectedRoute>
-                        <Notification />
-                    </ProtectedRoute>
-                } />
-                
-                <Route path="/setting" element={
-                    <ProtectedRoute>
-                        <Setting />
-                    </ProtectedRoute>
-                } />
-
-                {/* Chuyển hướng các Route không khớp về Trang Chủ */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+
+            <ToastContainer
+                position="top-right"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                pauseOnHover
+                theme="dark"
+            />
         </BrowserRouter>
     );
 }

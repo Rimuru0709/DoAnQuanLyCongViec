@@ -8,6 +8,7 @@ import {
     FaTrash,
     FaCopy,
     FaArchive,
+    FaUndo,
 } from "react-icons/fa";
 import Sidebar from "../Sidebar/Sidebar";
 
@@ -21,12 +22,13 @@ function Project() {
     const [editProject, setEditProject] = useState(null);
     const [menuProject, setMenuProject] = useState(null);
     const [deleteProjectId, setDeleteProjectId] = useState(null);
+    const [archiveProjectId, setArchiveProjectId] = useState(null);
     const [message, setMessage] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
     const projectsPerPage = 5;
 
-    
+
 
     const [newProject, setNewProject] = useState({
         name: "",
@@ -44,7 +46,13 @@ function Project() {
     };
 
     const loadProjects = () => {
-        fetch("http://localhost:5000/api/projects")
+
+        const url =
+            filterStatus === "ARCHIVED"
+                ? "http://localhost:5000/api/projects/archived"
+                : "http://localhost:5000/api/projects";
+
+        fetch(url)
             .then((res) => res.json())
             .then((data) => setProjects(data))
             .catch((err) => console.log(err));
@@ -52,7 +60,7 @@ function Project() {
 
     useEffect(() => {
         loadProjects();
-    }, []);
+    }, [filterStatus]);
 
     const statusText = {
         DANG_THUC_HIEN: "Đang thực hiện",
@@ -178,6 +186,8 @@ function Project() {
 
         showToast("Đã lưu trữ dự án");
         setMenuProject(null);
+        setArchiveProjectId(null);
+        setCurrentPage(1);
         loadProjects();
     };
 
@@ -196,9 +206,27 @@ function Project() {
         loadProjects();
     };
 
+    const handleRestoreProject = async (id) => {
+        const res = await fetch(`http://localhost:5000/api/projects/${id}/restore`, {
+            method: "PUT",
+        });
+
+        if (!res.ok) {
+            showToast("Khôi phục dự án thất bại");
+            return;
+        }
+
+        showToast("Khôi phục dự án thành công");
+        setMenuProject(null);
+        setCurrentPage(1);
+        loadProjects();
+    };
+
     const filteredProjects = projects.filter((project) => {
         const matchStatus =
-            filterStatus === "ALL" || project.status === filterStatus;
+            filterStatus === "ALL" ||
+            filterStatus === "ARCHIVED" ||
+            project.status === filterStatus;
 
         const matchSearch =
             project.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -213,7 +241,7 @@ function Project() {
     const currentProjects = filteredProjects.slice(firstIndex, lastIndex);
 
     const formData = editProject || newProject;
-    
+
 
     return (
         <div className="layout">
@@ -252,6 +280,7 @@ function Project() {
                         ["SAP_TOI", "Sắp tới"],
                         ["HOAN_THANH", "Hoàn thành"],
                         ["TAM_DUNG", "Tạm dừng"],
+                        ["ARCHIVED", "Đã lưu trữ"],
                     ].map(([value, label]) => (
                         <button
                             key={value}
@@ -305,19 +334,19 @@ function Project() {
                                     </td>
 
                                     <td>
-    <div className="progress-box">
-        <span>{Number(project.progress) || 0}%</span>
+                                        <div className="progress-box">
+                                            <span>{Number(project.progress) || 0}%</span>
 
-        <div className="progress-line">
-            <div
-                className="progress-fill"
-                style={{
-                    width: `${Number(project.progress) || 0}%`
-                }}
-            ></div>
-        </div>
-    </div>
-</td>
+                                            <div className="progress-line">
+                                                <div
+                                                    className="progress-fill"
+                                                    style={{
+                                                        width: `${Number(project.progress) || 0}%`
+                                                    }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </td>
 
                                     <td>
                                         <div className="avatars">
@@ -355,23 +384,37 @@ function Project() {
 
                                                 {menuProject === project.id && (
                                                     <div className="dropdown-menu">
-                                                        <div
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDuplicateProject(project.id);
-                                                            }}
-                                                        >
-                                                            <FaCopy /> Nhân bản dự án
-                                                        </div>
+                                                        {filterStatus === "ARCHIVED" ? (
+                                                            <div
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleRestoreProject(project.id);
+                                                                }}
+                                                            >
+                                                                <FaUndo /> Khôi phục dự án
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <div
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDuplicateProject(project.id);
+                                                                    }}
+                                                                >
+                                                                    <FaCopy /> Nhân bản dự án
+                                                                </div>
 
-                                                        <div
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleArchiveProject(project.id);
-                                                            }}
-                                                        >
-                                                            <FaArchive /> Lưu trữ dự án
-                                                        </div>
+                                                                <div
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setArchiveProjectId(project.id);
+                                                                        setMenuProject(null);
+                                                                    }}
+                                                                >
+                                                                    <FaArchive /> Lưu trữ dự án
+                                                                </div>
+                                                            </>
+                                                        )}
 
                                                         <div
                                                             className="delete"
@@ -526,6 +569,36 @@ function Project() {
                                 onClick={() => handleDeleteProject(deleteProjectId)}
                             >
                                 Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {archiveProjectId && (
+                <div className="modal-overlay">
+                    <div className="modal-box delete-modal">
+                        <h2>Lưu trữ dự án</h2>
+
+                        <p className="delete-text">
+                            Bạn có chắc chắn muốn lưu trữ dự án này không?
+                        </p>
+
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="btn-cancel"
+                                onClick={() => setArchiveProjectId(null)}
+                            >
+                                Hủy
+                            </button>
+
+                            <button
+                                type="button"
+                                className="btn-save"
+                                onClick={() => handleArchiveProject(archiveProjectId)}
+                            >
+                                Lưu trữ
                             </button>
                         </div>
                     </div>
