@@ -5,7 +5,7 @@ const {
     uploadDocument,
     getDocumentsByProject,
     deleteDocument
-} = require("./documentController");
+} = require("../controllers/documentController");
 
 router.post("/", uploadDocument);
 router.get("/:projectId", getDocumentsByProject);
