@@ -48,12 +48,6 @@ function Document({ projectId }) {
         return ext || "FILE";
     };
 
-    const canPreview = (name) => {
-        if (!name) return false;
-        const ext = name.split(".").pop().toLowerCase();
-        return ["pdf", "png", "jpg", "jpeg", "webp", "gif"].includes(ext);
-    };
-
     const handleUpload = async (e) => {
         e.preventDefault();
 
@@ -204,17 +198,11 @@ function Document({ projectId }) {
 
                                     <td>
                                         <div className="document-actions">
-                                            {canPreview(doc.file_name) && (
-                                                <a
-                                                    href={`${API_URL}/${doc.file_path}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                >
-                                                    Xem
-                                                </a>
-                                            )}
 
-                                            <a href={`${API_URL}/${doc.file_path}`} download>
+                                            <a
+                                                href={`${API_URL}/${doc.file_path}`}
+                                                download={doc.file_name}
+                                            >
                                                 Tải
                                             </a>
 

@@ -26,6 +26,8 @@ function Project() {
     const [currentPage, setCurrentPage] = useState(1);
     const projectsPerPage = 5;
 
+    
+
     const [newProject, setNewProject] = useState({
         name: "",
         description: "",
@@ -211,6 +213,7 @@ function Project() {
     const currentProjects = filteredProjects.slice(firstIndex, lastIndex);
 
     const formData = editProject || newProject;
+    
 
     return (
         <div className="layout">
@@ -302,17 +305,19 @@ function Project() {
                                     </td>
 
                                     <td>
-                                        <div className="progress-box">
-                                            <span>{project.progress}%</span>
+    <div className="progress-box">
+        <span>{Number(project.progress) || 0}%</span>
 
-                                            <div className="progress-line">
-                                                <div
-                                                    className="progress-fill"
-                                                    style={{ width: `${project.progress}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </td>
+        <div className="progress-line">
+            <div
+                className="progress-fill"
+                style={{
+                    width: `${Number(project.progress) || 0}%`
+                }}
+            ></div>
+        </div>
+    </div>
+</td>
 
                                     <td>
                                         <div className="avatars">
