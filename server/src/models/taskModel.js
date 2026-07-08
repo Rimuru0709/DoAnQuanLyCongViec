@@ -3,15 +3,16 @@ const db = require("../config/db");
 const TaskModel = {
     getAll: (callback) => {
         const sql = `
-            SELECT 
-                tasks.*,
-                projects.name AS project_name,
-                users.full_name AS assignee_name
-            FROM tasks
-            LEFT JOIN projects ON tasks.project_id = projects.id
-            LEFT JOIN users ON tasks.assigned_to = users.id
-            ORDER BY tasks.id DESC
-        `;
+        SELECT 
+            tasks.*,
+            projects.name AS project_name,
+            projects.color AS project_color,
+            users.full_name AS assignee_name
+        FROM tasks
+        LEFT JOIN projects ON tasks.project_id = projects.id
+        LEFT JOIN users ON tasks.assigned_to = users.id
+        ORDER BY tasks.id DESC
+    `;
 
         db.query(sql, callback);
     },
@@ -56,18 +57,18 @@ const TaskModel = {
 
     update: (id, data, callback) => {
         const sql = `
-            UPDATE tasks
-            SET 
-                title = ?,
-                description = ?,
-                assigned_to = ?,
-                start_date = ?,
-                end_date = ?,
-                status = ?,
-                priority = ?,
-                progress = ?
-            WHERE id = ?
-        `;
+        UPDATE tasks
+        SET 
+            title = ?,
+            description = ?,
+            assigned_to = ?,
+            start_date = ?,
+            end_date = ?,
+            status = ?,
+            priority = ?,
+            progress = ?
+        WHERE id = ?
+    `;
 
         db.query(
             sql,
@@ -79,7 +80,7 @@ const TaskModel = {
                 data.end_date,
                 data.status,
                 data.priority,
-                data.progress || 0,
+                Number(data.progress),
                 id
             ],
             callback
@@ -116,7 +117,24 @@ const TaskModel = {
 
             db.query(updateSql, [progress, projectId], callback);
         });
-    }
+    },
+
+    updateStatus: (id, status, callback) => {
+        let progress = null;
+
+        if (status === "CHUA_LAM") progress = 0;
+        if (status === "DANG_LAM") progress = 1;
+        if (status === "DANG_REVIEW") progress = 90;
+        if (status === "HOAN_THANH") progress = 100;
+
+        const sql = `
+        UPDATE tasks
+        SET status = ?, progress = ?
+        WHERE id = ?
+    `;
+
+        db.query(sql, [status, progress, id], callback);
+    },
 };
 
 module.exports = TaskModel;

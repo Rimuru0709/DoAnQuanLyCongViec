@@ -37,6 +37,7 @@ function Project() {
         start_date: "",
         end_date: "",
         status: "SAP_TOI",
+        color: "#2563EB",
         created_by: 1,
     });
 
@@ -79,6 +80,7 @@ function Project() {
             start_date: "",
             end_date: "",
             status: "SAP_TOI",
+            color: "#2563EB",
             created_by: 1,
         });
         setShowForm(true);
@@ -152,6 +154,7 @@ function Project() {
             start_date: "",
             end_date: "",
             status: "SAP_TOI",
+            color: "#2563EB",
             created_by: 1,
         });
 
@@ -526,6 +529,44 @@ function Project() {
                                 <option value="QUA_HAN">Quá hạn</option>
                             </select>
 
+                            <label>Màu dự án</label>
+
+                            <div className="color-options">
+                                {[
+                                    "#2563EB",
+                                    "#22C55E",
+                                    "#A855F7",
+                                    "#F97316",
+                                    "#EF4444",
+                                    "#EAB308",
+                                    "#06B6D4",
+                                    "#64748B",
+                                ].map((color) => (
+                                    <button
+                                        key={color}
+                                        type="button"
+                                        className={
+                                            formData.color === color
+                                                ? "color-circle active"
+                                                : "color-circle"
+                                        }
+                                        style={{ backgroundColor: color }}
+                                        onClick={() => {
+                                            if (editProject) {
+                                                setEditProject({
+                                                    ...editProject,
+                                                    color,
+                                                });
+                                            } else {
+                                                setNewProject({
+                                                    ...newProject,
+                                                    color,
+                                                });
+                                            }
+                                        }}
+                                    />
+                                ))}
+                            </div>
 
                             <div className="modal-actions">
                                 <button

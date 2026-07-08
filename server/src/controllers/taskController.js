@@ -78,10 +78,40 @@ const deleteTask = (req, res) => {
     });
 };
 
+const updateTaskStatus = (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    TaskModel.getById(id, (err, result) => {
+        if (err) return res.status(500).json(err);
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                message: "Không tìm thấy công việc"
+            });
+        }
+
+        const projectId = result[0].project_id;
+
+        TaskModel.updateStatus(id, status, (err) => {
+            if (err) return res.status(500).json(err);
+
+            TaskModel.updateProjectProgress(projectId, (err) => {
+                if (err) return res.status(500).json(err);
+
+                res.json({
+                    message: "Cập nhật trạng thái công việc thành công"
+                });
+            });
+        });
+    });
+};
+
 module.exports = {
     getAllTasks,
     getTasksByProject,
     addTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    updateTaskStatus
 };
