@@ -369,7 +369,7 @@ tr:hover {
     background: #071527;
     border: 1px solid #243b5a;
     color: white;
-    padding: 10px 12px; 
+    padding: 10px 12px;
     border-radius: 10px;
     outline: none;
 }
@@ -436,10 +436,34 @@ tr:hover {
     color: white;
     padding: 10px 16px;
     border-radius: 9px;
-}   
+}
 
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: brightness(0) invert(1);
     cursor: pointer;
     opacity: 1;
+}
+
+.color-options {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0 18px;
+}
+
+.color-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.color-circle:hover {
+    transform: scale(1.12);
+}
+
+.color-circle.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .35);
 }
