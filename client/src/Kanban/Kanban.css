@@ -342,3 +342,18 @@
 .global-btn-save {
     background: #2563eb;
 }
+
+.Toastify__toast {
+    width: 260px !important;
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+}
+
+.Toastify__toast-icon {
+    width: 18px;
+}
+
+.Toastify__close-button {
+    transform: scale(0.7);
+}
