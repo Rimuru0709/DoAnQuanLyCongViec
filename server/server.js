@@ -9,6 +9,9 @@ const taskRoutes = require("./src/routes/taskRoutes");
 const memberRoutes = require("./src/routes/memberRoutes");
 const documentRoutes = require("./src/routes/documentRoutes");
 const userRoutes = require("./src/routes/userRoutes");
+const notificationRoutes = require("./src/routes/notificationRoutes");
+const reportRoutes = require("./src/routes/reportRoutes");
+const settingRoutes = require("./src/routes/settingRoutes");
 
 const app = express();
 
@@ -26,6 +29,9 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/members", memberRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/settings", settingRoutes); 
 
 const PORT = process.env.PORT || 5000;
 

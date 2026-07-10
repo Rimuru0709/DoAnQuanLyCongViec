@@ -11,6 +11,7 @@ function Login() {
     const [isPasswordFocus, setIsPasswordFocus] = useState(false);
     const [isSad, setIsSad] = useState(false);
     const [message, setMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const showError = (text) => {
         setMessage(text);
@@ -25,12 +26,27 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
 
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
+        if (!trimmedEmail || !trimmedPassword) {
+            showError("Vui lòng nhập email và mật khẩu");
+            return;
+        }
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!emailRegex.test(email)) {
+        if (!emailRegex.test(trimmedEmail)) {
             showError("Email không đúng định dạng");
             return;
         }
+
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        setMessage("");
 
         try {
             const res = await fetch("http://localhost:5000/api/users/login", {
@@ -38,7 +54,7 @@ function Login() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
             });
 
             const data = await res.json();
@@ -48,17 +64,24 @@ function Login() {
                 return;
             }
 
+            if (!data.token || !data.user) {
+                showError("Phản hồi đăng nhập không hợp lệ");
+                return;
+            }
+
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
 
             toast.success(`Xin chào ${data.user.full_name}!`);
 
             setTimeout(() => {
-                navigate("/");
+                navigate("/home", { replace: true });
             }, 1000);
         } catch (err) {
-            console.log(err);
+            console.error(err);
             showError("Không thể kết nối server");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -75,6 +98,7 @@ function Login() {
 
             <div className="auth-right">
                 <form className="login-card" onSubmit={handleLogin}>
+                    {/* Chú robot tương tác thông minh theo State */}
                     <div className={`robot ${isPasswordFocus ? "secure" : ""} ${isSad ? "sad" : ""}`}>
                         <div className="robot-head">
                             <div className="robot-screen">
@@ -103,6 +127,7 @@ function Login() {
                         placeholder="Nhập email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        required
                     />
 
                     <label>Mật khẩu</label>
@@ -113,9 +138,12 @@ function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         onFocus={() => setIsPasswordFocus(true)}
                         onBlur={() => setIsPasswordFocus(false)}
+                        required
                     />
 
-                    <button type="submit">Đăng nhập</button>
+                    <button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+                    </button>
 
                     <p className="auth-link">
                         Chưa có tài khoản? <Link to="/register">Đăng ký</Link>

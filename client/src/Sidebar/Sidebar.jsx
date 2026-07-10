@@ -79,7 +79,6 @@ function Sidebar() {
                 <NavLink to="/notification" className={({ isActive }) => isActive ? "menu active" : "menu"}>
                     <FaBell />
                     <span>Thông báo</span>
-                    <div className="badge">5</div>
                 </NavLink>
 
                 <NavLink to="/setting" className={({ isActive }) => isActive ? "menu active" : "menu"}>

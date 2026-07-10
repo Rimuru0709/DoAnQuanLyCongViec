@@ -1,0 +1,246 @@
+/* Badge đếm số lượng tin nhắn chưa đọc trên Topbar */
+.unread-badge-count {
+    background: #ef4444;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.btn-sm {
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+}
+
+/* Thanh Tabs điều hướng lọc dữ liệu */
+.notif-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid rgba(24, 48, 74, 0.5);
+    padding-bottom: 4px;
+}
+
+.tab-item {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.tab-item:hover {
+    color: #dce8f7;
+}
+
+.tab-item.active {
+    color: #60a5fa;
+}
+
+.tab-item.active::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #0d6efd;
+    border-radius: 2px;
+}
+
+/* Container bọc danh sách */
+.notif-card-container {
+    padding: 8px 0 !important;
+}
+
+.notif-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Từng hàng thông báo */
+.notif-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(24, 48, 74, 0.4);
+    transition: background-color 0.2s ease;
+}
+
+.notif-item:last-child {
+    border-bottom: none;
+}
+
+/* Highlight màu nền khi thông báo CHƯA đọc */
+.notif-item.unread {
+    background: rgba(13, 110, 253, 0.03);
+}
+
+.notif-item:hover {
+    background: rgba(24, 48, 74, 0.15);
+}
+
+.notif-left {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+/* Định hình Icon */
+.notif-icon {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.notif-icon.icon-warning {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+}
+
+.notif-icon.icon-system {
+    background: rgba(163, 163, 163, 0.12);
+    color: #cbd5e1;
+}
+
+.notif-icon.icon-info {
+    background: rgba(13, 110, 253, 0.12);
+    color: #60a5fa;
+}
+
+/* Khối text nội dung thông báo */
+.notif-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.notif-title {
+    color: white;
+    font-size: 15px;
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Chấm tròn xanh nhỏ biểu thị chưa đọc */
+.unread-dot {
+    width: 7px;
+    height: 7px;
+    background: #2563eb;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.notif-desc {
+    color: #9fb1c8;
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.notif-time {
+    color: #52657d;
+    font-size: 11px;
+}
+
+/* Nút tương tác nhanh ở đuôi dòng */
+.notif-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0; /* Ẩn đi mặc định, chỉ hiện khi hover dòng */
+    transition: opacity 0.2s ease;
+}
+
+.notif-item:hover .notif-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    border: none;
+    background: rgba(16, 35, 58, 0.8);
+    border: 1px solid #18304a;
+    color: #9fb1c8;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
+
+.check-btn:hover {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.delete-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Giao diện rỗng khi không có thông báo */
+.notif-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    color: #52657d;
+    gap: 12px;
+}
+
+.empty-bell-icon {
+    font-size: 40px;
+    color: #1e293b;
+}
+
+.notif-empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.btn-danger-hover:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* --- HỖ TRỢ HIỂN THỊ TRÊN ĐIỆN THOẠI & MÁY TÍNH BẢNG --- */
+@media (max-width: 768px) {
+    /* Trên thiết bị di động, luôn hiện nút hành động, không bắt người dùng hover */
+    .notif-actions {
+        opacity: 1 !important; 
+        gap: 12px;
+    }
+
+    /* Tăng nhẹ kích thước nút để ngón tay dễ bấm trúng, tránh bấm nhầm nút xóa */
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    /* Thu nhỏ khoảng cách đệm để hàng thông báo gọn gàng hơn trên màn hình hẹp */
+    .notif-item {
+        padding: 14px 16px;
+        align-items: flex-start; /* Đẩy cụm nút lên trên nếu nội dung thông báo quá dài */
+    }
+
+    .notif-left {
+        gap: 12px;
+    }
+}
