@@ -159,7 +159,6 @@ function Calendar() {
                         <p>Theo dõi deadline công việc và tiến độ dự án.</p>
                     </div>
 
-                    <button type="button">+ Thêm sự kiện</button>
                 </div>
 
                 <div className="calendar-stats">
