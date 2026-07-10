@@ -107,64 +107,73 @@ const register = async (req, res) => {
     });
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
     const { email, password } = req.body;
+    const trimmedEmail = typeof email === "string" ? email.trim() : "";
+    const trimmedPassword = typeof password === "string" ? password.trim() : "";
 
-    if (!email || !password) {
+    if (!trimmedEmail || !trimmedPassword) {
         return res.status(400).json({
             message: "Vui lòng nhập email và mật khẩu"
         });
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(trimmedEmail)) {
         return res.status(400).json({
             message: "Email không đúng định dạng"
         });
     }
 
-    UserModel.findByEmail(email, async (err, result) => {
-        if (err) return res.status(500).json(err);
+    try {
+        UserModel.findByEmail(trimmedEmail, async (err, result) => {
+            if (err) return res.status(500).json(err);
 
-        if (result.length === 0) {
-            return res.status(400).json({
-                message: "Email hoặc mật khẩu không đúng"
-            });
-        }
-
-        const user = result[0];
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(400).json({
-                message: "Email hoặc mật khẩu không đúng"
-            });
-        }
-
-        const token = jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            },
-            process.env.JWT_SECRET || "project_master_secret",
-            {
-                expiresIn: "1d"
+            if (result.length === 0) {
+                return res.status(400).json({
+                    message: "Email hoặc mật khẩu không đúng"
+                });
             }
-        );
 
-        res.json({
-            message: "Đăng nhập thành công",
-            token,
-            user: {
-                id: user.id,
-                full_name: user.full_name,
-                email: user.email,
-                phone: user.phone,
-                role: user.role,
-                avatar: user.avatar
+            const user = result[0];
+            const isMatch = await bcrypt.compare(trimmedPassword, user.password);
+
+            if (!isMatch) {
+                return res.status(400).json({
+                    message: "Email hoặc mật khẩu không đúng"
+                });
             }
+
+            const token = jwt.sign(
+                {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role
+                },
+                process.env.JWT_SECRET || "project_master_secret",
+                {
+                    expiresIn: "1d"
+                }
+            );
+
+            res.json({
+                message: "Đăng nhập thành công",
+                token,
+                user: {
+                    id: user.id,
+                    full_name: user.full_name,
+                    email: user.email,
+                    phone: user.phone,
+                    role: user.role,
+                    avatar: user.avatar
+                }
+            });
         });
-    });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Đăng nhập thất bại"
+        });
+    }
 };
 
 module.exports = {
