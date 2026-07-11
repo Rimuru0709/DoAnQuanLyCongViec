@@ -1,54 +1,82 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
-import "./Setting.css"; 
+import "./Setting.css";
 
-function ProjectSettings() {
-    const { projectId } = useParams(); 
+function Setting() {
+    // 1. Khởi tạo State lưu cấu hình hệ thống (Cũ + Mới bổ sung)
+    const [themeColor, setThemeColor] = useState("#2563EB");
+    const [enableGantt, setEnableGantt] = useState(true);
+    const [enableTimeline, setEnableTimeline] = useState(true);
+    const [workDays, setWorkDays] = useState("Mon,Tue,Wed,Thu,Fri");
+    
+    // Khởi tạo state cho các tính năng mới được gợi ý
+    const [defaultView, setDefaultView] = useState("kanban");
+    const [adminOnlyCreateProject, setAdminOnlyCreateProject] = useState(false);
+    const [maxUploadSize, setMaxUploadSize] = useState(10);
+    
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState({ type: "", message: "" });
-    
-    const [settings, setSettings] = useState({
-        theme_color: "#2563EB",
-        enable_gantt: true,
-        enable_timeline: true,
-        working_days: "Mon,Tue,Wed,Thu,Fri"
-    });
 
+    // 2. Gọi API lấy toàn bộ cấu hình hệ thống khi tải trang
     useEffect(() => {
-        if (!projectId) return;
-        fetch(`http://localhost:5000/api/settings/${projectId}`) 
-            .then(res => res.json())
-            .then(data => {
-                if (data && !data.message) {
-                    setSettings({
-                        theme_color: data.theme_color || "#2563EB",
-                        enable_gantt: data.enable_gantt ?? true,
-                        enable_timeline: data.enable_timeline ?? true,
-                        working_days: data.working_days || "Mon,Tue,Wed,Thu,Fri"
-                    });
+        const fetchSystemSettings = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch("http://localhost:5000/api/settings");
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        // Đổ dữ liệu cũ
+                        setThemeColor(data.theme_color || "#2563EB");
+                        setEnableGantt(data.enable_gantt !== false);
+                        setEnableTimeline(data.enable_timeline !== false);
+                        setWorkDays(data.work_days || "Mon,Tue,Wed,Thu,Fri");
+                        
+                        // Đổ dữ liệu mới (nếu có trong DB, không thì lấy giá trị mặc định)
+                        setDefaultView(data.default_view || "kanban");
+                        setAdminOnlyCreateProject(data.admin_only_create_project === true);
+                        setMaxUploadSize(data.max_upload_size || 10);
+                    }
                 }
-            })
-            .catch(err => console.error("Lỗi tải cấu hình:", err));
-    }, [projectId]);
+            } catch (error) {
+                console.error("Lỗi khi tải cấu hình hệ thống:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const handleSave = async (e) => {
+        fetchSystemSettings();
+    }, []);
+
+    // 3. Xử lý lưu toàn bộ cấu hình hệ thống về Backend
+    const handleSaveSettings = async (e) => {
         e.preventDefault();
         setLoading(true);
         setStatus({ type: "", message: "" });
+
         try {
-            const res = await fetch(`http://localhost:5000/api/settings/${projectId}`, {
+            const response = await fetch("http://localhost:5000/api/settings", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(settings)
+                body: JSON.stringify({
+                    theme_color: themeColor,
+                    enable_gantt: enableGantt,
+                    enable_timeline: enableTimeline,
+                    work_days: workDays,
+                    // Đính kèm các trường mới bổ sung vào body API
+                    default_view: defaultView,
+                    admin_only_create_project: adminOnlyCreateProject,
+                    max_upload_size: Number(maxUploadSize),
+                }),
             });
-            if (res.ok) {
-                setStatus({ type: "success", message: "Đã lưu thiết lập dự án thành công!" });
+
+            if (response.ok) {
+                setStatus({ type: "success", message: "Đã cập nhật cấu hình hệ thống thành công!" });
             } else {
-                setStatus({ type: "error", message: "Lưu thất bại. Vui lòng kiểm tra lại!" });
+                setStatus({ type: "error", message: "Không thể lưu cấu hình. Vui lòng thử lại." });
             }
         } catch {
-            setStatus({ type: "error", message: "Không thể kết nối đến máy chủ." });
+            setStatus({ type: "error", message: "Lỗi kết nối đến server." });
         } finally {
             setLoading(false);
         }
@@ -56,13 +84,10 @@ function ProjectSettings() {
 
     return (
         <div className="project-settings-layout">
-            {/* Thanh điều hướng bên trái */}
             <Sidebar />
-
-            {/* Vùng nội dung cấu hình bên phải */}
             <div className="project-settings-container">
-                <form onSubmit={handleSave} className="settings-form">
-                    <h3 className="form-section-title">Thiết lập Dự án (ID: {projectId || "Chưa chọn"})</h3>
+                <form className="settings-form" onSubmit={handleSaveSettings}>
+                    <h2 className="form-section-title">Thiết lập Hệ thống Dự án (Chung)</h2>
                     
                     {status.message && (
                         <div className={`status-banner ${status.type}-banner`}>
@@ -70,65 +95,118 @@ function ProjectSettings() {
                         </div>
                     )}
 
-                    {/* Chọn màu chủ đạo */}
+                    {/* SECTION: GIAO DIỆN CƠ BẢN */}
                     <div className="form-group">
-                        <label>Màu sắc chủ đạo dự án (Theme Color)</label>
+                        <label>Màu sắc chủ đạo mặc định (Theme Color)</label>
                         <div className="color-picker-wrapper">
                             <input 
                                 type="color" 
-                                value={settings.theme_color} 
-                                onChange={e => setSettings({...settings, theme_color: e.target.value})} 
+                                value={themeColor} 
+                                onChange={(e) => setThemeColor(e.target.value)} 
                             />
-                            <span className="color-code-text">{settings.theme_color}</span>
+                            <span className="color-code-text">{themeColor.toUpperCase()}</span>
                         </div>
                     </div>
 
-                    {/* Bật/tắt Biểu đồ Gantt */}
+                    {/* SECTION 1: QUY TRÌNH & HIỂN THỊ */}
+                    <h3 className="form-section-title" style={{ fontSize: '16px', marginTop: '20px' }}>Quy trình & Hiển thị</h3>
+
+                    <div className="form-group">
+                        <label>Chế độ xem mặc định khi vào dự án</label>
+                        <select 
+                            className="settings-input" 
+                            style={{ appearance: 'auto' }}
+                            value={defaultView}
+                            onChange={(e) => setDefaultView(e.target.value)}
+                        >
+                            <option value="kanban">Bảng Kanban (Mặc định)</option>
+                            <option value="list">Danh sách (List View)</option>
+                            <option value="calendar">Lịch (Calendar)</option>
+                        </select>
+                    </div>
+
                     <div className="setting-toggle-item">
                         <div className="toggle-text-group">
                             <h4>Kích hoạt biểu đồ Gantt</h4>
-                            <p className="sub-text">Hiển thị tiến độ công việc theo dạng thanh lịch trình.</p>
+                            <p className="sub-text">Hiển thị tiến độ công việc theo dạng thanh lịch trình mặc định.</p>
                         </div>
                         <label className="switch">
                             <input 
                                 type="checkbox" 
-                                checked={settings.enable_gantt} 
-                                onChange={e => setSettings({...settings, enable_gantt: e.target.checked})} 
+                                checked={enableGantt} 
+                                onChange={(e) => setEnableGantt(e.target.checked)} 
                             />
                             <span className="slider round"></span>
                         </label>
                     </div>
 
-                    {/* Bật/tắt Sơ đồ Thời gian */}
                     <div className="setting-toggle-item">
                         <div className="toggle-text-group">
                             <h4>Kích hoạt Timeline</h4>
-                            <p className="sub-text">Theo dõi chuỗi sự kiện và cột mốc quan trọng.</p>
+                            <p className="sub-text">Theo dõi chuỗi sự kiện và cột mốc quan trọng của dự án.</p>
                         </div>
                         <label className="switch">
                             <input 
                                 type="checkbox" 
-                                checked={settings.enable_timeline} 
-                                onChange={e => setSettings({...settings, enable_timeline: e.target.checked})} 
+                                checked={enableTimeline} 
+                                onChange={(e) => setEnableTimeline(e.target.checked)} 
                             />
                             <span className="slider round"></span>
                         </label>
                     </div>
 
-                    {/* Nhập chuỗi ngày làm việc */}
                     <div className="form-group">
                         <label>Ngày làm việc trong tuần (Cách nhau bằng dấu phẩy)</label>
                         <input 
                             type="text" 
                             className="settings-input" 
-                            value={settings.working_days} 
-                            onChange={e => setSettings({...settings, working_days: e.target.value})} 
+                            value={workDays} 
+                            onChange={(e) => setWorkDays(e.target.value)} 
                             placeholder="Mon,Tue,Wed,Thu,Fri"
                         />
                     </div>
 
-                    <button type="submit" className="btn-primary" disabled={loading || !projectId}>
-                        {loading ? "Đang lưu..." : "Lưu cấu hình dự án"}
+                    {/* SECTION 2: QUẢN LÝ QUYỀN HẠN MẶC ĐỊNH */}
+                    <h3 className="form-section-title" style={{ fontSize: '16px', marginTop: '20px' }}>Quyền hạn hệ thống</h3>
+
+                    <div className="setting-toggle-item">
+                        <div className="toggle-text-group">
+                            <h4>Chỉ Admin mới được tạo dự án</h4>
+                            <p className="sub-text">Nếu tắt, tất cả nhân viên đều có thể tự tạo dự án mới.</p>
+                        </div>
+                        <label className="switch">
+                            <input 
+                                type="checkbox" 
+                                checked={adminOnlyCreateProject} 
+                                onChange={(e) => setAdminOnlyCreateProject(e.target.checked)} 
+                            />
+                            <span className="slider round"></span>
+                        </label>
+                    </div>
+
+                    {/* SECTION 3: ĐÍNH KÈM & TÀI LIỆU */}
+                    <h3 className="form-section-title" style={{ fontSize: '16px', marginTop: '20px' }}>Tài liệu & Đính kèm</h3>
+
+                    <div className="form-group">
+                        <label>Dung lượng file tối đa cho phép tải lên (MB)</label>
+                        <input 
+                            type="number" 
+                            className="settings-input" 
+                            value={maxUploadSize} 
+                            onChange={(e) => setMaxUploadSize(e.target.value)}
+                            min={1}
+                            max={100}
+                        />
+                    </div>
+
+                    {/* NÚT SUBMIT */}
+                    <button 
+                        type="submit" 
+                        className="btn-primary" 
+                        disabled={loading}
+                        style={{ marginTop: '10px' }}
+                    >
+                        {loading ? "Đang lưu..." : "Lưu cấu hình hệ thống"}
                     </button>
                 </form>
             </div>
@@ -136,4 +214,4 @@ function ProjectSettings() {
     );
 }
 
-export default ProjectSettings;
+export default Setting;

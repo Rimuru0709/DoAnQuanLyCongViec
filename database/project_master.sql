@@ -206,17 +206,21 @@ CREATE TABLE task_labels (
 );
 
 -- 16. Cài đặt riêng của dự án
-CREATE TABLE project_settings (
+DROP TABLE IF EXISTS system_settings;
+
+CREATE TABLE system_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    project_id INT NOT NULL UNIQUE,
     theme_color VARCHAR(20) DEFAULT '#2563EB',
     enable_gantt BOOLEAN DEFAULT TRUE,
     enable_timeline BOOLEAN DEFAULT TRUE,
     working_days VARCHAR(100) DEFAULT 'Mon,Tue,Wed,Thu,Fri',
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    default_view VARCHAR(50) DEFAULT 'kanban',
+    admin_only_create_project TINYINT(1) DEFAULT 0,
+    max_upload_size INT DEFAULT 10
 );
 
-
+-- Khởi tạo sẵn dữ liệu cấu hình mặc định cho hệ thống
+INSERT INTO system_settings (id, theme_color) VALUES (1, '#2563EB');
 
 -- Dữ liệu
 

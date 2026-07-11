@@ -1,70 +1,90 @@
-const db = require('../config/db'); // File kết nối cơ sở dữ liệu MySQL của bạn
+const db = require('../config/db'); 
 
-// 1. Lấy cấu hình của một dự án
-const getProjectSettings = async (req, res) => {
-    const { projectId } = req.params;
-
+// 1. Lấy cấu hình hệ thống (Chung cho tất cả dự án)
+const getSystemSettings = async (req, res) => {
     try {
-        const query = 'SELECT * FROM project_settings WHERE project_id = ?';
-        const [rows] = await db.execute(query, [projectId]);
+        // Cấu hình chung luôn nằm cố định ở dòng có id = 1
+        const query = 'SELECT * FROM system_settings WHERE id = 1';
+        const [rows] = await db.execute(query);
 
         if (rows.length === 0) {
-            // Nếu dự án mới tạo chưa có bản ghi cài đặt, trả về cấu hình mặc định hoặc tự động chèn mới
+            // Trường hợp hy hữu nếu dòng id = 1 chưa có, trả về giá trị mặc định cho Frontend
             return res.status(200).json({
-                project_id: parseInt(projectId),
                 theme_color: '#2563EB',
                 enable_gantt: true,
                 enable_timeline: true,
-                working_days: 'Mon,Tue,Wed,Thu,Fri'
+                work_days: 'Mon,Tue,Wed,Thu,Fri',
+                default_view: 'kanban',
+                admin_only_create_project: false,
+                max_upload_size: 10
             });
         }
 
-        // Chuyển đổi dữ liệu BOOLEAN (0/1 trong MySQL) thành true/false cho React
         const settings = rows[0];
+        
+        // Trả dữ liệu về cho React Frontend, đồng thời ép kiểu BOOLEAN chuẩn chỉnh (0/1 -> true/false)
         return res.status(200).json({
-            ...settings,
+            theme_color: settings.theme_color,
             enable_gantt: !!settings.enable_gantt,
-            enable_timeline: !!settings.enable_timeline
+            enable_timeline: !!settings.enable_timeline,
+            work_days: settings.working_days, // Map trúng cột working_days trong DB sang biến work_days của React
+            default_view: settings.default_view,
+            admin_only_create_project: !!settings.admin_only_create_project,
+            max_upload_size: settings.max_upload_size
         });
 
     } catch (error) {
-        return res.status(500).json({ message: "Lỗi khi lấy cấu hình dự án", error: error.message });
+        return res.status(500).json({ message: "Lỗi khi lấy cấu hình hệ thống", error: error.message });
     }
 };
 
-// 2. Cập nhật hoặc Khởi tạo cấu hình dự án
-const updateProjectSettings = async (req, res) => {
-    const { projectId } = req.params;
-    const { theme_color, enable_gantt, enable_timeline, working_days } = req.body;
+// 2. Cập nhật cấu hình hệ thống
+const updateSystemSettings = async (req, res) => {
+    // Hứng trọn vẹn các trường cũ và mới từ body của React gửi sang
+    const { 
+        theme_color, 
+        enable_gantt, 
+        enable_timeline, 
+        work_days, 
+        default_view, 
+        admin_only_create_project, 
+        max_upload_size 
+    } = req.body;
 
     try {
-        // Sử dụng câu lệnh ON DUPLICATE KEY UPDATE vì project_id là UNIQUE
+        // Câu lệnh SQL chèn hoặc cập nhật trực tiếp vào dòng id = 1
         const query = `
-            INSERT INTO project_settings (project_id, theme_color, enable_gantt, enable_timeline, working_days)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO system_settings (id, theme_color, enable_gantt, enable_timeline, working_days, default_view, admin_only_create_project, max_upload_size)
+            VALUES (1, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE 
                 theme_color = VALUES(theme_color),
                 enable_gantt = VALUES(enable_gantt),
                 enable_timeline = VALUES(enable_timeline),
-                working_days = VALUES(working_days)
+                working_days = VALUES(working_days),
+                default_view = VALUES(default_view),
+                admin_only_create_project = VALUES(admin_only_create_project),
+                max_upload_size = VALUES(max_upload_size)
         `;
 
+        // Chuẩn bị mảng dữ liệu, ép các giá trị boolean từ JS thành số 0/1 để lưu vào MySQL
         await db.execute(query, [
-            projectId, 
             theme_color || '#2563EB', 
-            enable_gantt ?? true, 
-            enable_timeline ?? true, 
-            working_days || 'Mon,Tue,Wed,Thu,Fri'
+            enable_gantt ?? true ? 1 : 0, 
+            enable_timeline ?? true ? 1 : 0, 
+            work_days || 'Mon,Tue,Wed,Thu,Fri',
+            default_view || 'kanban',
+            admin_only_create_project ? 1 : 0,
+            parseInt(max_upload_size, 10) || 10
         ]);
 
-        return res.status(200).json({ message: "Cập nhật cấu hình dự án thành công!" });
+        return res.status(200).json({ message: "Cập nhật cấu hình hệ thống thành công!" });
 
     } catch (error) {
-        return res.status(500).json({ message: "Lỗi khi lưu cấu hình dự án", error: error.message });
+        return res.status(500).json({ message: "Lỗi khi lưu cấu hình hệ thống", error: error.message });
     }
 };
 
 module.exports = {
-    getProjectSettings,
-    updateProjectSettings
+    getSystemSettings,
+    updateSystemSettings
 };
