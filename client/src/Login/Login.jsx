@@ -26,7 +26,7 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        const trimmedEmail = email.trim();
+        const trimmedEmail = email.trim().toLowerCase();
         const trimmedPassword = password.trim();
 
         if (!trimmedEmail || !trimmedPassword) {
@@ -49,37 +49,65 @@ function Login() {
         setMessage("");
 
         try {
-            const res = await fetch("http://localhost:5000/api/users/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
-            });
+            const response = await fetch(
+                "http://localhost:5000/api/auth/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: trimmedEmail,
+                        password: trimmedPassword
+                    })
+                }
+            );
 
-            const data = await res.json();
+            let data = {};
 
-            if (!res.ok) {
-                showError(data.message || "Đăng nhập thất bại");
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
+
+            if (!response.ok) {
+                showError(
+                    data.message || "Đăng nhập thất bại"
+                );
                 return;
             }
 
             if (!data.token || !data.user) {
-                showError("Phản hồi đăng nhập không hợp lệ");
+                showError(
+                    "Dữ liệu đăng nhập trả về không hợp lệ"
+                );
                 return;
             }
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem(
+                "token",
+                data.token
+            );
 
-            toast.success(`Xin chào ${data.user.full_name}!`);
+            localStorage.setItem(
+                "user",
+                JSON.stringify(data.user)
+            );
 
-            setTimeout(() => {
-                navigate("/home", { replace: true });
-            }, 1000);
-        } catch (err) {
-            console.error(err);
-            showError("Không thể kết nối server");
+            toast.success(
+                `Xin chào ${data.user.full_name}!`
+            );
+
+            navigate("/home", {
+                replace: true
+            });
+        } catch (error) {
+            console.error("Lỗi đăng nhập:", error);
+
+            showError(
+                "Không thể kết nối đến server"
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -89,23 +117,47 @@ function Login() {
         <div className="auth-page">
             <div className="auth-left">
                 <h1>ProjectMaster</h1>
-                <p>Quản lý dự án, công việc và tiến độ nhóm một cách hiệu quả.</p>
 
-                <div className="auth-feature"><span>✓</span> Theo dõi tiến độ dự án</div>
-                <div className="auth-feature"><span>✓</span> Phân công công việc nhóm</div>
-                <div className="auth-feature"><span>✓</span> Quản lý Kanban, Gantt, tài liệu</div>
+                <p>
+                    Quản lý dự án, công việc và tiến độ nhóm
+                    một cách hiệu quả.
+                </p>
+
+                <div className="auth-feature">
+                    <span>✓</span>
+                    Theo dõi tiến độ dự án
+                </div>
+
+                <div className="auth-feature">
+                    <span>✓</span>
+                    Phân công công việc nhóm
+                </div>
+
+                <div className="auth-feature">
+                    <span>✓</span>
+                    Quản lý Kanban, Gantt, tài liệu
+                </div>
             </div>
 
             <div className="auth-right">
-                <form className="login-card" onSubmit={handleLogin}>
-                    {/* Chú robot tương tác thông minh theo State */}
-                    <div className={`robot ${isPasswordFocus ? "secure" : ""} ${isSad ? "sad" : ""}`}>
+                <form
+                    className="login-card"
+                    onSubmit={handleLogin}
+                >
+                    <div
+                        className={`
+                            robot
+                            ${isPasswordFocus ? "secure" : ""}
+                            ${isSad ? "sad" : ""}
+                        `}
+                    >
                         <div className="robot-head">
                             <div className="robot-screen">
                                 <div className="robot-eyes">
                                     <span></span>
                                     <span></span>
                                 </div>
+
                                 <div className="robot-smile"></div>
                             </div>
                         </div>
@@ -117,36 +169,69 @@ function Login() {
                     </div>
 
                     <h2>Đăng nhập</h2>
-                    <p className="auth-subtitle">Chào mừng bạn quay lại ProjectMaster</p>
 
-                    {message && <div className="auth-message">{message}</div>}
+                    <p className="auth-subtitle">
+                        Chào mừng bạn quay lại ProjectMaster
+                    </p>
 
-                    <label>Email</label>
+                    {message && (
+                        <div className="auth-message">
+                            {message}
+                        </div>
+                    )}
+
+                    <label htmlFor="email">
+                        Email
+                    </label>
+
                     <input
+                        id="email"
                         type="email"
                         placeholder="Nhập email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) =>
+                            setEmail(e.target.value)
+                        }
+                        autoComplete="email"
                         required
                     />
 
-                    <label>Mật khẩu</label>
+                    <label htmlFor="password">
+                        Mật khẩu
+                    </label>
+
                     <input
+                        id="password"
                         type="password"
                         placeholder="Nhập mật khẩu"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onFocus={() => setIsPasswordFocus(true)}
-                        onBlur={() => setIsPasswordFocus(false)}
+                        onChange={(e) =>
+                            setPassword(e.target.value)
+                        }
+                        onFocus={() =>
+                            setIsPasswordFocus(true)
+                        }
+                        onBlur={() =>
+                            setIsPasswordFocus(false)
+                        }
+                        autoComplete="current-password"
                         required
                     />
 
-                    <button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting
+                            ? "Đang đăng nhập..."
+                            : "Đăng nhập"}
                     </button>
 
                     <p className="auth-link">
-                        Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+                        Chưa có tài khoản?{" "}
+                        <Link to="/register">
+                            Đăng ký
+                        </Link>
                     </p>
                 </form>
             </div>

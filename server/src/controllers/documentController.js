@@ -1,195 +1,455 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+
 const DocumentModel = require("../models/documentModel");
 
-// Khởi tạo và kiểm tra thư mục lưu trữ file
-const uploadDir = path.join(__dirname, "../../uploads/documents");
+const uploadDir = path.join(
+    __dirname,
+    "../../uploads/documents"
+);
+
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+    fs.mkdirSync(uploadDir, {
+        recursive: true
+    });
 }
 
-// ==========================================
-// 1. CẤU HÌNH MULTER STORAGE & FILTER
-// ==========================================
+const decodeFileName = (fileName) => {
+    try {
+        return Buffer.from(
+            fileName,
+            "latin1"
+        ).toString("utf8");
+    } catch {
+        return fileName;
+    }
+};
+
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
+    destination: (req, file, callback) => {
+        callback(null, uploadDir);
     },
-    filename: (req, file, cb) => {
-        // Sửa lỗi hiển thị sai font Tiếng Việt có dấu khi upload từ Client
-        const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
-        const uniqueName = Date.now() + "-" + originalName;
-        cb(null, uniqueName);
+
+    filename: (req, file, callback) => {
+        const originalName =
+            decodeFileName(file.originalname);
+
+        const safeName = originalName.replace(
+            /[<>:"/\\|?*\u0000-\u001F]/g,
+            "_"
+        );
+
+        callback(
+            null,
+            `${Date.now()}-${safeName}`
+        );
     }
 });
 
-const upload = multer({ 
+const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // Giới hạn 10MB chống tràn ổ đĩa
-    fileFilter: (req, file, cb) => {
-        const allowedExtensions = /jpeg|jpg|png|pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar/;
-        const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
-        const ext = path.extname(originalName).toLowerCase();
-        
-        if (allowedExtensions.test(ext)) {
-            return cb(null, true);
+
+    limits: {
+        fileSize: 10 * 1024 * 1024
+    },
+
+    fileFilter: (req, file, callback) => {
+        const allowedExtensions = new Set([
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx",
+            ".ppt",
+            ".pptx",
+            ".zip",
+            ".rar"
+        ]);
+
+        const originalName =
+            decodeFileName(file.originalname);
+
+        const extension = path
+            .extname(originalName)
+            .toLowerCase();
+
+        if (allowedExtensions.has(extension)) {
+            return callback(null, true);
         }
-        cb(new Error("Định dạng file không được hỗ trợ! Chỉ nhận PDF, Word, Excel, Ảnh, Zip, Powerpoint."));
-    }
-}).single("file"); // "file" khớp hoàn toàn với thuộc tính append ở Front-end React
 
-// Hàm tự động tăng tiến phiên bản (v1.0 -> v2.0 -> v3.0...)
+        callback(
+            new Error(
+                "Định dạng file không được hỗ trợ"
+            )
+        );
+    }
+}).single("document");
+
 const getNextVersionString = (lastVersion) => {
-    if (!lastVersion) return "v1.0";
-    const currentVersionNum = parseFloat(lastVersion.replace("v", "")) || 1.0;
-    return `v${(currentVersionNum + 1.0).toFixed(1)}`;
+    if (!lastVersion) {
+        return "v1.0";
+    }
+
+    const number = Number.parseFloat(
+        String(lastVersion).replace("v", "")
+    );
+
+    const currentVersion =
+        Number.isFinite(number)
+            ? number
+            : 1;
+
+    return `v${(currentVersion + 1).toFixed(1)}`;
 };
 
-// Hàm bổ trợ chuyển đổi định dạng dữ liệu MySQL sang chuẩn React Client yêu cầu
-const mapToFrontend = (results) => {
-    return results.map(doc => {
-        const sizeInMB = doc.file_size ? (Number(doc.file_size) / (1024 * 1024)).toFixed(2) : "0.00";
-        return {
-            id: doc.id,
-            name: doc.file_name,
-            size: sizeInMB, 
-            type: doc.file_type || "unknown",
-            uploader: doc.uploaded_by || "Ẩn danh",
-            url: doc.file_path,
-            version: doc.version,
-            date: doc.created_at ? new Date(doc.created_at).toLocaleDateString("vi-VN") : new Date().toLocaleDateString("vi-VN")
-        };
-    });
-};
+// Lấy tài liệu theo dự án
+const getDocumentsByProject = (req, res) => {
+    const projectId = Number(
+        req.params.projectId
+    );
 
-// ==========================================
-// 2. CÁC HÀM XỬ LÝ LOGIC NGHIỆP VỤ (CONTROLLERS)
-// ==========================================
-
-// [GET] Lấy danh sách tài liệu (Hỗ trợ lọc theo project_id qua query params)
-const getAllDocuments = (req, res) => {
-    const { projectId } = req.query;
-
-    if (projectId) {
-        DocumentModel.getByProject(projectId, (err, results) => {
-            if (err) return res.status(500).json({ message: "Lỗi hệ thống khi lấy tài liệu theo dự án", error: err });
-            return res.status(200).json(mapToFrontend(results));
-        });
-    } else {
-        const sql = "SELECT * FROM documents ORDER BY id DESC";
-        const db = require("../config/db");
-        db.query(sql, [], (err, results) => {
-            if (err) return res.status(500).json({ message: "Lỗi hệ thống khi lấy toàn bộ tài liệu", error: err });
-            return res.status(200).json(mapToFrontend(results));
+    if (
+        !Number.isInteger(projectId) ||
+        projectId <= 0
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Mã dự án không hợp lệ"
         });
     }
+
+    DocumentModel.getByProject(
+        projectId,
+        (error, results) => {
+            if (error) {
+                console.error(
+                    "Lỗi lấy tài liệu:",
+                    error
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể lấy danh sách tài liệu",
+                    error: error.message
+                });
+            }
+
+            return res.status(200).json(results);
+        }
+    );
 };
 
-// [POST] Xử lý Upload file an toàn kết hợp tăng tiến Version
+// Upload tài liệu
 const uploadDocument = (req, res) => {
-    upload(req, res, (err) => {
-        if (err) {
-            return res.status(400).json({ message: err.message || "Lỗi trong quá trình upload file" });
+    upload(req, res, (uploadError) => {
+        if (uploadError) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    uploadError.message ||
+                    "Không thể upload tài liệu"
+            });
         }
 
         if (!req.file) {
-            return res.status(400).json({ message: "Chưa chọn file hoặc file sai định dạng" });
+            return res.status(400).json({
+                success: false,
+                message: "Vui lòng chọn tài liệu"
+            });
         }
 
-        const projectId = req.body.project_id || 1; 
-        const uploader = req.body.uploader || "Thành viên nhóm";
-        const originalName = Buffer.from(req.file.originalname, "latin1").toString("utf8");
-        const fileType = path.extname(originalName).replace(".", "").toUpperCase();
+        const projectId = Number(
+            req.body.project_id
+        );
 
-        // Kiểm tra phiên bản cũ nhất của tài liệu này trong cùng một dự án để xử lý ghi đè/tăng version
-        DocumentModel.getLatestVersion(projectId, originalName, (dbErr, versionResult) => {
-            if (dbErr) {
-                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path); // Xóa file rác cô lập hệ thống
-                return res.status(500).json({ message: "Lỗi kết nối database kiểm tra version", error: dbErr });
+        if (
+            !Number.isInteger(projectId) ||
+            projectId <= 0
+        ) {
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
             }
 
-            let newVersion = "v1.0";
-            if (versionResult && versionResult.length > 0) {
-                newVersion = getNextVersionString(versionResult[0].version);
-            }
+            return res.status(400).json({
+                success: false,
+                message: "Mã dự án không hợp lệ"
+            });
+        }
 
-            const documentData = {
-                project_id: projectId,
-                file_name: originalName,
-                file_path: `/uploads/documents/${req.file.filename}`,
-                file_type: fileType,
-                file_size: req.file.size, // Lưu trữ dạng BIGINT (Bytes) xuống Database
-                uploaded_by: uploader,
-                version: newVersion
-            };
+        const originalName =
+            decodeFileName(
+                req.file.originalname
+            );
 
-            DocumentModel.createDocument(documentData, (createErr, result) => {
-                if (createErr) {
-                    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path); // Xóa file rác
-                    return res.status(500).json({ message: "Lỗi lưu thông tin tài liệu", error: createErr });
+        const fileType = path
+            .extname(originalName)
+            .replace(".", "")
+            .toUpperCase();
+
+        const uploader =
+            req.user?.full_name ||
+            req.body.uploaded_by ||
+            "Không rõ";
+
+        DocumentModel.getLatestVersion(
+            projectId,
+            originalName,
+            (versionError, versionResult) => {
+                if (versionError) {
+                    if (
+                        fs.existsSync(
+                            req.file.path
+                        )
+                    ) {
+                        fs.unlinkSync(
+                            req.file.path
+                        );
+                    }
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            "Không thể kiểm tra phiên bản tài liệu",
+                        error:
+                            versionError.message
+                    });
                 }
 
-                res.status(201).json({
-                    message: "Tải tài liệu lên thành công!",
-                    id: result.insertId,
-                    ...documentData,
-                    size: (documentData.file_size / (1024 * 1024)).toFixed(2) // Trả về dạng MB lập tức cho Client cập nhật UI
-                });
-            });
-        });
+                const newVersion =
+                    versionResult.length > 0
+                        ? getNextVersionString(
+                            versionResult[0]
+                                .version
+                        )
+                        : "v1.0";
+
+                const documentData = {
+                    project_id: projectId,
+                    file_name: originalName,
+                    file_path:
+                        `uploads/documents/${req.file.filename}`,
+                    file_type:
+                        fileType || "FILE",
+                    file_size:
+                        req.file.size,
+                    uploaded_by:
+                        uploader,
+                    version:
+                        newVersion
+                };
+
+                DocumentModel.createDocument(
+                    documentData,
+                    (createError, result) => {
+                        if (createError) {
+                            if (
+                                fs.existsSync(
+                                    req.file.path
+                                )
+                            ) {
+                                fs.unlinkSync(
+                                    req.file.path
+                                );
+                            }
+
+                            return res
+                                .status(500)
+                                .json({
+                                    success: false,
+                                    message:
+                                        "Không thể lưu thông tin tài liệu",
+                                    error:
+                                        createError.message
+                                });
+                        }
+
+                        return res
+                            .status(201)
+                            .json({
+                                success: true,
+                                message:
+                                    "Tải tài liệu lên thành công",
+                                document: {
+                                    id:
+                                        result.insertId,
+                                    ...documentData
+                                }
+                            });
+                    }
+                );
+            }
+        );
     });
 };
 
-// [DELETE] Xóa tài liệu khỏi database và dọn sạch file vật lý trong ổ đĩa
+// Xóa tài liệu
 const deleteDocument = (req, res) => {
-    const { id } = req.params;
+    const documentId = Number(
+        req.params.id
+    );
 
-    DocumentModel.getById(id, (err, result) => {
-        if (err) return res.status(500).json({ message: "Lỗi truy vấn tìm file", error: err });
+    if (
+        !Number.isInteger(documentId) ||
+        documentId <= 0
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Mã tài liệu không hợp lệ"
+        });
+    }
 
-        if (!result || result.length === 0) {
-            return res.status(404).json({ message: "Không tìm thấy tài liệu trên hệ thống" });
-        }
-
-        // Định vị chính xác file nằm trong thư mục gốc dự án để thực hiện xóa sạch
-        const filePath = path.join(__dirname, "../../", result[0].file_path);
-
-        DocumentModel.deleteById(id, (deleteErr) => {
-            if (deleteErr) return res.status(500).json({ message: "Không thể xóa bản ghi dữ liệu", error: deleteErr });
-
-            // Tiến hành xóa file vật lý nếu tồn tại trên máy chủ
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+    DocumentModel.getById(
+        documentId,
+        (findError, results) => {
+            if (findError) {
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể kiểm tra tài liệu",
+                    error:
+                        findError.message
+                });
             }
 
-            res.status(200).json({ message: "Xóa tài liệu và tệp tin thành công hoàn toàn!" });
-        });
-    });
+            if (
+                !results ||
+                results.length === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Không tìm thấy tài liệu"
+                });
+            }
+
+            const document = results[0];
+
+            const relativePath =
+                String(document.file_path)
+                    .replace(/^\/+/, "");
+
+            const filePath = path.join(
+                __dirname,
+                "../../",
+                relativePath
+            );
+
+            DocumentModel.deleteById(
+                documentId,
+                (deleteError, result) => {
+                    if (deleteError) {
+                        return res
+                            .status(500)
+                            .json({
+                                success: false,
+                                message:
+                                    "Không thể xóa tài liệu",
+                                error:
+                                    deleteError.message
+                            });
+                    }
+
+                    if (
+                        result.affectedRows ===
+                        0
+                    ) {
+                        return res
+                            .status(404)
+                            .json({
+                                success: false,
+                                message:
+                                    "Không tìm thấy tài liệu"
+                            });
+                    }
+
+                    if (
+                        fs.existsSync(filePath)
+                    ) {
+                        try {
+                            fs.unlinkSync(filePath);
+                        } catch (fileError) {
+                            console.error(
+                                "Không thể xóa file vật lý:",
+                                fileError
+                            );
+                        }
+                    }
+
+                    return res.status(200).json({
+                        success: true,
+                        message:
+                            "Xóa tài liệu thành công"
+                    });
+                }
+            );
+        }
+    );
 };
 
-// [GET] Tải file về (Download File trực tiếp)
+// Tải tài liệu
 const downloadDocument = (req, res) => {
-    const { id } = req.params;
+    const documentId = Number(
+        req.params.id
+    );
 
-    DocumentModel.getById(id, (err, result) => {
-        if (err) return res.status(500).json({ message: "Lỗi kết nối tải dữ liệu", error: err });
-        if (!result || result.length === 0) {
-            return res.status(404).json({ message: "Tài liệu yêu cầu không tồn tại" });
+    DocumentModel.getById(
+        documentId,
+        (error, results) => {
+            if (error) {
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể lấy tài liệu",
+                    error: error.message
+                });
+            }
+
+            if (
+                !results ||
+                results.length === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Không tìm thấy tài liệu"
+                });
+            }
+
+            const document = results[0];
+
+            const relativePath =
+                String(document.file_path)
+                    .replace(/^\/+/, "");
+
+            const filePath = path.join(
+                __dirname,
+                "../../",
+                relativePath
+            );
+
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "File không còn tồn tại trên server"
+                });
+            }
+
+            return res.download(
+                filePath,
+                document.file_name
+            );
         }
-
-        const filePath = path.join(__dirname, "../../", result[0].file_path);
-
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ message: "Tệp tin đính kèm không tồn tại trên hệ thống lưu trữ máy chủ" });
-        }
-
-        res.download(filePath, result[0].file_name);
-    });
+    );
 };
 
 module.exports = {
-    getAllDocuments,
+    getDocumentsByProject,
     uploadDocument,
     deleteDocument,
     downloadDocument

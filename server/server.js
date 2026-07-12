@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
+const authRoutes = require("./src/routes/authRoutes");
 const projectRoutes = require("./src/routes/projectRoutes");
 const taskRoutes = require("./src/routes/taskRoutes");
 const memberRoutes = require("./src/routes/memberRoutes");
@@ -15,23 +16,103 @@ const settingRoutes = require("./src/routes/settingRoutes");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use("/api/users", userRoutes);
+/*
+|--------------------------------------------------------------------------
+| Middleware
+|--------------------------------------------------------------------------
+*/
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(cors());
+
+app.use(express.json());
+
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+);
+
+/*
+|--------------------------------------------------------------------------
+| Thư mục ảnh tải lên
+|--------------------------------------------------------------------------
+*/
+
+app.use(
+    "/uploads",
+    express.static(path.join(__dirname, "uploads"))
+);
+
+/*
+|--------------------------------------------------------------------------
+| API kiểm tra server
+|--------------------------------------------------------------------------
+*/
 
 app.get("/", (req, res) => {
-    res.send("ProjectMaster API đang chạy");
+    res.status(200).json({
+        success: true,
+        message: "ProjectMaster API đang chạy"
+    });
 });
 
+/*
+|--------------------------------------------------------------------------
+| Routes
+|--------------------------------------------------------------------------
+*/
+
+app.use("/api/auth", authRoutes);
+
+app.use("/api/users", userRoutes);
+
 app.use("/api/projects", projectRoutes);
+
 app.use("/api/tasks", taskRoutes);
+
 app.use("/api/members", memberRoutes);
+
 app.use("/api/documents", documentRoutes);
+
 app.use("/api/notifications", notificationRoutes);
+
 app.use("/api/reports", reportRoutes);
-app.use("/api/settings", settingRoutes); 
+
+app.use("/api/settings", settingRoutes);
+
+/*
+|--------------------------------------------------------------------------
+| Xử lý đường dẫn API không tồn tại
+|--------------------------------------------------------------------------
+*/
+
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Không tìm thấy API"
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Xử lý lỗi server
+|--------------------------------------------------------------------------
+*/
+
+app.use((error, req, res, next) => {
+    console.error("Lỗi server:", error);
+
+    res.status(500).json({
+        success: false,
+        message: "Đã xảy ra lỗi trên máy chủ"
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Khởi động server
+|--------------------------------------------------------------------------
+*/
 
 const PORT = process.env.PORT || 5000;
 

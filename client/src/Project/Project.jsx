@@ -8,9 +8,11 @@ import {
     FaTrash,
     FaCopy,
     FaArchive,
-    FaUndo,
+    FaUndo
 } from "react-icons/fa";
 import Sidebar from "../Sidebar/Sidebar";
+
+const API_URL = "http://localhost:5000/api/projects";
 
 function Project() {
     const navigate = useNavigate();
@@ -24,39 +26,137 @@ function Project() {
     const [deleteProjectId, setDeleteProjectId] = useState(null);
     const [archiveProjectId, setArchiveProjectId] = useState(null);
     const [message, setMessage] = useState("");
-
+    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+
     const projectsPerPage = 5;
 
+    const token = localStorage.getItem("token");
 
+    let currentUser = null;
+
+    try {
+        currentUser = JSON.parse(
+            localStorage.getItem("user")
+        );
+    } catch {
+        currentUser = null;
+    }
+
+    const canManageProject =
+        currentUser?.role === "ADMIN" ||
+        currentUser?.role === "MANAGER";
 
     const [newProject, setNewProject] = useState({
         name: "",
         description: "",
+        customer: "",
         manager_name: "",
         start_date: "",
         end_date: "",
         status: "SAP_TOI",
-        color: "#2563EB",
-        created_by: 1,
+        color: "#2563EB"
     });
 
     const showToast = (text) => {
         setMessage(text);
-        setTimeout(() => setMessage(""), 2500);
+
+        setTimeout(() => {
+            setMessage("");
+        }, 2500);
     };
 
-    const loadProjects = () => {
+    const logoutAndRedirect = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        navigate("/login", {
+            replace: true
+        });
+    };
+
+    const authFetch = async (url, options = {}) => {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...(options.body && {
+                    "Content-Type": "application/json"
+                }),
+                Authorization: `Bearer ${token}`,
+                ...options.headers
+            }
+        });
+
+        if (response.status === 401) {
+            logoutAndRedirect();
+
+            throw new Error(
+                "Phiên đăng nhập đã hết hạn"
+            );
+        }
+
+        return response;
+    };
+
+    const getResponseData = async (response) => {
+        try {
+            return await response.json();
+        } catch {
+            return {};
+        }
+    };
+
+    const loadProjects = async () => {
+        if (!token) {
+            navigate("/login", {
+                replace: true
+            });
+
+            return;
+        }
+
+        setLoading(true);
 
         const url =
             filterStatus === "ARCHIVED"
-                ? "http://localhost:5000/api/projects/archived"
-                : "http://localhost:5000/api/projects";
+                ? `${API_URL}/archived`
+                : API_URL;
 
-        fetch(url)
-            .then((res) => res.json())
-            .then((data) => setProjects(data))
-            .catch((err) => console.log(err));
+        try {
+            const response = await authFetch(url);
+            const data = await getResponseData(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Không thể tải danh sách dự án"
+                );
+
+                setProjects([]);
+                return;
+            }
+
+            setProjects(
+                Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.projects)
+                        ? data.projects
+                        : []
+            );
+        } catch (error) {
+            console.error(
+                "Lỗi tải dự án:",
+                error
+            );
+
+            if (error.message !== "Phiên đăng nhập đã hết hạn") {
+                showToast(
+                    "Không thể kết nối đến server"
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -68,30 +168,63 @@ function Project() {
         SAP_TOI: "Sắp tới",
         HOAN_THANH: "Hoàn thành",
         TAM_DUNG: "Tạm dừng",
-        QUA_HAN: "Quá hạn",
+        QUA_HAN: "Quá hạn"
     };
 
-    const handleOpenAdd = () => {
-        setEditProject(null);
+    const resetProjectForm = () => {
         setNewProject({
             name: "",
             description: "",
+            customer: "",
             manager_name: "",
             start_date: "",
             end_date: "",
             status: "SAP_TOI",
-            color: "#2563EB",
-            created_by: 1,
+            color: "#2563EB"
         });
+    };
+
+    const handleOpenAdd = () => {
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền thêm dự án"
+            );
+
+            return;
+        }
+
+        setEditProject(null);
+        resetProjectForm();
         setShowForm(true);
     };
 
     const handleOpenEdit = (project) => {
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền sửa dự án"
+            );
+
+            return;
+        }
+
         setEditProject({
             ...project,
-            start_date: project.start_date ? project.start_date.slice(0, 10) : "",
-            end_date: project.end_date ? project.end_date.slice(0, 10) : "",
+            description:
+                project.description || "",
+            customer:
+                project.customer || "",
+            manager_name:
+                project.manager_name || "",
+            start_date:
+                project.start_date
+                    ? project.start_date.slice(0, 10)
+                    : "",
+            end_date:
+                project.end_date
+                    ? project.end_date.slice(0, 10)
+                    : ""
         });
+
         setShowForm(true);
     };
 
@@ -100,163 +233,357 @@ function Project() {
         setEditProject(null);
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    const handleChange = (event) => {
+        const { name, value } = event.target;
 
         if (editProject) {
-            setEditProject({
-                ...editProject,
-                [name]: value,
-            });
+            setEditProject((previous) => ({
+                ...previous,
+                [name]: value
+            }));
         } else {
-            setNewProject({
-                ...newProject,
-                [name]: value,
-            });
+            setNewProject((previous) => ({
+                ...previous,
+                [name]: value
+            }));
         }
     };
 
-    const handleSubmitProject = async (e) => {
-        e.preventDefault();
+    const handleSubmitProject = async (event) => {
+        event.preventDefault();
 
-        const isEdit = editProject !== null;
-        const data = isEdit ? editProject : newProject;
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền thực hiện chức năng này"
+            );
 
-        const url = isEdit
-            ? `http://localhost:5000/api/projects/${editProject.id}`
-            : "http://localhost:5000/api/projects";
-
-        const method = isEdit ? "PUT" : "POST";
-
-        const res = await fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (!res.ok) {
-            showToast(isEdit ? "Cập nhật dự án thất bại" : "Thêm dự án thất bại");
             return;
         }
 
-        showToast(isEdit ? "Cập nhật dự án thành công" : "Thêm dự án thành công");
+        const isEdit = editProject !== null;
+        const formData = isEdit
+            ? editProject
+            : newProject;
 
-        setShowForm(false);
-        setEditProject(null);
-        setCurrentPage(1);
+        if (
+            new Date(formData.end_date) <
+            new Date(formData.start_date)
+        ) {
+            showToast(
+                "Deadline không được trước ngày bắt đầu"
+            );
 
-        setNewProject({
-            name: "",
-            description: "",
-            manager_name: "",
-            start_date: "",
-            end_date: "",
-            status: "SAP_TOI",
-            color: "#2563EB",
-            created_by: 1,
-        });
+            return;
+        }
 
-        loadProjects();
+        const url = isEdit
+            ? `${API_URL}/${editProject.id}`
+            : API_URL;
+
+        const method = isEdit
+            ? "PUT"
+            : "POST";
+
+        const projectData = {
+            name: formData.name.trim(),
+            description:
+                formData.description.trim(),
+            customer:
+                formData.customer?.trim() || "",
+            manager_name:
+                formData.manager_name?.trim() || "",
+            start_date:
+                formData.start_date,
+            end_date:
+                formData.end_date,
+            status:
+                formData.status,
+            color:
+                formData.color
+        };
+
+        try {
+            const response = await authFetch(url, {
+                method,
+                body: JSON.stringify(projectData)
+            });
+
+            const data = await getResponseData(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    (isEdit
+                        ? "Cập nhật dự án thất bại"
+                        : "Thêm dự án thất bại")
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                (isEdit
+                    ? "Cập nhật dự án thành công"
+                    : "Thêm dự án thành công")
+            );
+
+            setShowForm(false);
+            setEditProject(null);
+            setCurrentPage(1);
+            resetProjectForm();
+
+            loadProjects();
+        } catch (error) {
+            console.error(
+                "Lỗi lưu dự án:",
+                error
+            );
+        }
     };
 
     const handleDeleteProject = async (id) => {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
-            method: "DELETE",
-        });
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền xóa dự án"
+            );
 
-        if (!res.ok) {
-            showToast("Xóa dự án thất bại");
             return;
         }
 
-        showToast("Xóa dự án thành công");
-        setMenuProject(null);
-        setDeleteProjectId(null);
-        loadProjects();
+        try {
+            const response = await authFetch(
+                `${API_URL}/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data = await getResponseData(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Xóa dự án thất bại"
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                "Xóa dự án thành công"
+            );
+
+            setMenuProject(null);
+            setDeleteProjectId(null);
+
+            loadProjects();
+        } catch (error) {
+            console.error(
+                "Lỗi xóa dự án:",
+                error
+            );
+        }
     };
 
     const handleArchiveProject = async (id) => {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}/archive`, {
-            method: "PUT",
-        });
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền lưu trữ dự án"
+            );
 
-        if (!res.ok) {
-            showToast("Lưu trữ dự án thất bại");
             return;
         }
 
-        showToast("Đã lưu trữ dự án");
-        setMenuProject(null);
-        setArchiveProjectId(null);
-        setCurrentPage(1);
-        loadProjects();
+        try {
+            const response = await authFetch(
+                `${API_URL}/${id}/archive`,
+                {
+                    method: "PUT"
+                }
+            );
+
+            const data = await getResponseData(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Lưu trữ dự án thất bại"
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                "Đã lưu trữ dự án"
+            );
+
+            setMenuProject(null);
+            setArchiveProjectId(null);
+            setCurrentPage(1);
+
+            loadProjects();
+        } catch (error) {
+            console.error(
+                "Lỗi lưu trữ dự án:",
+                error
+            );
+        }
     };
 
     const handleDuplicateProject = async (id) => {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}/duplicate`, {
-            method: "POST",
-        });
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền nhân bản dự án"
+            );
 
-        if (!res.ok) {
-            showToast("Nhân bản dự án thất bại");
             return;
         }
 
-        showToast("Nhân bản dự án thành công");
-        setMenuProject(null);
-        loadProjects();
+        try {
+            const response = await authFetch(
+                `${API_URL}/${id}/duplicate`,
+                {
+                    method: "POST"
+                }
+            );
+
+            const data = await getResponseData(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Nhân bản dự án thất bại"
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                "Nhân bản dự án thành công"
+            );
+
+            setMenuProject(null);
+
+            loadProjects();
+        } catch (error) {
+            console.error(
+                "Lỗi nhân bản dự án:",
+                error
+            );
+        }
     };
 
     const handleRestoreProject = async (id) => {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}/restore`, {
-            method: "PUT",
-        });
+        if (!canManageProject) {
+            showToast(
+                "Bạn không có quyền khôi phục dự án"
+            );
 
-        if (!res.ok) {
-            showToast("Khôi phục dự án thất bại");
             return;
         }
 
-        showToast("Khôi phục dự án thành công");
-        setMenuProject(null);
-        setCurrentPage(1);
-        loadProjects();
+        try {
+            const response = await authFetch(
+                `${API_URL}/${id}/restore`,
+                {
+                    method: "PUT"
+                }
+            );
+
+            const data = await getResponseData(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Khôi phục dự án thất bại"
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                "Khôi phục dự án thành công"
+            );
+
+            setMenuProject(null);
+            setCurrentPage(1);
+
+            loadProjects();
+        } catch (error) {
+            console.error(
+                "Lỗi khôi phục dự án:",
+                error
+            );
+        }
     };
 
-    const filteredProjects = projects.filter((project) => {
-        const matchStatus =
-            filterStatus === "ALL" ||
-            filterStatus === "ARCHIVED" ||
-            project.status === filterStatus;
+    const filteredProjects = projects.filter(
+        (project) => {
+            const matchStatus =
+                filterStatus === "ALL" ||
+                filterStatus === "ARCHIVED" ||
+                project.status === filterStatus;
 
-        const matchSearch =
-            project.name.toLowerCase().includes(search.toLowerCase()) ||
-            project.description.toLowerCase().includes(search.toLowerCase());
+            const searchText =
+                search.trim().toLowerCase();
 
-        return matchStatus && matchSearch;
-    });
+            const projectName =
+                project.name?.toLowerCase() || "";
 
-    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-    const lastIndex = currentPage * projectsPerPage;
-    const firstIndex = lastIndex - projectsPerPage;
-    const currentProjects = filteredProjects.slice(firstIndex, lastIndex);
+            const projectDescription =
+                project.description?.toLowerCase() || "";
 
-    const formData = editProject || newProject;
+            const matchSearch =
+                projectName.includes(searchText) ||
+                projectDescription.includes(searchText);
 
+            return matchStatus && matchSearch;
+        }
+    );
+
+    const totalPages = Math.ceil(
+        filteredProjects.length /
+        projectsPerPage
+    );
+
+    const lastIndex =
+        currentPage * projectsPerPage;
+
+    const firstIndex =
+        lastIndex - projectsPerPage;
+
+    const currentProjects =
+        filteredProjects.slice(
+            firstIndex,
+            lastIndex
+        );
+
+    const formData =
+        editProject || newProject;
 
     return (
         <div className="layout">
             <Sidebar />
 
-            {message && <div className="toast-success">{message}</div>}
+            {message && (
+                <div className="toast-success">
+                    {message}
+                </div>
+            )}
 
             <div className="project-page">
                 <div className="project-header">
                     <div>
                         <h1>Dự án</h1>
-                        <p>Quản lý tất cả dự án của bạn.</p>
+
+                        <p>
+                            Quản lý các dự án thuộc tài khoản của bạn.
+                        </p>
                     </div>
 
                     <div className="project-actions">
@@ -264,26 +591,46 @@ function Project() {
                             type="text"
                             placeholder="Tìm kiếm dự án..."
                             value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
+                            onChange={(event) => {
+                                setSearch(
+                                    event.target.value
+                                );
+
                                 setCurrentPage(1);
                             }}
                         />
 
-                        <button onClick={handleOpenAdd}>
-                            <FaPlus /> Thêm dự án
-                        </button>
+                        {canManageProject && (
+                            <button
+                                onClick={handleOpenAdd}
+                            >
+                                <FaPlus />
+                                Thêm dự án
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 <div className="project-tabs">
                     {[
                         ["ALL", "Tất cả"],
-                        ["DANG_THUC_HIEN", "Đang thực hiện"],
+                        [
+                            "DANG_THUC_HIEN",
+                            "Đang thực hiện"
+                        ],
                         ["SAP_TOI", "Sắp tới"],
-                        ["HOAN_THANH", "Hoàn thành"],
-                        ["TAM_DUNG", "Tạm dừng"],
-                        ["ARCHIVED", "Đã lưu trữ"],
+                        [
+                            "HOAN_THANH",
+                            "Hoàn thành"
+                        ],
+                        [
+                            "TAM_DUNG",
+                            "Tạm dừng"
+                        ],
+                        [
+                            "ARCHIVED",
+                            "Đã lưu trữ"
+                        ]
                     ].map(([value, label]) => (
                         <button
                             key={value}
@@ -291,7 +638,11 @@ function Project() {
                                 setFilterStatus(value);
                                 setCurrentPage(1);
                             }}
-                            className={filterStatus === value ? "active" : ""}
+                            className={
+                                filterStatus === value
+                                    ? "active"
+                                    : ""
+                            }
                         >
                             {label}
                         </button>
@@ -307,166 +658,328 @@ function Project() {
                                 <th>Tiến độ</th>
                                 <th>Thành viên</th>
                                 <th>Deadline</th>
-                                <th>Hành động</th>
+
+                                {canManageProject && (
+                                    <th>Hành động</th>
+                                )}
                             </tr>
                         </thead>
 
                         <tbody>
-                            {currentProjects.map((project, index) => (
-                                <tr key={project.id}>
-                                    <td>
-                                        <div
-                                            className="project-info"
-                                            onClick={() => navigate(`/project/${project.id}`)}
-                                        >
-                                            <div className={`project-icon icon-${index % 6}`}>
-                                                {project.name.charAt(0)}
-                                            </div>
-
-                                            <div>
-                                                <h4>{project.name}</h4>
-                                                <p>{project.description}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <span className={`status ${project.status}`}>
-                                            {statusText[project.status]}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <div className="progress-box">
-                                            <span>{Number(project.progress) || 0}%</span>
-
-                                            <div className="progress-line">
-                                                <div
-                                                    className="progress-fill"
-                                                    style={{
-                                                        width: `${Number(project.progress) || 0}%`
-                                                    }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <div className="avatars">
-                                            <img src="https://i.pravatar.cc/40?img=1" alt="" />
-                                            <img src="https://i.pravatar.cc/40?img=2" alt="" />
-                                            <img src="https://i.pravatar.cc/40?img=3" alt="" />
-                                            <span>+{index + 1}</span>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        {project.end_date
-                                            ? new Date(project.end_date).toLocaleDateString("vi-VN")
-                                            : ""}
-                                    </td>
-
-                                    <td>
-                                        <div className="table-actions">
-                                            <FaEdit
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleOpenEdit(project);
-                                                }}
-                                            />
-
-                                            <div className="menu-wrapper">
-                                                <FaEllipsisH
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setMenuProject(
-                                                            menuProject === project.id ? null : project.id
-                                                        );
-                                                    }}
-                                                />
-
-                                                {menuProject === project.id && (
-                                                    <div className="dropdown-menu">
-                                                        {filterStatus === "ARCHIVED" ? (
-                                                            <div
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleRestoreProject(project.id);
-                                                                }}
-                                                            >
-                                                                <FaUndo /> Khôi phục dự án
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <div
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDuplicateProject(project.id);
-                                                                    }}
-                                                                >
-                                                                    <FaCopy /> Nhân bản dự án
-                                                                </div>
-
-                                                                <div
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setArchiveProjectId(project.id);
-                                                                        setMenuProject(null);
-                                                                    }}
-                                                                >
-                                                                    <FaArchive /> Lưu trữ dự án
-                                                                </div>
-                                                            </>
-                                                        )}
-
-                                                        <div
-                                                            className="delete"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setDeleteProjectId(project.id);
-                                                            }}
-                                                        >
-                                                            <FaTrash /> Xóa dự án
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                            {loading ? (
+                                <tr>
+                                    <td
+                                        colSpan={
+                                            canManageProject
+                                                ? 6
+                                                : 5
+                                        }
+                                    >
+                                        Đang tải dữ liệu...
                                     </td>
                                 </tr>
-                            ))}
+                            ) : currentProjects.length === 0 ? (
+                                <tr>
+                                    <td
+                                        colSpan={
+                                            canManageProject
+                                                ? 6
+                                                : 5
+                                        }
+                                    >
+                                        Không có dự án nào.
+                                    </td>
+                                </tr>
+                            ) : (
+                                currentProjects.map(
+                                    (project, index) => (
+                                        <tr key={project.id}>
+                                            <td>
+                                                <div
+                                                    className="project-info"
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/project/${project.id}`
+                                                        )
+                                                    }
+                                                >
+                                                    <div
+                                                        className={`project-icon icon-${index % 6}`}
+                                                        style={{
+                                                            backgroundColor:
+                                                                project.color ||
+                                                                "#2563EB"
+                                                        }}
+                                                    >
+                                                        {project.name
+                                                            ?.charAt(0)
+                                                            ?.toUpperCase()}
+                                                    </div>
+
+                                                    <div>
+                                                        <h4>
+                                                            {project.name}
+                                                        </h4>
+
+                                                        <p>
+                                                            {project.description ||
+                                                                "Không có mô tả"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <span
+                                                    className={`status ${project.status}`}
+                                                >
+                                                    {statusText[
+                                                        project.status
+                                                    ] ||
+                                                        project.status}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <div className="progress-box">
+                                                    <span>
+                                                        {Number(
+                                                            project.progress
+                                                        ) || 0}
+                                                        %
+                                                    </span>
+
+                                                    <div className="progress-line">
+                                                        <div
+                                                            className="progress-fill"
+                                                            style={{
+                                                                width: `${Math.min(
+                                                                    100,
+                                                                    Math.max(
+                                                                        0,
+                                                                        Number(
+                                                                            project.progress
+                                                                        ) ||
+                                                                        0
+                                                                    )
+                                                                )}%`
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div className="avatars">
+                                                    <img
+                                                        src="https://i.pravatar.cc/40?img=1"
+                                                        alt="Thành viên"
+                                                    />
+
+                                                    <img
+                                                        src="https://i.pravatar.cc/40?img=2"
+                                                        alt="Thành viên"
+                                                    />
+
+                                                    <img
+                                                        src="https://i.pravatar.cc/40?img=3"
+                                                        alt="Thành viên"
+                                                    />
+
+                                                    <span>
+                                                        +{index + 1}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                {project.end_date
+                                                    ? new Date(
+                                                        project.end_date
+                                                    ).toLocaleDateString(
+                                                        "vi-VN"
+                                                    )
+                                                    : "Chưa có"}
+                                            </td>
+
+                                            {canManageProject && (
+                                                <td>
+                                                    <div className="table-actions">
+                                                        <FaEdit
+                                                            onClick={(
+                                                                event
+                                                            ) => {
+                                                                event.stopPropagation();
+
+                                                                handleOpenEdit(
+                                                                    project
+                                                                );
+                                                            }}
+                                                        />
+
+                                                        <div className="menu-wrapper">
+                                                            <FaEllipsisH
+                                                                onClick={(
+                                                                    event
+                                                                ) => {
+                                                                    event.stopPropagation();
+
+                                                                    setMenuProject(
+                                                                        menuProject ===
+                                                                        project.id
+                                                                            ? null
+                                                                            : project.id
+                                                                    );
+                                                                }}
+                                                            />
+
+                                                            {menuProject ===
+                                                                project.id && (
+                                                                <div className="dropdown-menu">
+                                                                    {filterStatus ===
+                                                                    "ARCHIVED" ? (
+                                                                        <div
+                                                                            onClick={(
+                                                                                event
+                                                                            ) => {
+                                                                                event.stopPropagation();
+
+                                                                                handleRestoreProject(
+                                                                                    project.id
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <FaUndo />
+                                                                            Khôi phục dự án
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div
+                                                                                onClick={(
+                                                                                    event
+                                                                                ) => {
+                                                                                    event.stopPropagation();
+
+                                                                                    handleDuplicateProject(
+                                                                                        project.id
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <FaCopy />
+                                                                                Nhân bản dự án
+                                                                            </div>
+
+                                                                            <div
+                                                                                onClick={(
+                                                                                    event
+                                                                                ) => {
+                                                                                    event.stopPropagation();
+
+                                                                                    setArchiveProjectId(
+                                                                                        project.id
+                                                                                    );
+
+                                                                                    setMenuProject(
+                                                                                        null
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <FaArchive />
+                                                                                Lưu trữ dự án
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+
+                                                                    <div
+                                                                        className="delete"
+                                                                        onClick={(
+                                                                            event
+                                                                        ) => {
+                                                                            event.stopPropagation();
+
+                                                                            setDeleteProjectId(
+                                                                                project.id
+                                                                            );
+
+                                                                            setMenuProject(
+                                                                                null
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <FaTrash />
+                                                                        Xóa dự án
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    )
+                                )
+                            )}
                         </tbody>
                     </table>
 
                     <div className="table-footer">
                         <p>
-                            Hiển thị {filteredProjects.length === 0 ? 0 : firstIndex + 1} đến{" "}
-                            {Math.min(lastIndex, filteredProjects.length)} của tổng số{" "}
+                            Hiển thị{" "}
+                            {filteredProjects.length === 0
+                                ? 0
+                                : firstIndex + 1}{" "}
+                            đến{" "}
+                            {Math.min(
+                                lastIndex,
+                                filteredProjects.length
+                            )}{" "}
+                            của tổng số{" "}
                             {filteredProjects.length} dự án
                         </p>
 
                         <div className="pagination">
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <button
-                                    key={i + 1}
-                                    className={currentPage === i + 1 ? "active" : ""}
-                                    onClick={() => setCurrentPage(i + 1)}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
+                            {Array.from(
+                                {
+                                    length: totalPages
+                                },
+                                (_, index) => (
+                                    <button
+                                        key={index + 1}
+                                        className={
+                                            currentPage ===
+                                            index + 1
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() =>
+                                            setCurrentPage(
+                                                index + 1
+                                            )
+                                        }
+                                    >
+                                        {index + 1}
+                                    </button>
+                                )
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {showForm && (
+            {showForm && canManageProject && (
                 <div className="modal-overlay">
                     <div className="modal-box">
-                        <h2>{editProject ? "Cập nhật dự án" : "Thêm dự án mới"}</h2>
+                        <h2>
+                            {editProject
+                                ? "Cập nhật dự án"
+                                : "Thêm dự án mới"}
+                        </h2>
 
-                        <form onSubmit={handleSubmitProject}>
+                        <form
+                            onSubmit={handleSubmitProject}
+                        >
                             <label>Tên dự án</label>
+
                             <input
                                 type="text"
                                 name="name"
@@ -476,57 +989,109 @@ function Project() {
                             />
 
                             <label>Mô tả</label>
+
                             <textarea
                                 name="description"
-                                value={formData.description}
+                                value={
+                                    formData.description
+                                }
                                 onChange={handleChange}
                                 required
                             />
 
-                            <label>Quản lý dự án</label>
+                            <label>Khách hàng</label>
+
+                            <input
+                                type="text"
+                                name="customer"
+                                value={
+                                    formData.customer || ""
+                                }
+                                onChange={handleChange}
+                                placeholder="Ví dụ: Công ty ABC"
+                            />
+
+                            <label>
+                                Quản lý dự án
+                            </label>
+
                             <input
                                 type="text"
                                 name="manager_name"
-                                value={formData.manager_name || ""}
+                                value={
+                                    formData.manager_name ||
+                                    ""
+                                }
                                 onChange={handleChange}
                                 placeholder="Ví dụ: Nguyễn Văn A"
                             />
 
                             <div className="form-row">
                                 <div>
-                                    <label>Ngày bắt đầu</label>
+                                    <label>
+                                        Ngày bắt đầu
+                                    </label>
+
                                     <input
                                         type="date"
                                         name="start_date"
-                                        value={formData.start_date}
-                                        onChange={handleChange}
+                                        value={
+                                            formData.start_date
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label>Deadline</label>
+                                    <label>
+                                        Deadline
+                                    </label>
+
                                     <input
                                         type="date"
                                         name="end_date"
-                                        value={formData.end_date}
-                                        onChange={handleChange}
+                                        value={
+                                            formData.end_date
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <label>Trạng thái</label>
+                            <label>
+                                Trạng thái
+                            </label>
+
                             <select
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
                             >
-                                <option value="SAP_TOI">Sắp tới</option>
-                                <option value="DANG_THUC_HIEN">Đang thực hiện</option>
-                                <option value="HOAN_THANH">Hoàn thành</option>
-                                <option value="TAM_DUNG">Tạm dừng</option>
-                                <option value="QUA_HAN">Quá hạn</option>
+                                <option value="SAP_TOI">
+                                    Sắp tới
+                                </option>
+
+                                <option value="DANG_THUC_HIEN">
+                                    Đang thực hiện
+                                </option>
+
+                                <option value="HOAN_THANH">
+                                    Hoàn thành
+                                </option>
+
+                                <option value="TAM_DUNG">
+                                    Tạm dừng
+                                </option>
+
+                                <option value="QUA_HAN">
+                                    Quá hạn
+                                </option>
                             </select>
 
                             <label>Màu dự án</label>
@@ -540,28 +1105,40 @@ function Project() {
                                     "#EF4444",
                                     "#EAB308",
                                     "#06B6D4",
-                                    "#64748B",
+                                    "#64748B"
                                 ].map((color) => (
                                     <button
                                         key={color}
                                         type="button"
                                         className={
-                                            formData.color === color
+                                            formData.color ===
+                                            color
                                                 ? "color-circle active"
                                                 : "color-circle"
                                         }
-                                        style={{ backgroundColor: color }}
+                                        style={{
+                                            backgroundColor:
+                                                color
+                                        }}
                                         onClick={() => {
                                             if (editProject) {
-                                                setEditProject({
-                                                    ...editProject,
-                                                    color,
-                                                });
+                                                setEditProject(
+                                                    (
+                                                        previous
+                                                    ) => ({
+                                                        ...previous,
+                                                        color
+                                                    })
+                                                );
                                             } else {
-                                                setNewProject({
-                                                    ...newProject,
-                                                    color,
-                                                });
+                                                setNewProject(
+                                                    (
+                                                        previous
+                                                    ) => ({
+                                                        ...previous,
+                                                        color
+                                                    })
+                                                );
                                             }
                                         }}
                                     />
@@ -572,13 +1149,20 @@ function Project() {
                                 <button
                                     type="button"
                                     className="btn-cancel"
-                                    onClick={handleCloseForm}
+                                    onClick={
+                                        handleCloseForm
+                                    }
                                 >
                                     Hủy
                                 </button>
 
-                                <button type="submit" className="btn-save">
-                                    {editProject ? "Cập nhật" : "Lưu dự án"}
+                                <button
+                                    type="submit"
+                                    className="btn-save"
+                                >
+                                    {editProject
+                                        ? "Cập nhật"
+                                        : "Lưu dự án"}
                                 </button>
                             </div>
                         </form>
@@ -586,65 +1170,87 @@ function Project() {
                 </div>
             )}
 
-            {deleteProjectId && (
-                <div className="modal-overlay">
-                    <div className="modal-box delete-modal">
-                        <h2>Xóa dự án</h2>
+            {deleteProjectId &&
+                canManageProject && (
+                    <div className="modal-overlay">
+                        <div className="modal-box delete-modal">
+                            <h2>Xóa dự án</h2>
 
-                        <p className="delete-text">
-                            Bạn có chắc chắn muốn xóa dự án này không?
-                        </p>
+                            <p className="delete-text">
+                                Bạn có chắc chắn muốn
+                                xóa dự án này không?
+                            </p>
 
-                        <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn-cancel"
-                                onClick={() => setDeleteProjectId(null)}
-                            >
-                                Hủy
-                            </button>
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn-cancel"
+                                    onClick={() =>
+                                        setDeleteProjectId(
+                                            null
+                                        )
+                                    }
+                                >
+                                    Hủy
+                                </button>
 
-                            <button
-                                type="button"
-                                className="btn-delete"
-                                onClick={() => handleDeleteProject(deleteProjectId)}
-                            >
-                                Xóa
-                            </button>
+                                <button
+                                    type="button"
+                                    className="btn-delete"
+                                    onClick={() =>
+                                        handleDeleteProject(
+                                            deleteProjectId
+                                        )
+                                    }
+                                >
+                                    Xóa
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {archiveProjectId && (
-                <div className="modal-overlay">
-                    <div className="modal-box delete-modal">
-                        <h2>Lưu trữ dự án</h2>
+            {archiveProjectId &&
+                canManageProject && (
+                    <div className="modal-overlay">
+                        <div className="modal-box delete-modal">
+                            <h2>
+                                Lưu trữ dự án
+                            </h2>
 
-                        <p className="delete-text">
-                            Bạn có chắc chắn muốn lưu trữ dự án này không?
-                        </p>
+                            <p className="delete-text">
+                                Bạn có chắc chắn muốn
+                                lưu trữ dự án này không?
+                            </p>
 
-                        <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn-cancel"
-                                onClick={() => setArchiveProjectId(null)}
-                            >
-                                Hủy
-                            </button>
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn-cancel"
+                                    onClick={() =>
+                                        setArchiveProjectId(
+                                            null
+                                        )
+                                    }
+                                >
+                                    Hủy
+                                </button>
 
-                            <button
-                                type="button"
-                                className="btn-save"
-                                onClick={() => handleArchiveProject(archiveProjectId)}
-                            >
-                                Lưu trữ
-                            </button>
+                                <button
+                                    type="button"
+                                    className="btn-save"
+                                    onClick={() =>
+                                        handleArchiveProject(
+                                            archiveProjectId
+                                        )
+                                    }
+                                >
+                                    Lưu trữ
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
         </div>
     );
 }
