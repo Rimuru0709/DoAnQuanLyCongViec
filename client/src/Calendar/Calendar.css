@@ -1,0 +1,472 @@
+.calendar-page {
+    flex: 1;
+    padding: 30px;
+    background: #071527;
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.calendar-header h1 {
+    margin: 0;
+    font-size: 34px;
+}
+
+.calendar-header p {
+    color: #9fb3cc;
+    margin-top: 6px;
+}
+
+.calendar-header button {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    border: none;
+    color: #ffffff;
+    padding: 13px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* STATS */
+.calendar-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.calendar-stats div {
+    background: #0c1d32;
+    border: 1px solid #243b5a;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.calendar-stats span {
+    color: #9fb3cc;
+    font-size: 14px;
+}
+
+.calendar-stats b {
+    display: block;
+    margin-top: 8px;
+    font-size: 30px;
+}
+
+/* LAYOUT */
+.calendar-layout {
+    display: grid;
+    grid-template-columns: 1fr 330px;
+    gap: 22px;
+}
+
+.calendar-card,
+.deadline-panel {
+    background: #10233b;
+    border: 1px solid #24415f;
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.calendar-card {
+    max-height: 760px;
+    overflow-y: auto;
+}
+
+/* =========================
+   CUSTOM TOOLBAR
+========================= */
+
+.calendar-custom-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.calendar-left-actions,
+.calendar-title-select,
+.calendar-view-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Nút Prev Next Today */
+
+.calendar-custom-toolbar button {
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #ffffff;
+    padding: 0 18px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.calendar-custom-toolbar button:hover {
+    background: #1d4ed8;
+}
+
+/* Hai ô chọn Tháng và Năm */
+
+.calendar-title-select select {
+    width: 145px;
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 1px solid #284767;
+    background: #071527;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+}
+
+.calendar-title-select select:focus {
+    border-color: #3b82f6;
+}
+
+/* Ô chọn Dự án */
+
+.calendar-title-select select:last-child {
+    width: 190px;
+    min-width: 190px;
+}
+
+/* Month Week Day */
+
+.calendar-view-actions {
+    margin-left: auto;
+    gap: 10px;
+}
+
+.calendar-view-actions button {
+    min-width: 82px;
+    height: 42px;
+    padding: 0 18px;
+}
+
+.calendar-view-actions button.active {
+    background: #1d4ed8;
+    box-shadow: 0 0 0 4px rgba(37,99,235,.25);
+}
+
+/* DEADLINE PANEL */
+.deadline-panel {
+    height: 720px;
+    display: flex;
+    flex-direction: column;
+}
+
+.deadline-panel h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+}
+
+.deadline-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.deadline-item {
+    background: #071527;
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.deadline-item:hover {
+    border-color: #3b82f6;
+    background: #0b1f38;
+}
+
+.deadline-item h4 {
+    margin: 0 0 6px;
+}
+
+.deadline-item p {
+    color: #9fb3cc;
+    margin: 0 0 8px;
+}
+
+.deadline-item span {
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.empty-deadline {
+    color: #94a3b8;
+}
+
+/* FULLCALENDAR DARK THEME */
+.fc {
+    color: #ffffff;
+}
+
+.fc-toolbar-title {
+    color: #ffffff;
+    font-size: 34px !important;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.fc .fc-toolbar {
+    margin-bottom: 25px !important;
+}
+
+.fc .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fc .fc-button-group {
+    gap: 8px;
+}
+
+.fc .fc-toolbar-chunk:last-child {
+    gap: 12px;
+}
+
+.fc-button {
+    background: #2563eb !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+}
+
+.fc-button:hover {
+    background: #1d4ed8 !important;
+}
+
+.fc-daygrid-day {
+    background: #071527;
+}
+
+.fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border-color: #243b5a !important;
+}
+
+.fc-col-header-cell {
+    background: #10233b;
+}
+
+.fc-daygrid-day-number,
+.fc-col-header-cell-cushion {
+    color: #dce8ff;
+    text-decoration: none;
+}
+
+.fc-daygrid-day-number {
+    font-size: 17px;
+    padding: 8px;
+}
+
+.fc-day-today {
+    background: rgba(37, 99, 235, 0.18) !important;
+}
+
+/* EVENT */
+.fc-event {
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 8px 10px !important;
+    min-height: 32px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.fc-event-time {
+    display: none !important;
+}
+
+.fc-event-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+}
+
+/* MODAL */
+.calendar-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.calendar-modal {
+    width: 480px;
+    max-width: 90vw;
+    background: #10233b;
+    border: 1px solid #24415f;
+    border-radius: 18px;
+    padding: 24px;
+    color: #ffffff;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
+}
+
+.calendar-modal h2 {
+    margin: 0 0 12px;
+    font-size: 24px;
+}
+
+.calendar-modal p {
+    color: #cbd5e1;
+}
+
+.calendar-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 18px 0;
+}
+
+.calendar-modal-grid div {
+    background: #071527;
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.calendar-modal-grid span {
+    display: block;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.calendar-modal-grid b {
+    color: #ffffff;
+}
+
+.calendar-modal button {
+    width: 100%;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.calendar-modal button:hover {
+    background: #1d4ed8;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #35516f;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.deadline-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.deadline-list::-webkit-scrollbar-thumb {
+    background: #35516f;
+    border-radius: 999px;
+}
+
+.deadline-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+    .calendar-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .calendar-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-custom-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .calendar-left-actions,
+    .calendar-title-select,
+    .calendar-view-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .calendar-title-select select {
+        width: 170px;
+    }
+
+    .calendar-title-select select:last-child {
+        width: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-page {
+        padding: 20px;
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .calendar-header h1 {
+        font-size: 28px;
+    }
+
+    .calendar-card,
+    .deadline-panel {
+        padding: 14px;
+    }
+
+    .calendar-modal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

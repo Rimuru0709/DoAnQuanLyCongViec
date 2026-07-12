@@ -1,20 +1,46 @@
 const express = require("express");
 const router = express.Router();
-const docController = require("../controllers/documentController");
 
+const {
+    getDocumentsByProject,
+    uploadDocument,
+    deleteDocument,
+    downloadDocument
+} = require("../controllers/documentController");
 
-router.post("/upload", docController.uploadDocument);
+const {
+    verifyToken,
+    allowRoles
+} = require("../middlewares/authMiddleware");
 
-// Lấy danh sách tài liệu dựa theo ID của dự án
-router.get("/project/:projectId", (req, res) => {
-    req.query.projectId = req.params.projectId;
-    docController.getAllDocuments(req, res);
-});
+// Lấy tài liệu của một dự án
+router.get(
+    "/:projectId",
+    verifyToken,
+    getDocumentsByProject
+);
 
-// Xóa tài liệu khỏi hệ thống
-router.delete("/:id", docController.deleteDocument);
+// Upload tài liệu
+router.post(
+    "/",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    uploadDocument
+);
 
-// Cho phép Client click tải tài liệu về máy tính trực tiếp
-router.get("/download/:id", docController.downloadDocument);
+// Tải tài liệu
+router.get(
+    "/download/:id",
+    verifyToken,
+    downloadDocument
+);
+
+// Xóa tài liệu
+router.delete(
+    "/:id",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    deleteDocument
+);
 
 module.exports = router;

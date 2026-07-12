@@ -1,57 +1,260 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+    useEffect,
+    useMemo,
+    useState
+} from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
 import "./Kanban.css";
 
+const API_URL =
+    "http://localhost:5000/api/tasks";
+
 const columns = [
-    { key: "CHUA_LAM", title: "Chưa làm" },
-    { key: "DANG_LAM", title: "Đang làm" },
-    { key: "DANG_REVIEW", title: "Đang review" },
-    { key: "HOAN_THANH", title: "Hoàn thành" },
+    {
+        key: "CHUA_LAM",
+        title: "Chưa làm"
+    },
+    {
+        key: "DANG_LAM",
+        title: "Đang làm"
+    },
+    {
+        key: "DANG_REVIEW",
+        title: "Đang review"
+    },
+    {
+        key: "HOAN_THANH",
+        title: "Hoàn thành"
+    },
+    {
+        key: "QUA_HAN",
+        title: "Quá hạn"
+    }
 ];
 
 const priorityText = {
     THAP: "Thấp",
     TRUNG_BINH: "Trung bình",
-    CAO: "Cao",
+    CAO: "Cao"
 };
 
 const formatDate = (date) => {
-    if (!date) return "Chưa có";
-    return new Date(date).toLocaleDateString("vi-VN");
+    if (!date) {
+        return "Chưa có";
+    }
+
+    return new Date(date).toLocaleDateString(
+        "vi-VN"
+    );
 };
 
 const formatDateInput = (date) => {
-    if (!date) return "";
+    if (!date) {
+        return "";
+    }
+
     return String(date).slice(0, 10);
 };
 
-const getProgressByStatus = (status, currentProgress) => {
-    if (status === "CHUA_LAM") return 0;
+const getProgressByStatus = (
+    status,
+    currentProgress
+) => {
+    const progress =
+        Number(currentProgress) || 0;
 
-    if (status === "DANG_LAM") {
-        return currentProgress > 0 && currentProgress < 90
-            ? currentProgress
-            : 1;
+    if (status === "CHUA_LAM") {
+        return 0;
     }
 
-    if (status === "DANG_REVIEW") return 90;
-    if (status === "HOAN_THANH") return 100;
+    if (status === "DANG_LAM") {
+        return Math.min(
+            89,
+            Math.max(1, progress)
+        );
+    }
 
-    return currentProgress;
+    if (status === "DANG_REVIEW") {
+        return 90;
+    }
+
+    if (status === "HOAN_THANH") {
+        return 100;
+    }
+
+    if (status === "QUA_HAN") {
+        return 0;
+    }
+
+    return progress;
 };
 
 function Kanban() {
+    const navigate = useNavigate();
+
     const [tasks, setTasks] = useState([]);
     const [search, setSearch] = useState("");
-    const [projectFilter, setProjectFilter] = useState("ALL");
-    const [priorityFilter, setPriorityFilter] = useState("ALL");
-    const [selectedTask, setSelectedTask] = useState(null);
+    const [projectFilter, setProjectFilter] =
+        useState("ALL");
+    const [priorityFilter, setPriorityFilter] =
+        useState("ALL");
+    const [selectedTask, setSelectedTask] =
+        useState(null);
+    const [loading, setLoading] =
+        useState(false);
+    const [message, setMessage] =
+        useState("");
+    const [isSubmitting, setIsSubmitting] =
+        useState(false);
 
-    const loadTasks = () => {
-        fetch("http://localhost:5000/api/tasks")
-            .then((res) => res.json())
-            .then((data) => setTasks(data))
-            .catch((err) => console.log(err));
+    const token =
+        localStorage.getItem("token");
+
+    let currentUser = null;
+
+    try {
+        currentUser = JSON.parse(
+            localStorage.getItem("user")
+        );
+    } catch {
+        currentUser = null;
+    }
+
+    const canManageTasks =
+        currentUser?.role === "ADMIN" ||
+        currentUser?.role === "MANAGER";
+
+    const showToast = (text) => {
+        setMessage(text);
+
+        setTimeout(() => {
+            setMessage("");
+        }, 2500);
+    };
+
+    const logoutAndRedirect = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        navigate("/login", {
+            replace: true
+        });
+    };
+
+    const parseResponse = async (response) => {
+        try {
+            return await response.json();
+        } catch {
+            return {};
+        }
+    };
+
+    const authFetch = async (
+        url,
+        options = {}
+    ) => {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...(options.body && {
+                    "Content-Type":
+                        "application/json"
+                }),
+                Authorization:
+                    `Bearer ${token}`,
+                ...options.headers
+            }
+        });
+
+        if (response.status === 401) {
+            logoutAndRedirect();
+
+            throw new Error(
+                "Phiên đăng nhập đã hết hạn"
+            );
+        }
+
+        return response;
+    };
+
+    const loadTasks = async (showLoading = true) => {
+        const currentToken =
+            localStorage.getItem("token");
+
+        if (!currentToken) {
+            localStorage.removeItem("user");
+
+            navigate("/login", {
+                replace: true
+            });
+
+            return;
+        }
+
+        if (showLoading) {
+            setLoading(true);
+        }
+
+        try {
+            const response = await fetch(API_URL, {
+                headers: {
+                    Authorization:
+                        `Bearer ${currentToken}`
+                }
+            });
+
+            let data = {};
+
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
+
+            if (response.status === 401) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+
+                navigate("/login", {
+                    replace: true
+                });
+
+                return;
+            }
+
+            if (!response.ok) {
+                setTasks([]);
+
+                showToast(
+                    data.message ||
+                    "Không thể tải danh sách công việc"
+                );
+
+                return;
+            }
+
+            setTasks(
+                Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.tasks)
+                        ? data.tasks
+                        : []
+            );
+        } catch (error) {
+            console.error(
+                "Lỗi tải công việc:",
+                error
+            );
+
+            showToast(
+                "Không thể kết nối đến server"
+            );
+        } finally {
+            if (showLoading) {
+                setLoading(false);
+            }
+        }
     };
 
     useEffect(() => {
@@ -59,211 +262,491 @@ function Kanban() {
     }, []);
 
     const projects = useMemo(() => {
-        const map = new Map();
+        const projectMap = new Map();
 
-        tasks.forEach((task) => {
-            if (task.project_id) {
-                map.set(task.project_id, task.project_name);
+        const safeTasks =
+            Array.isArray(tasks)
+                ? tasks
+                : [];
+
+        safeTasks.forEach((task) => {
+            if (
+                task.project_id &&
+                task.project_name
+            ) {
+                projectMap.set(
+                    task.project_id,
+                    task.project_name
+                );
             }
         });
 
-        return Array.from(map, ([id, name]) => ({ id, name }));
+        return Array.from(
+            projectMap,
+            ([id, name]) => ({
+                id,
+                name
+            })
+        );
     }, [tasks]);
 
-    const filteredTasks = tasks.filter((task) => {
+    const safeTasks = Array.isArray(tasks)
+        ? tasks
+        : [];
+
+    const filteredTasks = safeTasks.filter((task) => {
+        const keyword =
+            search.trim().toLowerCase();
+
+        const title =
+            task.title?.toLowerCase() || "";
+
+        const description =
+            task.description?.toLowerCase() || "";
+
         const matchSearch =
-            task.title?.toLowerCase().includes(search.toLowerCase()) ||
-            task.description?.toLowerCase().includes(search.toLowerCase());
+            title.includes(keyword) ||
+            description.includes(keyword);
 
         const matchProject =
-            projectFilter === "ALL" || String(task.project_id) === projectFilter;
+            projectFilter === "ALL" ||
+            String(task.project_id) ===
+            String(projectFilter);
 
         const matchPriority =
-            priorityFilter === "ALL" || task.priority === priorityFilter;
+            priorityFilter === "ALL" ||
+            task.priority === priorityFilter;
 
-        return matchSearch && matchProject && matchPriority;
+        return (
+            matchSearch &&
+            matchProject &&
+            matchPriority
+        );
     });
-
     const stats = {
         total: filteredTasks.length,
-        todo: filteredTasks.filter((t) => t.status === "CHUA_LAM").length,
-        doing: filteredTasks.filter((t) => t.status === "DANG_LAM").length,
-        done: filteredTasks.filter((t) => t.status === "HOAN_THANH").length,
+
+        todo: filteredTasks.filter(
+            (task) =>
+                task.status === "CHUA_LAM"
+        ).length,
+
+        doing: filteredTasks.filter(
+            (task) =>
+                task.status === "DANG_LAM"
+        ).length,
+
+        done: filteredTasks.filter(
+            (task) =>
+                task.status === "HOAN_THANH"
+        ).length
     };
 
-    const handleDrop = async (e, newStatus) => {
-        e.preventDefault();
+    const handleDragStart = (
+        event,
+        taskId
+    ) => {
+        event.dataTransfer.effectAllowed =
+            "move";
 
-        const taskId = Number(e.dataTransfer.getData("taskId"));
-        const oldTask = tasks.find((task) => task.id === taskId);
+        event.dataTransfer.setData(
+            "text/plain",
+            String(taskId)
+        );
+    };
 
-        if (!oldTask || oldTask.status === newStatus) return;
+    const handleDrop = async (
+        event,
+        newStatus
+    ) => {
+        event.preventDefault();
 
-        const newProgress = getProgressByStatus(
-            newStatus,
-            Number(oldTask.progress) || 0
+        const taskId = Number(
+            event.dataTransfer.getData(
+                "text/plain"
+            )
         );
 
-        setTasks((prev) =>
-            prev.map((task) =>
-                task.id === taskId
+        const oldTask = tasks.find(
+            (task) =>
+                Number(task.id) === taskId
+        );
+
+        if (
+            !oldTask ||
+            oldTask.status === newStatus
+        ) {
+            return;
+        }
+
+        const oldStatus =
+            oldTask.status;
+
+        const oldProgress =
+            Number(oldTask.progress) || 0;
+
+        const newProgress =
+            getProgressByStatus(
+                newStatus,
+                oldProgress
+            );
+
+        // Cập nhật giao diện ngay
+        setTasks((previousTasks) =>
+            previousTasks.map((task) =>
+                Number(task.id) === taskId
                     ? {
-                          ...task,
-                          status: newStatus,
-                          progress: newProgress,
-                      }
+                        ...task,
+                        status: newStatus,
+                        progress: newProgress
+                    }
                     : task
             )
         );
 
-        const res = await fetch(
-            `http://localhost:5000/api/tasks/${taskId}/status`,
-            {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    status: newStatus,
-                }),
-            }
-        );
+        try {
+            const response = await authFetch(
+                `${API_URL}/${taskId}/status`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                }
+            );
 
-        if (!res.ok) {
-            alert("Cập nhật trạng thái thất bại");
-            loadTasks();
+            const data =
+                await parseResponse(response);
+
+            if (!response.ok) {
+                // Khôi phục giao diện cũ
+                setTasks((previousTasks) =>
+                    previousTasks.map((task) =>
+                        Number(task.id) ===
+                            taskId
+                            ? {
+                                ...task,
+                                status: oldStatus,
+                                progress:
+                                    oldProgress
+                            }
+                            : task
+                    )
+                );
+
+                showToast(
+                    data.message ||
+                    "Cập nhật trạng thái thất bại"
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                "Cập nhật trạng thái thành công"
+            );
+
+            await loadTasks(false);
+        } catch (error) {
+            console.error(
+                "Lỗi cập nhật trạng thái:",
+                error
+            );
+
+            setTasks((previousTasks) =>
+                previousTasks.map((task) =>
+                    Number(task.id) === taskId
+                        ? {
+                            ...task,
+                            status: oldStatus,
+                            progress: oldProgress
+                        }
+                        : task
+                )
+            );
         }
     };
 
-    const handleModalChange = (e) => {
-        const { name, value } = e.target;
-
-        if (name === "status") {
-            const progress = getProgressByStatus(
-                value,
-                Number(selectedTask.progress) || 0
+    const openTaskModal = (task) => {
+        if (!canManageTasks) {
+            showToast(
+                "Bạn chỉ có thể kéo thả để cập nhật trạng thái"
             );
 
-            setSelectedTask({
-                ...selectedTask,
-                status: value,
-                progress,
-            });
+            return;
+        }
+
+        setSelectedTask({
+            ...task,
+            start_date:
+                formatDateInput(
+                    task.start_date
+                ),
+            end_date:
+                formatDateInput(
+                    task.end_date
+                )
+        });
+    };
+
+    const handleModalChange = (event) => {
+        const { name, value } =
+            event.target;
+
+        if (name === "status") {
+            const progress =
+                getProgressByStatus(
+                    value,
+                    selectedTask.progress
+                );
+
+            setSelectedTask(
+                (previous) => ({
+                    ...previous,
+                    status: value,
+                    progress
+                })
+            );
 
             return;
         }
 
         if (name === "progress") {
             if (value === "") {
-                setSelectedTask({
-                    ...selectedTask,
-                    progress: "",
-                });
+                setSelectedTask(
+                    (previous) => ({
+                        ...previous,
+                        progress: ""
+                    })
+                );
+
                 return;
             }
 
             let progress = Number(value);
 
-            if (selectedTask.status === "DANG_LAM") {
-                if (progress < 1) progress = 1;
-                if (progress > 89) progress = 89;
+            if (
+                selectedTask.status ===
+                "DANG_LAM"
+            ) {
+                progress = Math.min(
+                    89,
+                    Math.max(1, progress)
+                );
             }
 
-            setSelectedTask({
-                ...selectedTask,
-                progress,
-            });
+            setSelectedTask(
+                (previous) => ({
+                    ...previous,
+                    progress
+                })
+            );
 
             return;
         }
 
-        setSelectedTask({
-            ...selectedTask,
-            [name]: value,
-        });
+        setSelectedTask(
+            (previous) => ({
+                ...previous,
+                [name]: value
+            })
+        );
     };
 
     const handleUpdateTask = async () => {
-        if (selectedTask.progress === "") {
-            alert("Vui lòng nhập tiến độ");
+        if (!canManageTasks) {
+            showToast(
+                "Bạn không có quyền sửa công việc"
+            );
+
             return;
         }
 
-        if (selectedTask.status === "DANG_LAM") {
-            const progress = Number(selectedTask.progress);
+        if (
+            !selectedTask.title?.trim()
+        ) {
+            showToast(
+                "Vui lòng nhập tên công việc"
+            );
 
-            if (progress < 1 || progress > 89) {
-                alert("Tiến độ Đang làm chỉ được nhập từ 1 đến 89");
+            return;
+        }
+
+        if (
+            selectedTask.start_date &&
+            selectedTask.end_date &&
+            new Date(
+                selectedTask.end_date
+            ) <
+            new Date(
+                selectedTask.start_date
+            )
+        ) {
+            showToast(
+                "Deadline không được trước ngày bắt đầu"
+            );
+
+            return;
+        }
+
+        if (
+            selectedTask.progress === ""
+        ) {
+            showToast(
+                "Vui lòng nhập tiến độ"
+            );
+
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await authFetch(
+                `${API_URL}/${selectedTask.id}`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        project_id:
+                            selectedTask.project_id,
+                        title:
+                            selectedTask.title.trim(),
+                        description:
+                            selectedTask.description ||
+                            "",
+                        assigned_to:
+                            selectedTask.assigned_to ||
+                            null,
+                        start_date:
+                            selectedTask.start_date ||
+                            null,
+                        end_date:
+                            selectedTask.end_date ||
+                            null,
+                        status:
+                            selectedTask.status,
+                        priority:
+                            selectedTask.priority,
+                        progress:
+                            Number(
+                                selectedTask.progress
+                            )
+                    })
+                }
+            );
+
+            const data =
+                await parseResponse(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Cập nhật công việc thất bại"
+                );
+
                 return;
             }
+
+            showToast(
+                data.message ||
+                "Cập nhật công việc thành công"
+            );
+
+            setSelectedTask(null);
+            await loadTasks(false);
+        } catch (error) {
+            console.error(
+                "Lỗi cập nhật công việc:",
+                error
+            );
+        } finally {
+            setIsSubmitting(false);
         }
-
-        const res = await fetch(
-            `http://localhost:5000/api/tasks/${selectedTask.id}`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    project_id: selectedTask.project_id,
-                    title: selectedTask.title,
-                    description: selectedTask.description,
-                    assigned_to: selectedTask.assigned_to || null,
-                    start_date: formatDateInput(selectedTask.start_date),
-                    end_date: formatDateInput(selectedTask.end_date),
-                    status: selectedTask.status,
-                    priority: selectedTask.priority,
-                    progress: Number(selectedTask.progress),
-                }),
-            }
-        );
-
-        if (!res.ok) {
-            alert("Cập nhật công việc thất bại");
-            return;
-        }
-
-        setSelectedTask(null);
-        loadTasks();
     };
 
     const handleDeleteTask = async () => {
-        const confirmDelete = window.confirm(
-            "Bạn có chắc muốn xóa công việc này không?"
-        );
+        if (!canManageTasks) {
+            showToast(
+                "Bạn không có quyền xóa công việc"
+            );
 
-        if (!confirmDelete) return;
-
-        const res = await fetch(
-            `http://localhost:5000/api/tasks/${selectedTask.id}`,
-            {
-                method: "DELETE",
-            }
-        );
-
-        if (!res.ok) {
-            alert("Xóa công việc thất bại");
             return;
         }
 
-        setSelectedTask(null);
-        loadTasks();
+        const confirmed = window.confirm(
+            "Bạn có chắc muốn xóa công việc này không?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await authFetch(
+                `${API_URL}/${selectedTask.id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data =
+                await parseResponse(response);
+
+            if (!response.ok) {
+                showToast(
+                    data.message ||
+                    "Xóa công việc thất bại"
+                );
+
+                return;
+            }
+
+            showToast(
+                data.message ||
+                "Xóa công việc thành công"
+            );
+
+            setSelectedTask(null);
+            await loadTasks(false);
+        } catch (error) {
+            console.error(
+                "Lỗi xóa công việc:",
+                error
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <div className="app">
             <Sidebar />
 
+            {message && (
+                <div className="toast-success">
+                    {message}
+                </div>
+            )}
+
             <main className="global-kanban-page">
                 <div className="global-kanban-header">
                     <h1>Kanban tổng</h1>
-                    <p>Quản lý công việc của tất cả dự án theo trạng thái.</p>
+
+                    <p>
+                        Quản lý công việc của các dự án
+                        thuộc tài khoản của bạn.
+                    </p>
                 </div>
 
                 <div className="global-kanban-stats">
                     <div>
-                        <span>Tổng công việc</span>
+                        <span>
+                            Tổng công việc
+                        </span>
+
                         <b>{stats.total}</b>
                     </div>
 
@@ -288,258 +771,475 @@ function Kanban() {
                         type="text"
                         placeholder="Tìm công việc..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(event) =>
+                            setSearch(
+                                event.target.value
+                            )
+                        }
                     />
 
                     <select
                         value={projectFilter}
-                        onChange={(e) => setProjectFilter(e.target.value)}
+                        onChange={(event) =>
+                            setProjectFilter(
+                                event.target.value
+                            )
+                        }
                     >
-                        <option value="ALL">Tất cả dự án</option>
-                        {projects.map((project) => (
-                            <option key={project.id} value={project.id}>
-                                {project.name}
-                            </option>
-                        ))}
+                        <option value="ALL">
+                            Tất cả dự án
+                        </option>
+
+                        {projects.map(
+                            (project) => (
+                                <option
+                                    key={
+                                        project.id
+                                    }
+                                    value={
+                                        project.id
+                                    }
+                                >
+                                    {project.name}
+                                </option>
+                            )
+                        )}
                     </select>
 
                     <select
                         value={priorityFilter}
-                        onChange={(e) => setPriorityFilter(e.target.value)}
+                        onChange={(event) =>
+                            setPriorityFilter(
+                                event.target.value
+                            )
+                        }
                     >
-                        <option value="ALL">Tất cả ưu tiên</option>
-                        <option value="THAP">Thấp</option>
-                        <option value="TRUNG_BINH">Trung bình</option>
-                        <option value="CAO">Cao</option>
+                        <option value="ALL">
+                            Tất cả ưu tiên
+                        </option>
+
+                        <option value="THAP">
+                            Thấp
+                        </option>
+
+                        <option value="TRUNG_BINH">
+                            Trung bình
+                        </option>
+
+                        <option value="CAO">
+                            Cao
+                        </option>
                     </select>
                 </div>
 
-                <div className="global-kanban-board">
-                    {columns.map((column) => {
-                        const columnTasks = filteredTasks.filter(
-                            (task) => task.status === column.key
-                        );
+                {loading ? (
+                    <div className="global-kanban-empty">
+                        Đang tải dữ liệu...
+                    </div>
+                ) : (
+                    <div className="global-kanban-board">
+                        {columns.map((column) => {
+                            const columnTasks =
+                                filteredTasks.filter(
+                                    (task) =>
+                                        task.status ===
+                                        column.key
+                                );
 
-                        return (
-                            <div
-                                key={column.key}
-                                className="global-kanban-column"
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={(e) => handleDrop(e, column.key)}
-                            >
-                                <div className="global-kanban-column-header">
-                                    <h3>{column.title}</h3>
-                                    <span>{columnTasks.length}</span>
-                                </div>
+                            return (
+                                <div
+                                    key={
+                                        column.key
+                                    }
+                                    className="global-kanban-column"
+                                    onDragOver={(
+                                        event
+                                    ) => {
+                                        event.preventDefault();
 
-                                <div className="global-kanban-list">
-                                    {columnTasks.length === 0 ? (
-                                        <div className="global-kanban-empty">
-                                            Chưa có công việc
-                                        </div>
-                                    ) : (
-                                        columnTasks.map((task) => (
-                                            <div
-                                                key={task.id}
-                                                className="global-kanban-card"
-                                                draggable
-                                                onDragStart={(e) => {
-                                                    e.dataTransfer.setData(
-                                                        "taskId",
-                                                        task.id
-                                                    );
-                                                }}
-                                                onClick={() =>
-                                                    setSelectedTask({
-                                                        ...task,
-                                                        start_date: formatDateInput(
-                                                            task.start_date
-                                                        ),
-                                                        end_date: formatDateInput(
-                                                            task.end_date
-                                                        ),
-                                                    })
-                                                }
-                                            >
-                                                <span
-                                                    className="global-project-badge"
-                                                    style={{
-                                                        backgroundColor:
-                                                            task.project_color ||
-                                                            "#2563EB",
-                                                    }}
-                                                >
-                                                    {task.project_name ||
-                                                        "Không rõ dự án"}
-                                                </span>
+                                        event.dataTransfer.dropEffect =
+                                            "move";
+                                    }}
+                                    onDrop={(event) =>
+                                        handleDrop(
+                                            event,
+                                            column.key
+                                        )
+                                    }
+                                >
+                                    <div className="global-kanban-column-header">
+                                        <h3>
+                                            {
+                                                column.title
+                                            }
+                                        </h3>
 
-                                                <h4>{task.title}</h4>
-                                                <p>
-                                                    {task.description ||
-                                                        "Không có mô tả"}
-                                                </p>
+                                        <span>
+                                            {
+                                                columnTasks.length
+                                            }
+                                        </span>
+                                    </div>
 
-                                                <div className="global-kanban-meta">
-                                                    <span>
-                                                        👤{" "}
-                                                        {task.assignee_name ||
-                                                            "Chưa giao"}
-                                                    </span>
-                                                    <span>
-                                                        📅 {formatDate(task.end_date)}
-                                                    </span>
-                                                </div>
-
-                                                <div className="global-kanban-progress">
-                                                    <div>
-                                                        <span>Tiến độ</span>
-                                                        <b>
-                                                            {Number(task.progress) ||
-                                                                0}
-                                                            %
-                                                        </b>
-                                                    </div>
-
-                                                    <div className="global-kanban-progress-line">
-                                                        <div
-                                                            style={{
-                                                                width: `${
-                                                                    Number(
-                                                                        task.progress
-                                                                    ) || 0
-                                                                }%`,
-                                                            }}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-
-                                                <span
-                                                    className={`global-priority ${task.priority}`}
-                                                >
-                                                    {priorityText[task.priority] ||
-                                                        "Trung bình"}
-                                                </span>
+                                    <div className="global-kanban-list">
+                                        {columnTasks.length ===
+                                            0 ? (
+                                            <div className="global-kanban-empty">
+                                                Chưa có công việc
                                             </div>
-                                        ))
-                                    )}
+                                        ) : (
+                                            columnTasks.map(
+                                                (task) => {
+                                                    const progress =
+                                                        Math.min(
+                                                            100,
+                                                            Math.max(
+                                                                0,
+                                                                Number(
+                                                                    task.progress
+                                                                ) ||
+                                                                0
+                                                            )
+                                                        );
+
+                                                    return (
+                                                        <div
+                                                            key={
+                                                                task.id
+                                                            }
+                                                            className="global-kanban-card"
+                                                            draggable
+                                                            onDragStart={(
+                                                                event
+                                                            ) =>
+                                                                handleDragStart(
+                                                                    event,
+                                                                    task.id
+                                                                )
+                                                            }
+                                                            onClick={() =>
+                                                                openTaskModal(
+                                                                    task
+                                                                )
+                                                            }
+                                                        >
+                                                            <span
+                                                                className="global-project-badge"
+                                                                style={{
+                                                                    backgroundColor:
+                                                                        task.project_color ||
+                                                                        "#2563EB"
+                                                                }}
+                                                            >
+                                                                {task.project_name ||
+                                                                    "Không rõ dự án"}
+                                                            </span>
+
+                                                            <h4>
+                                                                {
+                                                                    task.title
+                                                                }
+                                                            </h4>
+
+                                                            <p>
+                                                                {task.description ||
+                                                                    "Không có mô tả"}
+                                                            </p>
+
+                                                            <div className="global-kanban-meta">
+                                                                <span>
+                                                                    👤{" "}
+                                                                    {task.assignee_name ||
+                                                                        "Chưa giao"}
+                                                                </span>
+
+                                                                <span>
+                                                                    📅{" "}
+                                                                    {formatDate(
+                                                                        task.end_date
+                                                                    )}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="global-kanban-progress">
+                                                                <div>
+                                                                    <span>
+                                                                        Tiến độ
+                                                                    </span>
+
+                                                                    <b>
+                                                                        {
+                                                                            progress
+                                                                        }
+                                                                        %
+                                                                    </b>
+                                                                </div>
+
+                                                                <div className="global-kanban-progress-line">
+                                                                    <div
+                                                                        style={{
+                                                                            width: `${progress}%`
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <span
+                                                                className={`global-priority ${task.priority ||
+                                                                    "TRUNG_BINH"
+                                                                    }`}
+                                                            >
+                                                                {priorityText[
+                                                                    task.priority
+                                                                ] ||
+                                                                    "Trung bình"}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                }
+                                            )
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {selectedTask && (
-                    <div className="global-task-modal-overlay">
-                        <div className="global-task-modal">
-                            <h2>Cập nhật công việc</h2>
-
-                            <label>Tên công việc</label>
-                            <input
-                                type="text"
-                                name="title"
-                                value={selectedTask.title || ""}
-                                onChange={handleModalChange}
-                            />
-
-                            <label>Mô tả</label>
-                            <textarea
-                                name="description"
-                                value={selectedTask.description || ""}
-                                onChange={handleModalChange}
-                            />
-
-                            <label>ID người phụ trách</label>
-                            <input
-                                type="number"
-                                name="assigned_to"
-                                value={selectedTask.assigned_to || ""}
-                                onChange={handleModalChange}
-                            />
-
-                            <div className="global-form-row">
-                                <div>
-                                    <label>Ngày bắt đầu</label>
-                                    <input
-                                        type="date"
-                                        name="start_date"
-                                        value={selectedTask.start_date || ""}
-                                        onChange={handleModalChange}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label>Deadline</label>
-                                    <input
-                                        type="date"
-                                        name="end_date"
-                                        value={selectedTask.end_date || ""}
-                                        onChange={handleModalChange}
-                                    />
-                                </div>
-                            </div>
-
-                            <label>Trạng thái</label>
-                            <select
-                                name="status"
-                                value={selectedTask.status}
-                                onChange={handleModalChange}
-                            >
-                                <option value="CHUA_LAM">Chưa làm</option>
-                                <option value="DANG_LAM">Đang làm</option>
-                                <option value="DANG_REVIEW">Đang review</option>
-                                <option value="HOAN_THANH">Hoàn thành</option>
-                            </select>
-
-                            <label>Độ ưu tiên</label>
-                            <select
-                                name="priority"
-                                value={selectedTask.priority || "TRUNG_BINH"}
-                                onChange={handleModalChange}
-                            >
-                                <option value="THAP">Thấp</option>
-                                <option value="TRUNG_BINH">Trung bình</option>
-                                <option value="CAO">Cao</option>
-                            </select>
-
-                            <label>Tiến độ (%)</label>
-                            <input
-                                type="number"
-                                name="progress"
-                                min={selectedTask.status === "DANG_LAM" ? 1 : 0}
-                                max={selectedTask.status === "DANG_LAM" ? 89 : 100}
-                                value={selectedTask.progress}
-                                onChange={handleModalChange}
-                                disabled={selectedTask.status !== "DANG_LAM"}
-                            />
-
-                            <div className="global-modal-actions">
-                                <button
-                                    type="button"
-                                    className="global-btn-cancel"
-                                    onClick={() => setSelectedTask(null)}
-                                >
-                                    Hủy
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className="global-btn-delete"
-                                    onClick={handleDeleteTask}
-                                >
-                                    Xóa
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className="global-btn-save"
-                                    onClick={handleUpdateTask}
-                                >
-                                    Cập nhật
-                                </button>
-                            </div>
-                        </div>
+                            );
+                        })}
                     </div>
                 )}
+
+                {selectedTask &&
+                    canManageTasks && (
+                        <div className="global-task-modal-overlay">
+                            <div className="global-task-modal">
+                                <h2>
+                                    Cập nhật công việc
+                                </h2>
+
+                                <label>
+                                    Tên công việc
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={
+                                        selectedTask.title ||
+                                        ""
+                                    }
+                                    onChange={
+                                        handleModalChange
+                                    }
+                                />
+
+                                <label>Mô tả</label>
+
+                                <textarea
+                                    name="description"
+                                    value={
+                                        selectedTask.description ||
+                                        ""
+                                    }
+                                    onChange={
+                                        handleModalChange
+                                    }
+                                />
+
+                                <label>
+                                    ID người phụ trách
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="assigned_to"
+                                    value={
+                                        selectedTask.assigned_to ||
+                                        ""
+                                    }
+                                    onChange={
+                                        handleModalChange
+                                    }
+                                />
+
+                                <div className="global-form-row">
+                                    <div>
+                                        <label>
+                                            Ngày bắt đầu
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="start_date"
+                                            value={
+                                                selectedTask.start_date ||
+                                                ""
+                                            }
+                                            onChange={
+                                                handleModalChange
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label>
+                                            Deadline
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="end_date"
+                                            min={
+                                                selectedTask.start_date ||
+                                                undefined
+                                            }
+                                            value={
+                                                selectedTask.end_date ||
+                                                ""
+                                            }
+                                            onChange={
+                                                handleModalChange
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <label>
+                                    Trạng thái
+                                </label>
+
+                                <select
+                                    name="status"
+                                    value={
+                                        selectedTask.status
+                                    }
+                                    onChange={
+                                        handleModalChange
+                                    }
+                                >
+                                    <option value="CHUA_LAM">
+                                        Chưa làm
+                                    </option>
+
+                                    <option value="DANG_LAM">
+                                        Đang làm
+                                    </option>
+
+                                    <option value="DANG_REVIEW">
+                                        Đang review
+                                    </option>
+
+                                    <option value="HOAN_THANH">
+                                        Hoàn thành
+                                    </option>
+
+                                    <option value="QUA_HAN">
+                                        Quá hạn
+                                    </option>
+                                </select>
+
+                                <label>
+                                    Độ ưu tiên
+                                </label>
+
+                                <select
+                                    name="priority"
+                                    value={
+                                        selectedTask.priority ||
+                                        "TRUNG_BINH"
+                                    }
+                                    onChange={
+                                        handleModalChange
+                                    }
+                                >
+                                    <option value="THAP">
+                                        Thấp
+                                    </option>
+
+                                    <option value="TRUNG_BINH">
+                                        Trung bình
+                                    </option>
+
+                                    <option value="CAO">
+                                        Cao
+                                    </option>
+                                </select>
+
+                                <label>
+                                    Tiến độ (%)
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="progress"
+                                    min={
+                                        selectedTask.status ===
+                                            "DANG_LAM"
+                                            ? 1
+                                            : 0
+                                    }
+                                    max={
+                                        selectedTask.status ===
+                                            "DANG_LAM"
+                                            ? 89
+                                            : 100
+                                    }
+                                    value={
+                                        selectedTask.progress
+                                    }
+                                    onChange={
+                                        handleModalChange
+                                    }
+                                    disabled={
+                                        selectedTask.status !==
+                                        "DANG_LAM"
+                                    }
+                                />
+
+                                <div className="global-modal-actions">
+                                    <button
+                                        type="button"
+                                        className="global-btn-cancel"
+                                        onClick={() =>
+                                            setSelectedTask(
+                                                null
+                                            )
+                                        }
+                                        disabled={
+                                            isSubmitting
+                                        }
+                                    >
+                                        Hủy
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="global-btn-delete"
+                                        onClick={
+                                            handleDeleteTask
+                                        }
+                                        disabled={
+                                            isSubmitting
+                                        }
+                                    >
+                                        Xóa
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="global-btn-save"
+                                        onClick={
+                                            handleUpdateTask
+                                        }
+                                        disabled={
+                                            isSubmitting
+                                        }
+                                    >
+                                        {isSubmitting
+                                            ? "Đang lưu..."
+                                            : "Cập nhật"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
             </main>
         </div>
     );
