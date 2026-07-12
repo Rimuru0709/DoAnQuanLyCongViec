@@ -47,6 +47,9 @@ function Project() {
         currentUser?.role === "ADMIN" ||
         currentUser?.role === "MANAGER";
 
+    const isAdmin =
+        currentUser?.role === "ADMIN";
+
     const [newProject, setNewProject] = useState({
         name: "",
         description: "",
@@ -600,7 +603,7 @@ function Project() {
                             }}
                         />
 
-                        {canManageProject && (
+                        {isAdmin && (
                             <button
                                 onClick={handleOpenAdd}
                             >
@@ -826,7 +829,7 @@ function Project() {
 
                                                                     setMenuProject(
                                                                         menuProject ===
-                                                                        project.id
+                                                                            project.id
                                                                             ? null
                                                                             : project.id
                                                                     );
@@ -835,82 +838,82 @@ function Project() {
 
                                                             {menuProject ===
                                                                 project.id && (
-                                                                <div className="dropdown-menu">
-                                                                    {filterStatus ===
-                                                                    "ARCHIVED" ? (
+                                                                    <div className="dropdown-menu">
+                                                                        {filterStatus ===
+                                                                            "ARCHIVED" ? (
+                                                                            <div
+                                                                                onClick={(
+                                                                                    event
+                                                                                ) => {
+                                                                                    event.stopPropagation();
+
+                                                                                    handleRestoreProject(
+                                                                                        project.id
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <FaUndo />
+                                                                                Khôi phục dự án
+                                                                            </div>
+                                                                        ) : (
+                                                                            <>
+                                                                                <div
+                                                                                    onClick={(
+                                                                                        event
+                                                                                    ) => {
+                                                                                        event.stopPropagation();
+
+                                                                                        handleDuplicateProject(
+                                                                                            project.id
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    <FaCopy />
+                                                                                    Nhân bản dự án
+                                                                                </div>
+
+                                                                                <div
+                                                                                    onClick={(
+                                                                                        event
+                                                                                    ) => {
+                                                                                        event.stopPropagation();
+
+                                                                                        setArchiveProjectId(
+                                                                                            project.id
+                                                                                        );
+
+                                                                                        setMenuProject(
+                                                                                            null
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    <FaArchive />
+                                                                                    Lưu trữ dự án
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+
                                                                         <div
+                                                                            className="delete"
                                                                             onClick={(
                                                                                 event
                                                                             ) => {
                                                                                 event.stopPropagation();
 
-                                                                                handleRestoreProject(
+                                                                                setDeleteProjectId(
                                                                                     project.id
+                                                                                );
+
+                                                                                setMenuProject(
+                                                                                    null
                                                                                 );
                                                                             }}
                                                                         >
-                                                                            <FaUndo />
-                                                                            Khôi phục dự án
+                                                                            <FaTrash />
+                                                                            Xóa dự án
                                                                         </div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <div
-                                                                                onClick={(
-                                                                                    event
-                                                                                ) => {
-                                                                                    event.stopPropagation();
-
-                                                                                    handleDuplicateProject(
-                                                                                        project.id
-                                                                                    );
-                                                                                }}
-                                                                            >
-                                                                                <FaCopy />
-                                                                                Nhân bản dự án
-                                                                            </div>
-
-                                                                            <div
-                                                                                onClick={(
-                                                                                    event
-                                                                                ) => {
-                                                                                    event.stopPropagation();
-
-                                                                                    setArchiveProjectId(
-                                                                                        project.id
-                                                                                    );
-
-                                                                                    setMenuProject(
-                                                                                        null
-                                                                                    );
-                                                                                }}
-                                                                            >
-                                                                                <FaArchive />
-                                                                                Lưu trữ dự án
-                                                                            </div>
-                                                                        </>
-                                                                    )}
-
-                                                                    <div
-                                                                        className="delete"
-                                                                        onClick={(
-                                                                            event
-                                                                        ) => {
-                                                                            event.stopPropagation();
-
-                                                                            setDeleteProjectId(
-                                                                                project.id
-                                                                            );
-
-                                                                            setMenuProject(
-                                                                                null
-                                                                            );
-                                                                        }}
-                                                                    >
-                                                                        <FaTrash />
-                                                                        Xóa dự án
                                                                     </div>
-                                                                </div>
-                                                            )}
+                                                                )}
                                                         </div>
                                                     </div>
                                                 </td>
@@ -947,7 +950,7 @@ function Project() {
                                         key={index + 1}
                                         className={
                                             currentPage ===
-                                            index + 1
+                                                index + 1
                                                 ? "active"
                                                 : ""
                                         }
@@ -1012,7 +1015,7 @@ function Project() {
                             />
 
                             <label>
-                                Quản lý dự án
+                                Chủ dự án (Owner)   
                             </label>
 
                             <input
@@ -1112,7 +1115,7 @@ function Project() {
                                         type="button"
                                         className={
                                             formData.color ===
-                                            color
+                                                color
                                                 ? "color-circle active"
                                                 : "color-circle"
                                         }

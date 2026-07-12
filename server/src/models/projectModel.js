@@ -58,52 +58,67 @@ const ProjectModel = {
     */
 
     getByUserId: (userId, callback) => {
-        const sql = `
-            SELECT
-                p.id,
-                p.name,
-                p.description,
-                p.customer,
-                p.manager_name,
-                p.start_date,
-                p.end_date,
-                p.status,
-                p.color,
-                p.created_by,
-                p.is_archived,
-                p.created_at,
-                COALESCE(ROUND(AVG(t.progress)), 0) AS progress
-            FROM projects p
-            LEFT JOIN tasks t
-                ON p.id = t.project_id
-            WHERE p.is_archived = 0
-              AND (
-                    p.created_by = ?
-                    OR EXISTS (
-                        SELECT 1
-                        FROM project_members pm
-                        WHERE pm.project_id = p.id
-                          AND pm.user_id = ?
-                    )
-              )
-            GROUP BY
-                p.id,
-                p.name,
-                p.description,
-                p.customer,
-                p.manager_name,
-                p.start_date,
-                p.end_date,
-                p.status,
-                p.color,
-                p.created_by,
-                p.is_archived,
-                p.created_at
-            ORDER BY p.id DESC
-        `;
+    const sql = `
+        SELECT
+            p.id,
+            p.name,
+            p.description,
+            p.customer,
+            p.manager_name,
+            p.start_date,
+            p.end_date,
+            p.status,
+            p.color,
+            p.created_by,
+            p.is_archived,
+            p.created_at,
 
-        db.query(sql, [userId, userId], callback);
-    },
+            COALESCE(
+                ROUND(AVG(t.progress)),
+                0
+            ) AS progress,
+
+            COUNT(
+                DISTINCT pm_all.user_id
+            ) AS member_count
+
+        FROM projects p
+
+        INNER JOIN project_members pm_user
+            ON pm_user.project_id = p.id
+            AND pm_user.user_id = ?
+
+        LEFT JOIN tasks t
+            ON t.project_id = p.id
+
+        LEFT JOIN project_members pm_all
+            ON pm_all.project_id = p.id
+
+        WHERE p.is_archived = 0
+
+        GROUP BY
+            p.id,
+            p.name,
+            p.description,
+            p.customer,
+            p.manager_name,
+            p.start_date,
+            p.end_date,
+            p.status,
+            p.color,
+            p.created_by,
+            p.is_archived,
+            p.created_at
+
+        ORDER BY p.id DESC
+    `;
+
+    db.query(
+        sql,
+        [Number(userId)],
+        callback
+    );
+},
 
     /*
     |--------------------------------------------------------------------------
@@ -310,6 +325,50 @@ const ProjectModel = {
             callback
         );
     },
+
+
+    getProjectRoleByUser: (
+    projectId,
+    userId,
+    callback
+) => {
+    const numericProjectId = Number(projectId);
+    const numericUserId = Number(userId);
+
+    if (
+        !Number.isInteger(numericProjectId) ||
+        numericProjectId <= 0 ||
+        !Number.isInteger(numericUserId) ||
+        numericUserId <= 0
+    ) {
+        return callback(
+            new Error(
+                "Mã dự án hoặc người dùng không hợp lệ"
+            )
+        );
+    }
+
+    const sql = `
+        SELECT
+            pm.id,
+            pm.project_id,
+            pm.user_id,
+            pm.role_in_project
+        FROM project_members pm
+        WHERE pm.project_id = ?
+          AND pm.user_id = ?
+        LIMIT 1
+    `;
+
+    db.query(
+        sql,
+        [
+            numericProjectId,
+            numericUserId
+        ],
+        callback
+    );
+},
 
     /*
     |--------------------------------------------------------------------------

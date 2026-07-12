@@ -73,7 +73,7 @@ router.get(
 router.post(
     "/",
     verifyToken,
-    allowRoles("ADMIN", "MANAGER"),
+    allowRoles("ADMIN"),
     addProject
 );
 
@@ -144,7 +144,7 @@ router.post(
 router.delete(
     "/:id",
     verifyToken,
-    allowRoles("ADMIN", "MANAGER"),
+    allowRoles("ADMIN"),
     deleteProject
 );
 
