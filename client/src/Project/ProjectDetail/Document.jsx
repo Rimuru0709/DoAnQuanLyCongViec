@@ -1,79 +1,258 @@
-import { useEffect, useRef, useState } from "react";
+import {
+    useEffect,
+    useRef,
+    useState
+} from "react";
+import { useNavigate } from "react-router-dom";
 import "./Document.css";
 
+const API_URL = "http://localhost:5000";
+
 function Document({ projectId }) {
+    const navigate = useNavigate();
+    const fileInputRef = useRef(null);
+
     const [documents, setDocuments] = useState([]);
     const [search, setSearch] = useState("");
     const [file, setFile] = useState(null);
-    const [uploadedBy, setUploadedBy] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-
-    const fileInputRef = useRef(null);
+    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [message, setMessage] = useState("");
 
     const itemsPerPage = 5;
-    const API_URL = "http://localhost:5000";
+    const token = localStorage.getItem("token");
+
+    let currentUser = null;
+
+    try {
+        currentUser = JSON.parse(
+            localStorage.getItem("user")
+        );
+    } catch {
+        currentUser = null;
+    }
+
+    const canManageDocuments =
+        currentUser?.role === "ADMIN" ||
+        currentUser?.role === "MANAGER";
+
+    const showMessage = (text) => {
+        setMessage(text);
+
+        setTimeout(() => {
+            setMessage("");
+        }, 2500);
+    };
+
+    const logoutAndRedirect = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        navigate("/login", {
+            replace: true
+        });
+    };
+
+    const parseResponse = async (response) => {
+        try {
+            return await response.json();
+        } catch {
+            return {};
+        }
+    };
+
+    const authFetch = async (url, options = {}) => {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                ...options.headers
+            }
+        });
+
+        if (response.status === 401) {
+            logoutAndRedirect();
+
+            throw new Error(
+                "Phiên đăng nhập đã hết hạn"
+            );
+        }
+
+        return response;
+    };
 
     const loadDocuments = async () => {
+        if (!token) {
+            logoutAndRedirect();
+            return;
+        }
+
+        setLoading(true);
+
         try {
-            const res = await fetch(`${API_URL}/api/documents/${projectId}`);
-            const data = await res.json();
-            setDocuments(data);
-        } catch (err) {
-            console.log(err);
+            const response = await authFetch(
+                `${API_URL}/api/documents/${projectId}`
+            );
+
+            const data = await parseResponse(response);
+
+            if (!response.ok) {
+                showMessage(
+                    data.message ||
+                    "Không thể tải danh sách tài liệu"
+                );
+
+                setDocuments([]);
+                return;
+            }
+
+            setDocuments(
+                Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.documents)
+                        ? data.documents
+                        : []
+            );
+        } catch (error) {
+            console.error(
+                "Lỗi tải tài liệu:",
+                error
+            );
+
+            if (
+                error.message !==
+                "Phiên đăng nhập đã hết hạn"
+            ) {
+                showMessage(
+                    "Không thể kết nối đến server"
+                );
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        loadDocuments();
+        if (projectId) {
+            loadDocuments();
+        }
     }, [projectId]);
 
     const formatDate = (date) => {
-        if (!date) return "";
-        return new Date(date).toLocaleDateString("vi-VN");
+        if (!date) {
+            return "Chưa có";
+        }
+
+        return new Date(date).toLocaleDateString(
+            "vi-VN"
+        );
     };
 
     const formatSize = (bytes) => {
-        if (!bytes) return "0 KB";
+        const size = Number(bytes) || 0;
 
-        if (bytes < 1024 * 1024) {
-            return `${Math.round(bytes / 1024)} KB`;
+        if (size === 0) {
+            return "0 KB";
         }
 
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        if (size < 1024) {
+            return `${size} B`;
+        }
+
+        if (size < 1024 * 1024) {
+            return `${Math.round(size / 1024)} KB`;
+        }
+
+        return `${(
+            size /
+            (1024 * 1024)
+        ).toFixed(1)} MB`;
     };
 
     const getFileType = (name) => {
-        if (!name) return "FILE";
-        const ext = name.split(".").pop().toUpperCase();
-        return ext || "FILE";
+        if (!name || !name.includes(".")) {
+            return "FILE";
+        }
+
+        return (
+            name
+                .split(".")
+                .pop()
+                ?.toUpperCase() || "FILE"
+        );
     };
 
-    const handleUpload = async (e) => {
-        e.preventDefault();
+    const handleUpload = async (event) => {
+        event.preventDefault();
+
+        if (!canManageDocuments) {
+            showMessage(
+                "Bạn không có quyền tải tài liệu lên"
+            );
+
+            return;
+        }
 
         if (!file) {
-            alert("Vui lòng chọn tài liệu");
+            showMessage(
+                "Vui lòng chọn tài liệu"
+            );
+
+            return;
+        }
+
+        if (!token) {
+            logoutAndRedirect();
             return;
         }
 
         const formData = new FormData();
-        formData.append("document", file);
-        formData.append("project_id", projectId);
-        formData.append("uploaded_by", uploadedBy || "Duy");
+
+        formData.append(
+            "document",
+            file
+        );
+
+        formData.append(
+            "project_id",
+            projectId
+        );
+
+        formData.append(
+            "uploaded_by",
+            currentUser?.full_name ||
+            "Không rõ"
+        );
+
+        setUploading(true);
 
         try {
-            const res = await fetch(`${API_URL}/api/documents`, {
-                method: "POST",
-                body: formData,
-            });
+            const response = await authFetch(
+                `${API_URL}/api/documents`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
 
-            if (!res.ok) {
-                alert("Tải tài liệu thất bại");
+            const data = await parseResponse(response);
+
+            if (!response.ok) {
+                showMessage(
+                    data.message ||
+                    "Tải tài liệu thất bại"
+                );
+
                 return;
             }
 
+            showMessage(
+                data.message ||
+                "Tải tài liệu thành công"
+            );
+
             setFile(null);
-            setUploadedBy("");
             setCurrentPage(1);
 
             if (fileInputRef.current) {
@@ -81,79 +260,169 @@ function Document({ projectId }) {
             }
 
             loadDocuments();
-        } catch (err) {
-            console.log(err);
+        } catch (error) {
+            console.error(
+                "Lỗi tải tài liệu:",
+                error
+            );
+        } finally {
+            setUploading(false);
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (documentId) => {
+        if (!canManageDocuments) {
+            showMessage(
+                "Bạn không có quyền xóa tài liệu"
+            );
+
+            return;
+        }
 
         try {
-            const res = await fetch(`${API_URL}/api/documents/${id}`, {
-                method: "DELETE",
-            });
+            const response = await authFetch(
+                `${API_URL}/api/documents/${documentId}`,
+                {
+                    method: "DELETE"
+                }
+            );
 
-            if (!res.ok) {
-                alert("Xóa tài liệu thất bại");
+            const data = await parseResponse(response);
+
+            if (!response.ok) {
+                showMessage(
+                    data.message ||
+                    "Xóa tài liệu thất bại"
+                );
+
                 return;
             }
 
+            showMessage(
+                data.message ||
+                "Xóa tài liệu thành công"
+            );
+
             loadDocuments();
-        } catch (err) {
-            console.log(err);
+        } catch (error) {
+            console.error(
+                "Lỗi xóa tài liệu:",
+                error
+            );
         }
     };
 
-    const filteredDocuments = documents.filter((doc) =>
-        doc.file_name?.toLowerCase().includes(search.toLowerCase())
+    const filteredDocuments = documents.filter(
+        (document) => {
+            const keyword =
+                search.trim().toLowerCase();
+
+            const fileName =
+                document.file_name
+                    ?.toLowerCase() || "";
+
+            const uploader =
+                document.uploaded_by
+                    ?.toLowerCase() || "";
+
+            return (
+                fileName.includes(keyword) ||
+                uploader.includes(keyword)
+            );
+        }
     );
 
-    const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
-
-    const paginatedDocuments = filteredDocuments.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
+    const totalPages = Math.ceil(
+        filteredDocuments.length /
+        itemsPerPage
     );
+
+    const paginatedDocuments =
+        filteredDocuments.slice(
+            (currentPage - 1) *
+                itemsPerPage,
+            currentPage *
+                itemsPerPage
+        );
 
     return (
         <div className="document-page">
+            {message && (
+                <div className="toast-success">
+                    {message}
+                </div>
+            )}
+
             <div className="document-header">
                 <div>
                     <h2>Tài liệu dự án</h2>
-                    <p>Quản lý tài liệu, file đính kèm và phiên bản của dự án.</p>
+
+                    <p>
+                        Quản lý tài liệu, file đính kèm
+                        và phiên bản của dự án.
+                    </p>
                 </div>
             </div>
 
-            <form className="document-upload" onSubmit={handleUpload}>
-                <div>
-                    <label>Chọn tài liệu</label>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        onChange={(e) => setFile(e.target.files[0])}
-                    />
-                </div>
+            {canManageDocuments && (
+                <form
+                    className="document-upload"
+                    onSubmit={handleUpload}
+                >
+                    <div>
+                        <label>
+                            Chọn tài liệu
+                        </label>
 
-                <div>
-                    <label>Người tải</label>
-                    <input
-                        type="text"
-                        value={uploadedBy}
-                        onChange={(e) => setUploadedBy(e.target.value)}
-                        placeholder="Ví dụ: Nguyễn Văn A"
-                    />
-                </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            onChange={(event) =>
+                                setFile(
+                                    event.target
+                                        .files?.[0] ||
+                                    null
+                                )
+                            }
+                        />
+                    </div>
 
-                <button type="submit">Tải tài liệu lên</button>
-            </form>
+                    <div>
+                        <label>
+                            Người tải
+                        </label>
+
+                        <input
+                            type="text"
+                            value={
+                                currentUser?.full_name ||
+                                ""
+                            }
+                            readOnly
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={uploading}
+                    >
+                        {uploading
+                            ? "Đang tải..."
+                            : "Tải tài liệu lên"}
+                    </button>
+                </form>
+            )}
 
             <div className="document-toolbar">
                 <input
                     type="text"
                     placeholder="Tìm kiếm tài liệu..."
                     value={search}
-                    onChange={(e) => {
-                        setSearch(e.target.value);
+                    onChange={(event) => {
+                        setSearch(
+                            event.target.value
+                        );
+
                         setCurrentPage(1);
                     }}
                 />
@@ -174,48 +443,97 @@ function Document({ projectId }) {
                     </thead>
 
                     <tbody>
-                        {paginatedDocuments.length === 0 ? (
+                        {loading ? (
                             <tr>
-                                <td colSpan="7" className="empty-document">
+                                <td
+                                    colSpan="7"
+                                    className="empty-document"
+                                >
+                                    Đang tải dữ liệu...
+                                </td>
+                            </tr>
+                        ) : paginatedDocuments.length === 0 ? (
+                            <tr>
+                                <td
+                                    colSpan="7"
+                                    className="empty-document"
+                                >
                                     Chưa có tài liệu nào
                                 </td>
                             </tr>
                         ) : (
-                            paginatedDocuments.map((doc) => (
-                                <tr key={doc.id}>
-                                    <td>{doc.file_name}</td>
+                            paginatedDocuments.map(
+                                (document) => (
+                                    <tr
+                                        key={document.id}
+                                    >
+                                        <td>
+                                            {
+                                                document.file_name
+                                            }
+                                        </td>
 
-                                    <td>
-                                        <span className="file-type">
-                                            {doc.file_type || getFileType(doc.file_name)}
-                                        </span>
-                                    </td>
+                                        <td>
+                                            <span className="file-type">
+                                                {document.file_type ||
+                                                    getFileType(
+                                                        document.file_name
+                                                    )}
+                                            </span>
+                                        </td>
 
-                                    <td>{doc.uploaded_by || "Không rõ"}</td>
-                                    <td>{formatDate(doc.created_at)}</td>
-                                    <td>{doc.version || "v1.0"}</td>
-                                    <td>{formatSize(doc.file_size)}</td>
+                                        <td>
+                                            {document.uploaded_by ||
+                                                "Không rõ"}
+                                        </td>
 
-                                    <td>
-                                        <div className="document-actions">
+                                        <td>
+                                            {formatDate(
+                                                document.created_at
+                                            )}
+                                        </td>
 
-                                            <a
-                                                href={`${API_URL}/${doc.file_path}`}
-                                                download={doc.file_name}
-                                            >
-                                                Tải
-                                            </a>
+                                        <td>
+                                            {document.version ||
+                                                "v1.0"}
+                                        </td>
 
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDelete(doc.id)}
-                                            >
-                                                Xóa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                        <td>
+                                            {formatSize(
+                                                document.file_size
+                                            )}
+                                        </td>
+
+                                        <td>
+                                            <div className="document-actions">
+                                                <a
+                                                    href={`${API_URL}/${document.file_path}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    download={
+                                                        document.file_name
+                                                    }
+                                                >
+                                                    Tải
+                                                </a>
+
+                                                {canManageDocuments && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                document.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            )
                         )}
                     </tbody>
                 </table>
@@ -223,22 +541,42 @@ function Document({ projectId }) {
 
             <div className="document-pagination">
                 <span>
-                    Hiển thị {paginatedDocuments.length} / {filteredDocuments.length} tài liệu
+                    Hiển thị{" "}
+                    {paginatedDocuments.length} /{" "}
+                    {filteredDocuments.length} tài liệu
                 </span>
 
                 <div>
                     <button
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(currentPage - 1)}
+                        type="button"
+                        disabled={
+                            currentPage === 1
+                        }
+                        onClick={() =>
+                            setCurrentPage(
+                                currentPage - 1
+                            )
+                        }
                     >
                         Trước
                     </button>
 
-                    <span>Trang {currentPage} / {totalPages || 1}</span>
+                    <span>
+                        Trang {currentPage} /{" "}
+                        {totalPages || 1}
+                    </span>
 
                     <button
-                        disabled={currentPage === totalPages || totalPages === 0}
-                        onClick={() => setCurrentPage(currentPage + 1)}
+                        type="button"
+                        disabled={
+                            currentPage === totalPages ||
+                            totalPages === 0
+                        }
+                        onClick={() =>
+                            setCurrentPage(
+                                currentPage + 1
+                            )
+                        }
                     >
                         Sau
                     </button>
