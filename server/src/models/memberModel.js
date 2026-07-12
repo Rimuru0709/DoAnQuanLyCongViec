@@ -4,7 +4,7 @@ const MemberModel = {
     // Lấy toàn bộ nhân sự trong hệ thống
     // Lấy toàn bộ nhân sự trong hệ thống
     getAll: (callback) => {
-    const sql = `
+        const sql = `
         SELECT
             u.id,
             u.full_name,
@@ -90,23 +90,23 @@ const MemberModel = {
         ORDER BY u.id ASC
     `;
 
-    db.query(sql, callback);
-},
+        db.query(sql, callback);
+    },
 
     // Lấy chi tiết nhân sự theo user ID
     getById: (userId, callback) => {
-    const numericUserId = Number(userId);
+        const numericUserId = Number(userId);
 
-    if (
-        !Number.isInteger(numericUserId) ||
-        numericUserId <= 0
-    ) {
-        return callback(
-            new Error("Mã người dùng không hợp lệ")
-        );
-    }
+        if (
+            !Number.isInteger(numericUserId) ||
+            numericUserId <= 0
+        ) {
+            return callback(
+                new Error("Mã người dùng không hợp lệ")
+            );
+        }
 
-    const sql = `
+        const sql = `
         SELECT
             u.id,
             u.full_name,
@@ -192,12 +192,105 @@ const MemberModel = {
             task_progress.average_task_progress
     `;
 
-    db.query(
-        sql,
-        [numericUserId],
-        callback
-    );
-},
+        db.query(
+            sql,
+            [numericUserId],
+            callback
+        );
+    },
+
+    // Lấy danh sách thành viên thuộc một dự án
+    getByProject: (projectId, callback) => {
+        const numericProjectId = Number(projectId);
+
+        if (
+            !Number.isInteger(numericProjectId) ||
+            numericProjectId <= 0
+        ) {
+            return callback(
+                new Error("Mã dự án không hợp lệ")
+            );
+        }
+
+        const sql = `
+        SELECT
+            pm.id,
+            pm.project_id,
+            pm.user_id,
+            pm.position,
+            pm.role_in_project,
+            pm.joined_at,
+
+            u.full_name,
+            u.email,
+            u.avatar,
+            u.phone,
+            u.role,
+
+            COUNT(DISTINCT t.id)
+                AS total_tasks,
+
+            COUNT(
+                DISTINCT CASE
+                    WHEN t.status = 'HOAN_THANH'
+                    THEN t.id
+                END
+            ) AS completed_tasks,
+
+            COUNT(
+                DISTINCT CASE
+                    WHEN t.status IN (
+                        'DANG_LAM',
+                        'DANG_REVIEW'
+                    )
+                    THEN t.id
+                END
+            ) AS active_tasks,
+
+            COALESCE(
+                ROUND(AVG(t.progress)),
+                0
+            ) AS average_task_progress
+
+        FROM project_members pm
+
+        INNER JOIN users u
+            ON pm.user_id = u.id
+
+        LEFT JOIN tasks t
+            ON t.project_id = pm.project_id
+            AND t.assigned_to = pm.user_id
+
+        WHERE pm.project_id = ?
+
+        GROUP BY
+            pm.id,
+            pm.project_id,
+            pm.user_id,
+            pm.position,
+            pm.role_in_project,
+            pm.joined_at,
+            u.full_name,
+            u.email,
+            u.avatar,
+            u.phone,
+            u.role
+
+        ORDER BY
+            CASE pm.role_in_project
+                WHEN 'OWNER' THEN 1
+                WHEN 'MANAGER' THEN 2
+                ELSE 3
+            END,
+            u.full_name ASC
+    `;
+
+        db.query(
+            sql,
+            [numericProjectId],
+            callback
+        );
+    },
 
     // Lấy một bản ghi thành viên dự án theo ID
     getProjectMemberById: (id, callback) => {

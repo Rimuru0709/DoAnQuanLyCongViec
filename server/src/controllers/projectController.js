@@ -22,37 +22,68 @@ const checkProjectManagementPermission = (
         });
     }
 
+    // Admin được quản lý mọi dự án
     if (user.role === "ADMIN") {
         return callback(null, true);
     }
 
-    ProjectModel.getById(projectId, (err, result) => {
-        if (err) {
-            return callback({
-                status: 500,
-                message: "Không thể kiểm tra quyền dự án",
-                error: err
-            });
+    // Member không được quản lý dự án
+    if (user.role !== "MANAGER") {
+        return callback({
+            status: 403,
+            message:
+                "Bạn không có quyền quản lý dự án"
+        });
+    }
+
+    // Manager phải có vai trò OWNER hoặc MANAGER
+    // trong bảng project_members
+    ProjectModel.getProjectRoleByUser(
+        projectId,
+        user.id,
+        (err, result) => {
+            if (err) {
+                console.error(
+                    "Lỗi kiểm tra quyền dự án:",
+                    err
+                );
+
+                return callback({
+                    status: 500,
+                    message:
+                        "Không thể kiểm tra quyền dự án"
+                });
+            }
+
+            if (
+                !Array.isArray(result) ||
+                result.length === 0
+            ) {
+                return callback({
+                    status: 403,
+                    message:
+                        "Bạn không thuộc dự án này"
+                });
+            }
+
+            const projectRole =
+                result[0].role_in_project;
+
+            if (
+                !["OWNER", "MANAGER"].includes(
+                    projectRole
+                )
+            ) {
+                return callback({
+                    status: 403,
+                    message:
+                        "Bạn chỉ là thành viên, không có quyền quản lý dự án này"
+                });
+            }
+
+            return callback(null, true);
         }
-
-        if (!result || result.length === 0) {
-            return callback({
-                status: 404,
-                message: "Không tìm thấy dự án"
-            });
-        }
-
-        const project = result[0];
-
-        if (Number(project.created_by) !== Number(user.id)) {
-            return callback({
-                status: 403,
-                message: "Bạn không có quyền quản lý dự án này"
-            });
-        }
-
-        callback(null, true);
-    });
+    );
 };
 
 /*
@@ -71,35 +102,33 @@ const getProjects = (req, res) => {
         });
     }
 
-    // ADMIN xem toàn bộ dự án
-    if (user.role === "ADMIN") {
-        return ProjectModel.getAll((err, result) => {
-            if (err) {
-                console.error("Lỗi lấy danh sách dự án:", err);
-
-                return res.status(500).json({
-                    success: false,
-                    message: "Không thể lấy danh sách dự án"
-                });
-            }
-
-            return res.status(200).json(result);
-        });
-    }
-
-    // MANAGER và MEMBER chỉ xem dự án liên quan
-    ProjectModel.getByUserId(user.id, (err, result) => {
+    const handleResult = (err, result) => {
         if (err) {
-            console.error("Lỗi lấy dự án theo tài khoản:", err);
+            console.error(
+                "Lỗi lấy danh sách dự án:",
+                err
+            );
 
             return res.status(500).json({
                 success: false,
-                message: "Không thể lấy danh sách dự án"
+                message:
+                    "Không thể lấy danh sách dự án"
             });
         }
 
         return res.status(200).json(result);
-    });
+    };
+
+    if (user.role === "ADMIN") {
+        return ProjectModel.getAll(
+            handleResult
+        );
+    }
+
+    return ProjectModel.getByUserId(
+        user.id,
+        handleResult
+    );
 };
 
 /*
@@ -237,10 +266,10 @@ const addProject = (req, res) => {
         });
     }
 
-    if (!["ADMIN", "MANAGER"].includes(user.role)) {
+    if (user.role !== "ADMIN") {
         return res.status(403).json({
             success: false,
-            message: "Bạn không có quyền tạo dự án"
+            message: "Chỉ Admin mới được tạo dự án"
         });
     }
 
@@ -324,45 +353,45 @@ const updateProject = (req, res) => {
 
 const deleteProject = (req, res) => {
     const { id } = req.params;
+    const user = req.user;
 
-    checkProjectManagementPermission(
-        id,
-        req.user,
-        (permissionError) => {
-            if (permissionError) {
-                return res
-                    .status(permissionError.status)
-                    .json({
-                        success: false,
-                        message: permissionError.message
-                    });
-            }
+    if (!user) {
+        return res.status(401).json({
+            success: false,
+            message: "Bạn chưa đăng nhập"
+        });
+    }
 
-            ProjectModel.delete(id, (err, result) => {
-                if (err) {
-                    console.error("Lỗi xóa dự án:", err);
+    if (user.role !== "ADMIN") {
+        return res.status(403).json({
+            success: false,
+            message: "Chỉ Admin mới được xóa dự án"
+        });
+    }
 
-                    return res.status(500).json({
-                        success: false,
-                        message: "Không thể xóa dự án"
-                    });
-                }
+    ProjectModel.delete(id, (err, result) => {
+        if (err) {
+            console.error("Lỗi xóa dự án:", err);
 
-                if (result && result.affectedRows === 0) {
-                    return res.status(404).json({
-                        success: false,
-                        message: "Không tìm thấy dự án"
-                    });
-                }
-
-                return res.status(200).json({
-                    success: true,
-                    message: "Xóa dự án thành công"
-                });
+            return res.status(500).json({
+                success: false,
+                message: "Không thể xóa dự án"
             });
         }
-    );
-};
+
+        if (!result || result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy dự án"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Xóa dự án thành công"
+        });
+    });
+};  
 
 /*
 |--------------------------------------------------------------------------
