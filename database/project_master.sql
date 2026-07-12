@@ -246,6 +246,46 @@ CREATE TABLE task_labels (
         ON DELETE CASCADE
 );
 
+-- 16. Cài đặt chung toàn hệ thống
+DROP TABLE IF EXISTS system_settings;
+
+CREATE TABLE system_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    theme_color VARCHAR(20) DEFAULT '#2563EB',
+    enable_gantt TINYINT(1) DEFAULT 1,
+    enable_timeline TINYINT(1) DEFAULT 1,
+    working_days VARCHAR(100) DEFAULT 'Mon,Tue,Wed,Thu,Fri',
+    default_view VARCHAR(50) DEFAULT 'kanban',
+    admin_only_create_project TINYINT(1) DEFAULT 1,
+    max_upload_size INT DEFAULT 10
+);
+
+-- Khởi tạo cấu hình chung mặc định
+INSERT INTO system_settings (
+    id,
+    theme_color,
+    enable_gantt,
+    enable_timeline,
+    working_days,
+    default_view,
+    admin_only_create_project,
+    max_upload_size
+)
+VALUES (
+    1,
+    '#2563EB',
+    1,
+    1,
+    'Mon,Tue,Wed,Thu,Fri',
+    'kanban',
+    1,
+    10
+);
+
+
+-- 17. Cài đặt riêng của từng dự án
+DROP TABLE IF EXISTS project_settings;
+
 CREATE TABLE project_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL UNIQUE,
@@ -253,13 +293,23 @@ CREATE TABLE project_settings (
     enable_gantt TINYINT(1) DEFAULT 1,
     enable_timeline TINYINT(1) DEFAULT 1,
     working_days VARCHAR(100) DEFAULT 'Mon,Tue,Wed,Thu,Fri',
+
     FOREIGN KEY (project_id)
         REFERENCES projects(id)
         ON DELETE CASCADE
 );
 
-INSERT INTO users
-(full_name, email, password, phone, role)
+
+-- Dữ liệu người dùng
+INSERT INTO users (
+    full_name,
+    email,
+    password,
+    phone,
+    role,
+    avatar
+)
+
 VALUES
 (
     'Nguyễn Văn A',

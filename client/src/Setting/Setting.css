@@ -10,7 +10,7 @@
 
 .project-settings-container {
     flex: 1;
-    padding: 40px; 
+    padding: 60px 40px;
     box-sizing: border-box;
     display: flex;
     justify-content: flex-start;
@@ -22,17 +22,17 @@
     flex-direction: column;
     gap: 24px;
     width: 100%;
-    max-width: 600px;
+    max-width: 650px; 
     box-sizing: border-box;
 }
 
 .form-section-title {
     color: #ffffff;
-    font-size: 20px;
+    font-size: 22px; /* Tăng kích thước font chữ tiêu đề hệ thống */
     font-weight: 600;
-    margin: 0 0 4px 0;
+    margin: 0 0 8px 0;
     border-bottom: 1px solid rgba(24, 48, 74, 0.5);
-    padding-bottom: 12px;
+    padding-bottom: 16px;
 }
 
 /* Cụm nhập liệu */
