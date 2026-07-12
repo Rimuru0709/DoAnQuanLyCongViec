@@ -154,3 +154,12 @@
 .kanban-column::-webkit-scrollbar-track {
     background: transparent;
 }
+
+.kanban-card {
+    cursor: grab;
+    user-select: none;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
+}

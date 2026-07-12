@@ -14,6 +14,30 @@ function TaskModal({
 }) {
     const navigate = useNavigate();
     const isEdit = Boolean(task);
+    const currentUser = JSON.parse(
+    localStorage.getItem("user")
+);
+
+const isAdmin =
+    currentUser?.role === "ADMIN";
+
+const isManager =
+    currentUser?.role === "MANAGER";
+
+const isMember =
+    currentUser?.role === "MEMBER";
+
+const isTaskAssignee =
+    Number(currentUser?.id) ===
+    Number(task?.assigned_to);
+
+const canEditAll =
+    isAdmin || isManager;
+
+const canEditProgress =
+    isAdmin ||
+    isManager ||
+    (isMember && isTaskAssignee);
 
     const emptyTask = {
         title: "",
@@ -300,38 +324,41 @@ function TaskModal({
                     </label>
 
                     <input
-                        id="task-title"
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                    />
+    id="task-title"
+    type="text"
+    name="title"
+    value={formData.title}
+    onChange={handleChange}
+    required
+    disabled={!canEditAll}
+/>
 
                     <label htmlFor="task-description">
                         Mô tả
                     </label>
 
                     <textarea
-                        id="task-description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                    />
+    id="task-description"
+    name="description"
+    value={formData.description}
+    onChange={handleChange}
+    disabled={!canEditAll}
+/>
 
                     <label htmlFor="task-assignee">
                         ID người phụ trách
                     </label>
 
                     <input
-                        id="task-assignee"
-                        type="number"
-                        name="assigned_to"
-                        min="1"
-                        value={formData.assigned_to}
-                        onChange={handleChange}
-                        placeholder="Ví dụ: 2"
-                    />
+    id="task-assignee"
+    type="number"
+    name="assigned_to"
+    min="1"
+    value={formData.assigned_to}
+    onChange={handleChange}
+    placeholder="Ví dụ: 2"
+    disabled={!canEditAll}
+/>
 
                     <div className="task-form-row">
                         <div>
@@ -340,12 +367,13 @@ function TaskModal({
                             </label>
 
                             <input
-                                id="task-start-date"
-                                type="date"
-                                name="start_date"
-                                value={formData.start_date}
-                                onChange={handleChange}
-                            />
+    id="task-start-date"
+    type="date"
+    name="start_date"
+    value={formData.start_date}
+    onChange={handleChange}
+    disabled={!canEditAll}
+/>
                         </div>
 
                         <div>
@@ -354,16 +382,17 @@ function TaskModal({
                             </label>
 
                             <input
-                                id="task-end-date"
-                                type="date"
-                                name="end_date"
-                                min={
-                                    formData.start_date ||
-                                    undefined
-                                }
-                                value={formData.end_date}
-                                onChange={handleChange}
-                            />
+    id="task-end-date"
+    type="date"
+    name="end_date"
+    min={
+        formData.start_date ||
+        undefined
+    }
+    value={formData.end_date}
+    onChange={handleChange}
+    disabled={!canEditAll}
+/>
                         </div>
                     </div>
 
@@ -372,11 +401,12 @@ function TaskModal({
                     </label>
 
                     <select
-                        id="task-status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                    >
+    id="task-status"
+    name="status"
+    value={formData.status}
+    onChange={handleChange}
+    disabled={!canEditProgress}
+>
                         <option value="CHUA_LAM">
                             Chưa làm
                         </option>
@@ -403,11 +433,12 @@ function TaskModal({
                     </label>
 
                     <select
-                        id="task-priority"
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleChange}
-                    >
+    id="task-priority"
+    name="priority"
+    value={formData.priority}
+    onChange={handleChange}
+    disabled={!canEditAll}
+>
                         <option value="THAP">
                             Thấp
                         </option>
@@ -434,15 +465,12 @@ function TaskModal({
                         value={formData.progress}
                         onChange={handleChange}
                         disabled={
-                            formData.status ===
-                                "CHUA_LAM" ||
-                            formData.status ===
-                                "DANG_REVIEW" ||
-                            formData.status ===
-                                "HOAN_THANH" ||
-                            formData.status ===
-                                "QUA_HAN"
-                        }
+    !canEditProgress ||
+    formData.status === "CHUA_LAM" ||
+    formData.status === "DANG_REVIEW" ||
+    formData.status === "HOAN_THANH" ||
+    formData.status === "QUA_HAN"
+}
                     />
 
                     <div className="task-modal-actions">
@@ -455,7 +483,7 @@ function TaskModal({
                             Hủy
                         </button>
 
-                        {isEdit && (
+                        {isEdit && canEditAll && (
                             <button
                                 type="button"
                                 className="btn-delete"

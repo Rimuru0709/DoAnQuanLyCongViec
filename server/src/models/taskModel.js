@@ -615,7 +615,95 @@ const TaskModel = {
                 );
             }
         );
-    },    /*
+    },
+
+
+    /*
+   |--------------------------------------------------------------------------
+   | Cập nhật trạng thái và tiến độ
+   |--------------------------------------------------------------------------
+   */
+
+    updateStatusAndProgress: (
+        id,
+        status,
+        progress,
+        callback
+    ) => {
+        const taskId = Number(id);
+
+        if (
+            !Number.isInteger(taskId) ||
+            taskId <= 0
+        ) {
+            return callback(
+                new Error("Mã công việc không hợp lệ")
+            );
+        }
+
+        const validStatuses = [
+            "CHUA_LAM",
+            "DANG_LAM",
+            "DANG_REVIEW",
+            "HOAN_THANH",
+            "QUA_HAN"
+        ];
+
+        if (!validStatuses.includes(status)) {
+            return callback(
+                new Error("Trạng thái không hợp lệ")
+            );
+        }
+
+        let finalProgress = Math.min(
+            100,
+            Math.max(
+                0,
+                Number(progress) || 0
+            )
+        );
+
+        if (status === "CHUA_LAM") {
+            finalProgress = 0;
+        }
+
+        if (status === "DANG_LAM") {
+            finalProgress = Math.min(
+                89,
+                Math.max(1, finalProgress)
+            );
+        }
+
+        if (status === "DANG_REVIEW") {
+            finalProgress = 90;
+        }
+
+        if (status === "HOAN_THANH") {
+            finalProgress = 100;
+        }
+
+        if (status === "QUA_HAN") {
+            finalProgress = 0;
+        }
+
+        const sql = `
+        UPDATE tasks
+        SET
+            status = ?,
+            progress = ?
+        WHERE id = ?
+    `;
+
+        db.query(
+            sql,
+            [
+                status,
+                finalProgress,
+                taskId
+            ],
+            callback
+        );
+    },/*
     |--------------------------------------------------------------------------
     | Cập nhật trạng thái công việc
     |--------------------------------------------------------------------------

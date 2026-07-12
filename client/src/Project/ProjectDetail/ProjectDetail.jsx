@@ -254,9 +254,16 @@ function ProjectDetail() {
     };
 
     const openEditTaskModal = (task) => {
-        if (!canManageTasks) {
+        const isTaskAssignee =
+            Number(task.assigned_to) ===
+            Number(currentUser?.id);
+
+        if (
+            !canManageTasks &&
+            !isTaskAssignee
+        ) {
             showToast(
-                "Bạn không có quyền sửa công việc"
+                "Bạn không có quyền cập nhật công việc này"
             );
 
             return;
@@ -1092,11 +1099,7 @@ function ProjectDetail() {
                 {activeTab === "kanban" && (
                     <Kanban
                         tasks={tasks}
-                        onTaskClick={
-                            canManageTasks
-                                ? openEditTaskModal
-                                : undefined
-                        }
+                        onTaskClick={openEditTaskModal}
                         onStatusChange={
                             handleChangeTaskStatus
                         }
@@ -1140,7 +1143,7 @@ function ProjectDetail() {
                 )}
             </div>
 
-            {canManageTasks && (
+            {showTaskModal && (
                 <TaskModal
                     open={showTaskModal}
                     task={selectedTask}
@@ -1150,7 +1153,11 @@ function ProjectDetail() {
                         await handleTaskSuccess();
                         closeTaskModal();
                     }}
-                    onDelete={openDeleteModal}
+                    onDelete={
+                        canManageTasks
+                            ? openDeleteModal
+                            : undefined
+                    }
                 />
             )}
 

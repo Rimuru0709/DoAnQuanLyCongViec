@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import "./Kanban.css";
 
 function Kanban({
@@ -5,6 +6,9 @@ function Kanban({
     onTaskClick,
     onStatusChange
 }) {
+
+    const isDraggingRef = useRef(false);
+
     const columns = [
         {
             key: "CHUA_LAM",
@@ -35,12 +39,20 @@ function Kanban({
     };
 
     const handleDragStart = (event, taskId) => {
+        isDraggingRef.current = true;
+
         event.dataTransfer.effectAllowed = "move";
 
         event.dataTransfer.setData(
             "text/plain",
             String(taskId)
         );
+    };
+
+    const handleDragEnd = () => {
+        setTimeout(() => {
+            isDraggingRef.current = false;
+        }, 100);
     };
 
     const handleDragOver = (event) => {
@@ -75,6 +87,10 @@ function Kanban({
     };
 
     const handleTaskClick = (task) => {
+        if (isDraggingRef.current) {
+            return;
+        }
+
         if (typeof onTaskClick === "function") {
             onTaskClick(task);
         }
@@ -130,8 +146,7 @@ function Kanban({
                                             key={task.id}
                                             className="kanban-card"
                                             draggable={
-                                                typeof onStatusChange ===
-                                                "function"
+                                                typeof onStatusChange === "function"
                                             }
                                             onDragStart={(event) =>
                                                 handleDragStart(
@@ -139,10 +154,9 @@ function Kanban({
                                                     task.id
                                                 )
                                             }
+                                            onDragEnd={handleDragEnd}
                                             onClick={() =>
-                                                handleTaskClick(
-                                                    task
-                                                )
+                                                handleTaskClick(task)
                                             }
                                         >
                                             <div className="kanban-card-top">

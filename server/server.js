@@ -13,6 +13,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const notificationRoutes = require("./src/routes/notificationRoutes");
 const reportRoutes = require("./src/routes/reportRoutes");
 const settingRoutes = require("./src/routes/settingRoutes");
+const homeRoutes = require("./src/routes/homeRoutes");
 
 const app = express();
 
@@ -80,6 +81,7 @@ app.use("/api/reports", reportRoutes);
 
 app.use("/api/settings", settingRoutes);
 
+app.use("/api/home",homeRoutes);
 /*
 |--------------------------------------------------------------------------
 | Xử lý đường dẫn API không tồn tại
@@ -107,6 +109,11 @@ app.use((error, req, res, next) => {
         message: "Đã xảy ra lỗi trên máy chủ"
     });
 });
+
+app.use(
+    "/api/home",
+    homeRoutes
+);
 
 /*
 |--------------------------------------------------------------------------
