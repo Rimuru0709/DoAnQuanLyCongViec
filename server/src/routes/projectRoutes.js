@@ -13,22 +13,139 @@ const {
     duplicateProject
 } = require("../controllers/projectController");
 
-router.get("/", getProjects);
+const {
+    verifyToken,
+    allowRoles
+} = require("../middlewares/authMiddleware");
 
-router.get("/archived", getArchivedProjects);
+/*
+|--------------------------------------------------------------------------
+| Xem danh sách dự án
+|--------------------------------------------------------------------------
+|
+| ADMIN:
+| - Xem toàn bộ dự án
+|
+| MANAGER, MEMBER:
+| - Chỉ xem dự án mình tạo hoặc được thêm vào
+|
+*/
 
-router.get("/:id", getProjectById);
+router.get(
+    "/",
+    verifyToken,
+    getProjects
+);
 
-router.post("/", addProject);
+/*
+|--------------------------------------------------------------------------
+| Xem danh sách dự án đã lưu trữ
+|--------------------------------------------------------------------------
+*/
 
-router.put("/:id", updateProject);
+router.get(
+    "/archived",
+    verifyToken,
+    getArchivedProjects
+);
 
-router.put("/:id/archive", archiveProject);
+/*
+|--------------------------------------------------------------------------
+| Xem chi tiết dự án
+|--------------------------------------------------------------------------
+*/
 
-router.put("/:id/restore", restoreProject);
+router.get(
+    "/:id",
+    verifyToken,
+    getProjectById
+);
 
-router.post("/:id/duplicate", duplicateProject);
+/*
+|--------------------------------------------------------------------------
+| Thêm dự án
+|--------------------------------------------------------------------------
+|
+| Chỉ ADMIN và MANAGER được tạo dự án
+|
+*/
 
-router.delete("/:id", deleteProject);
+router.post(
+    "/",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    addProject
+);
+
+/*
+|--------------------------------------------------------------------------
+| Cập nhật dự án
+|--------------------------------------------------------------------------
+|
+| Chỉ ADMIN và MANAGER mới được vào controller.
+| Controller sẽ kiểm tra tiếp:
+| - ADMIN được sửa mọi dự án
+| - MANAGER chỉ sửa dự án do mình tạo
+|
+*/
+
+router.put(
+    "/:id",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    updateProject
+);
+
+/*
+|--------------------------------------------------------------------------
+| Lưu trữ dự án
+|--------------------------------------------------------------------------
+*/
+
+router.put(
+    "/:id/archive",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    archiveProject
+);
+
+/*
+|--------------------------------------------------------------------------
+| Khôi phục dự án
+|--------------------------------------------------------------------------
+*/
+
+router.put(
+    "/:id/restore",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    restoreProject
+);
+
+/*
+|--------------------------------------------------------------------------
+| Nhân bản dự án
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+    "/:id/duplicate",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    duplicateProject
+);
+
+/*
+|--------------------------------------------------------------------------
+| Xóa dự án
+|--------------------------------------------------------------------------
+*/
+
+router.delete(
+    "/:id",
+    verifyToken,
+    allowRoles("ADMIN", "MANAGER"),
+    deleteProject
+);
 
 module.exports = router;

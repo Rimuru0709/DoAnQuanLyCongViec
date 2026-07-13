@@ -1,0 +1,1265 @@
+.member-page {
+    flex: 1;
+    min-width: 0;
+    min-height: 100vh;
+    padding: 30px;
+    background: #071527;
+    color: #ffffff;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.member-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.member-header h1 {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.2;
+}
+
+.member-header p {
+    margin: 6px 0 0;
+    color: #9fb3cc;
+    font-size: 14px;
+}
+
+.member-add-button {
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    flex-shrink: 0;
+    padding: 0 18px;
+    border: none;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.member-add-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.28);
+}
+
+.member-add-button:active {
+    transform: translateY(0);
+}
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+.member-statistics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.member-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    padding: 18px;
+    background: #0c1d32;
+    border: 1px solid #243b5a;
+    border-radius: 16px;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.member-stat-card:hover {
+    transform: translateY(-2px);
+    border-color: #31567e;
+    background: #10233b;
+}
+
+.member-stat-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 20px;
+}
+
+.member-stat-icon.total {
+    color: #60a5fa;
+    background: rgba(37, 99, 235, 0.18);
+}
+
+.member-stat-icon.admin {
+    color: #c084fc;
+    background: rgba(168, 85, 247, 0.18);
+}
+
+.member-stat-icon.manager {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.18);
+}
+
+.member-stat-icon.member {
+    color: #38bdf8;
+    background: rgba(14, 165, 233, 0.18);
+}
+
+.member-stat-content {
+    min-width: 0;
+}
+
+.member-stat-content span {
+    display: block;
+    color: #9fb3cc;
+    font-size: 13px;
+}
+
+.member-stat-content b {
+    display: block;
+    margin-top: 5px;
+    color: #ffffff;
+    font-size: 26px;
+    line-height: 1;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.member-toolbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 220px 210px;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.member-search-box {
+    min-width: 0;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 15px;
+    background: #071527;
+    border: 1px solid #284767;
+    border-radius: 12px;
+    color: #94a3b8;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.member-search-box:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.member-search-box svg {
+    flex-shrink: 0;
+}
+
+.member-search-box input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.member-search-box input::placeholder {
+    color: #6f849e;
+}
+
+.member-toolbar select {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border: 1px solid #284767;
+    border-radius: 12px;
+    outline: none;
+    background: #071527;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.member-toolbar select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.member-table-card {
+    overflow: hidden;
+    background: #0c1d32;
+    border: 1px solid #243b5a;
+    border-radius: 18px;
+}
+
+.member-table-wrapper {
+    overflow-x: auto;
+}
+
+.member-table {
+    width: 100%;
+    min-width: 1380px;
+    border-collapse: collapse;
+}
+
+.member-table th,
+.member-table td {
+    padding: 16px;
+    border-bottom: 1px solid #243b5a;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.member-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #132b49;
+    color: #dce8ff;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.member-table td {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.member-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.member-table tbody tr:hover {
+    background: #10233b;
+}
+
+.member-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* =========================================================
+   TABLE CONTENT
+========================================================= */
+
+.member-id {
+    display: inline-block;
+    min-width: 42px;
+    color: #60a5fa;
+    font-weight: 800;
+}
+
+.member-profile-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 210px;
+}
+
+.member-avatar-text,
+.member-avatar-image {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.member-avatar-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.member-avatar-image {
+    object-fit: cover;
+    border: 1px solid #31567e;
+}
+
+.member-profile-info {
+    min-width: 0;
+}
+
+.member-profile-info strong {
+    display: block;
+    max-width: 190px;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-profile-info span {
+    display: block;
+    max-width: 190px;
+    margin-top: 4px;
+    overflow: hidden;
+    color: #94a3b8;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 210px;
+}
+
+.member-contact-info span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.member-contact-info svg {
+    flex-shrink: 0;
+    color: #60a5fa;
+}
+
+/* =========================================================
+   ROLE BADGE
+========================================================= */
+
+.member-role-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.member-role-badge.ADMIN {
+    color: #c084fc;
+    background: rgba(168, 85, 247, 0.16);
+}
+
+.member-role-badge.MANAGER {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.16);
+}
+
+.member-role-badge.MEMBER {
+    color: #38bdf8;
+    background: rgba(14, 165, 233, 0.16);
+}
+
+/* =========================================================
+   PROJECT / TASK CELL
+========================================================= */
+
+.member-project-cell,
+.member-task-cell {
+    min-width: 150px;
+}
+
+.member-project-cell strong,
+.member-task-cell strong {
+    display: block;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.member-project-cell span {
+    display: block;
+    max-width: 200px;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-task-cell span {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.member-progress {
+    min-width: 150px;
+}
+
+.member-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.member-progress-header b {
+    color: #ffffff;
+}
+
+.member-progress-track {
+    height: 7px;
+    overflow: hidden;
+    background: #1e3a5f;
+    border-radius: 999px;
+}
+
+.member-progress-bar {
+    height: 100%;
+    background: #22c55e;
+    border-radius: inherit;
+    transition: width 0.3s ease;
+}
+
+/* =========================================================
+   TABLE ACTION BUTTONS
+========================================================= */
+
+.member-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 150px;
+}
+
+.member-view-button,
+.member-edit-button,
+.member-delete-button {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 9px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.member-view-button {
+    gap: 7px;
+    padding: 0 14px;
+    background: #2563eb;
+}
+
+.member-view-button:hover {
+    transform: translateY(-1px);
+    background: #1d4ed8;
+}
+
+.member-edit-button,
+.member-delete-button {
+    width: 38px;
+    padding: 0;
+}
+
+.member-edit-button {
+    background: #f59e0b;
+}
+
+.member-edit-button:hover {
+    transform: translateY(-1px);
+    background: #d97706;
+}
+
+.member-delete-button {
+    background: #ef4444;
+}
+
+.member-delete-button:hover {
+    transform: translateY(-1px);
+    background: #dc2626;
+}
+
+.member-delete-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* =========================================================
+   LOADING / ERROR / EMPTY
+========================================================= */
+
+.member-state-message {
+    padding: 44px 20px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.member-error {
+    color: #f87171;
+}
+
+.member-error p {
+    margin: 0 0 14px;
+}
+
+.member-error button {
+    height: 38px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.member-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.66);
+    backdrop-filter: blur(2px);
+}
+
+/* =========================================================
+   DETAIL MODAL
+========================================================= */
+
+.member-modal {
+    width: 640px;
+    max-width: 94vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    background: #10233b;
+    border: 1px solid #284767;
+    border-radius: 20px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+}
+
+.member-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.member-modal-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.member-modal-avatar-text,
+.member-modal-avatar-image {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.member-modal-avatar-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.member-modal-avatar-image {
+    object-fit: cover;
+    border: 1px solid #31567e;
+}
+
+.member-modal-profile > div:last-child {
+    min-width: 0;
+}
+
+.member-modal-profile h2 {
+    max-width: 440px;
+    margin: 0;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 24px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-modal-profile p {
+    margin: 5px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.member-modal-close {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 10px;
+    background: #071527;
+    color: #cbd5e1;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.member-modal-close:hover {
+    background: #1e3a5f;
+    color: #ffffff;
+}
+
+/* =========================================================
+   DETAIL MODAL GRID
+========================================================= */
+
+.member-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 22px 0;
+}
+
+.member-modal-info-card {
+    min-width: 0;
+    padding: 14px;
+    background: #071527;
+    border: 1px solid #243b5a;
+    border-radius: 13px;
+}
+
+.member-modal-info-card span {
+    display: block;
+    margin-bottom: 6px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.member-modal-info-card b {
+    display: block;
+    color: #ffffff;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   DETAIL MODAL PROJECT / PROGRESS
+========================================================= */
+
+.member-modal-projects,
+.member-modal-progress {
+    padding: 15px;
+    margin-bottom: 14px;
+    background: #071527;
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+}
+
+.member-modal-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #dce8ff;
+    font-weight: 700;
+}
+
+.member-modal-section-title svg {
+    color: #60a5fa;
+}
+
+.member-modal-projects p {
+    margin: 10px 0 0;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+.member-modal-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.member-modal-progress-header > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #dce8ff;
+    font-weight: 700;
+}
+
+.member-modal-progress-header svg {
+    color: #60a5fa;
+}
+
+.member-modal-progress-header b {
+    color: #ffffff;
+}
+
+/* =========================================================
+   DETAIL MODAL ACTIONS
+========================================================= */
+
+.member-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.member-detail-close,
+.member-detail-edit,
+.member-detail-delete {
+    min-width: 100px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 11px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.member-detail-close {
+    background: #334155;
+}
+
+.member-detail-close:hover {
+    background: #475569;
+}
+
+.member-detail-edit {
+    background: #2563eb;
+}
+
+.member-detail-edit:hover {
+    background: #1d4ed8;
+}
+
+.member-detail-delete {
+    background: #ef4444;
+}
+
+.member-detail-delete:hover {
+    background: #dc2626;
+}
+
+/* Giữ tương thích nếu JSX cũ còn dùng */
+.member-modal-done {
+    width: 100%;
+    height: 43px;
+    border: none;
+    border-radius: 11px;
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.member-modal-done:hover {
+    background: #1d4ed8;
+}
+
+/* =========================================================
+   ADD / EDIT FORM MODAL
+========================================================= */
+
+.member-form-modal {
+    width: 720px;
+    max-width: 95vw;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 24px;
+    background: #10233b;
+    border: 1px solid #284767;
+    border-radius: 20px;
+    color: #ffffff;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.55);
+}
+
+.member-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.member-form-header h2 {
+    margin: 0;
+    font-size: 25px;
+}
+
+.member-form-header p {
+    margin: 6px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.member-form-error {
+    margin-bottom: 16px;
+    padding: 11px 13px;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+    font-size: 13px;
+}
+
+/* =========================================================
+   FORM FIELDS
+========================================================= */
+
+.member-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.member-form-group {
+    min-width: 0;
+}
+
+.member-form-full {
+    grid-column: 1 / -1;
+}
+
+.member-form-group label {
+    display: block;
+    margin-bottom: 7px;
+    color: #dce8ff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.member-form-group .required {
+    color: #f87171;
+}
+
+.member-form-group input,
+.member-form-group select,
+.member-form-group textarea {
+    width: 100%;
+    height: 43px;
+    box-sizing: border-box;
+    padding: 0 13px;
+    border: 1px solid #284767;
+    border-radius: 10px;
+    outline: none;
+    background: #071527;
+    color: #ffffff;
+    font-size: 14px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.member-form-group textarea {
+    height: 90px;
+    padding-top: 11px;
+    resize: vertical;
+}
+
+.member-form-group input::placeholder,
+.member-form-group textarea::placeholder {
+    color: #6f849e;
+}
+
+.member-form-group input:focus,
+.member-form-group select:focus,
+.member-form-group textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* =========================================================
+   PROJECT SELECTION
+========================================================= */
+
+.member-project-selection {
+    margin-top: 20px;
+    padding: 16px;
+    background: #071527;
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+}
+
+.member-project-selection-title {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 14px;
+}
+
+.member-project-selection-title > svg {
+    flex-shrink: 0;
+    color: #60a5fa;
+    font-size: 20px;
+}
+
+.member-project-selection-title strong {
+    display: block;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.member-project-selection-title span {
+    display: block;
+    margin-top: 3px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.member-no-project {
+    margin: 0;
+    padding: 18px 10px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.member-project-checkbox-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.member-project-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #243b5a;
+    border-radius: 11px;
+    background: #0c1d32;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.member-project-checkbox:hover {
+    transform: translateY(-1px);
+    border-color: #3b82f6;
+    background: #10233b;
+}
+
+.member-project-checkbox.selected {
+    border-color: #3b82f6;
+    background: rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+}
+
+.member-project-checkbox input {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.member-project-color {
+    width: 10px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 999px;
+}
+
+.member-project-checkbox > div {
+    min-width: 0;
+}
+
+.member-project-checkbox strong {
+    display: block;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-project-checkbox > div span {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+/* =========================================================
+   FORM ACTIONS
+========================================================= */
+
+.member-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.member-form-cancel,
+.member-form-save {
+    min-width: 125px;
+    height: 43px;
+    padding: 0 17px;
+    border: none;
+    border-radius: 11px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.member-form-cancel {
+    background: #334155;
+}
+
+.member-form-cancel:hover {
+    background: #475569;
+}
+
+.member-form-save {
+    background: #2563eb;
+}
+
+.member-form-save:hover {
+    background: #1d4ed8;
+}
+
+.member-form-cancel:disabled,
+.member-form-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.member-table-wrapper::-webkit-scrollbar,
+.member-modal::-webkit-scrollbar,
+.member-form-modal::-webkit-scrollbar,
+.member-project-checkbox-list::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.member-table-wrapper::-webkit-scrollbar-thumb,
+.member-modal::-webkit-scrollbar-thumb,
+.member-form-modal::-webkit-scrollbar-thumb,
+.member-project-checkbox-list::-webkit-scrollbar-thumb {
+    background: #35516f;
+    border-radius: 999px;
+}
+
+.member-table-wrapper::-webkit-scrollbar-track,
+.member-modal::-webkit-scrollbar-track,
+.member-form-modal::-webkit-scrollbar-track,
+.member-project-checkbox-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.member-table-wrapper::-webkit-scrollbar-button,
+.member-modal::-webkit-scrollbar-button,
+.member-form-modal::-webkit-scrollbar-button,
+.member-project-checkbox-list::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1250px) {
+    .member-statistics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .member-toolbar {
+        grid-template-columns: minmax(240px, 1fr) 200px 190px;
+    }
+}
+
+@media (max-width: 900px) {
+    .member-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .member-statistics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .member-form-modal {
+        width: 650px;
+    }
+}
+
+@media (max-width: 720px) {
+    .member-page {
+        padding: 20px;
+    }
+
+    .member-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .member-header h1 {
+        font-size: 28px;
+    }
+
+    .member-add-button {
+        width: 100%;
+    }
+
+    .member-statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .member-modal,
+    .member-form-modal {
+        padding: 20px;
+    }
+
+    .member-modal-grid,
+    .member-form-grid,
+    .member-project-checkbox-list {
+        grid-template-columns: 1fr;
+    }
+
+    .member-form-full {
+        grid-column: auto;
+    }
+
+    .member-modal-profile h2 {
+        max-width: 240px;
+        font-size: 21px;
+    }
+
+    .member-detail-actions,
+    .member-form-actions {
+        flex-direction: column;
+    }
+
+    .member-detail-close,
+    .member-detail-edit,
+    .member-detail-delete,
+    .member-form-cancel,
+    .member-form-save {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .member-page {
+        padding: 16px;
+    }
+
+    .member-modal-overlay {
+        padding: 10px;
+    }
+
+    .member-modal,
+    .member-form-modal {
+        max-width: 100%;
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .member-modal-header,
+    .member-form-header {
+        align-items: center;
+    }
+
+    .member-modal-avatar-text,
+    .member-modal-avatar-image {
+        width: 50px;
+        height: 50px;
+    }
+
+    .member-modal-profile h2 {
+        max-width: 180px;
+        font-size: 18px;
+    }
+
+    .member-action-buttons {
+        gap: 5px;
+    }
+
+    .member-view-button {
+        padding: 0 10px;
+    }
+}

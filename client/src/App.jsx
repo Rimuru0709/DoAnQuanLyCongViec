@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate
+} from "react-router-dom";
 
 import Home from "./Home/Home";
 import Project from "./Project/Project";
@@ -13,6 +18,7 @@ import Notification from "./Notification/Notification";
 import Setting from "./Setting/Setting";
 import Login from "./Login/Login";
 import Register from "./Register/Register";
+import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -21,22 +27,110 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
+                {/* Trang Home mở tự do, không cần đăng nhập */}
                 <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
+
+                {/* Trang đăng nhập và đăng ký */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                <Route path="/project" element={<Project />} />
-                <Route path="/project/:id" element={<ProjectDetail />} />
-                <Route path="/task" element={<Task />} />
-                <Route path="/kanban" element={<Kanban />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/member" element={<Member />} />
-                <Route path="/report" element={<Report />} />
-                <Route path="/document" element={<Document />} />
-                <Route path="/notification" element={<Notification />} />
-                <Route path="/setting" element={<Setting />} />
+                {/* Các trang cần đăng nhập */}
+                <Route
+                    path="/project"
+                    element={
+                        <ProtectedRoute>
+                            <Project />
+                        </ProtectedRoute>
+                    }
+                />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route
+                    path="/project/:id"
+                    element={
+                        <ProtectedRoute>
+                            <ProjectDetail />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/task"
+                    element={
+                        <ProtectedRoute>
+                            <Task />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/kanban"
+                    element={
+                        <ProtectedRoute>
+                            <Kanban />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/calendar"
+                    element={
+                        <ProtectedRoute>
+                            <Calendar />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/member"
+                    element={
+                        <ProtectedRoute>
+                            <Member />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/report"
+                    element={
+                        <ProtectedRoute>
+                            <Report />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/document"
+                    element={
+                        <ProtectedRoute>
+                            <Document />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/notification"
+                    element={
+                        <ProtectedRoute>
+                            <Notification />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/setting"
+                    element={
+                        <ProtectedRoute>
+                            <Setting />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Đường dẫn sai quay về Home */}
+                <Route
+                    path="*"
+                    element={<Navigate to="/" replace />}
+                />
             </Routes>
 
             <ToastContainer
