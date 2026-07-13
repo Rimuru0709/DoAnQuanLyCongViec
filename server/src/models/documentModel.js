@@ -1,11 +1,19 @@
 const db = require("../config/db");
 
+// Hàm helper để bọc các câu lệnh truy vấn thành Promise
+const queryPromise = (sql, params) => {
+    return new Promise((resolve, reject) => {
+        // Đổi từ db.execute sang db.query để tương thích tuyệt đối với mọi cấu hình thư viện mysql/mysql2 cũ và mới
+        db.query(sql, params, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
 const DocumentModel = {
-    getLatestVersion: (
-        projectId,
-        fileName,
-        callback
-    ) => {
+    // 1. Lấy phiên bản mới nhất của file trong dự án
+    getLatestVersion: async (projectId, fileName) => {
         const sql = `
             SELECT version
             FROM documents
@@ -14,21 +22,11 @@ const DocumentModel = {
             ORDER BY id DESC
             LIMIT 1
         `;
-
-        db.query(
-            sql,
-            [
-                Number(projectId),
-                fileName
-            ],
-            callback
-        );
+        return queryPromise(sql, [Number(projectId), fileName]);
     },
 
-    createDocument: (
-        data,
-        callback
-    ) => {
+    // 2. Tạo mới tài liệu vào DB
+    createDocument: async (data) => {
         const sql = `
             INSERT INTO documents
             (
@@ -42,26 +40,19 @@ const DocumentModel = {
             )
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-
-        db.query(
-            sql,
-            [
-                Number(data.project_id),
-                data.file_name,
-                data.file_path,
-                data.file_type,
-                Number(data.file_size) || 0,
-                data.uploaded_by,
-                data.version || "v1.0"
-            ],
-            callback
-        );
+        return queryPromise(sql, [
+            Number(data.project_id),
+            data.file_name,
+            data.file_path,
+            data.file_type,
+            Number(data.file_size) || 0,
+            data.uploaded_by,
+            data.version || "v1.0"
+        ]);
     },
 
-    getByProject: (
-        projectId,
-        callback
-    ) => {
+    // 3. Lấy danh sách tài liệu thuộc một dự án
+    getByProject: async (projectId) => {
         const sql = `
             SELECT
                 id,
@@ -77,46 +68,36 @@ const DocumentModel = {
             WHERE project_id = ?
             ORDER BY id DESC
         `;
-
-        db.query(
-            sql,
-            [Number(projectId)],
-            callback
-        );
+        return queryPromise(sql, [Number(projectId)]);
     },
 
-    getById: (
-        id,
-        callback
-    ) => {
+    // 4. Tìm kiếm tài liệu theo ID cụ thể
+    getById: async (id) => {
         const sql = `
             SELECT *
             FROM documents
             WHERE id = ?
             LIMIT 1
         `;
-
-        db.query(
-            sql,
-            [Number(id)],
-            callback
-        );
+        return queryPromise(sql, [Number(id)]);
     },
 
-    deleteById: (
-        id,
-        callback
-    ) => {
+    // 5. Xóa tài liệu khỏi DB theo ID
+    deleteById: async (id) => {
         const sql = `
             DELETE FROM documents
             WHERE id = ?
         `;
+        return queryPromise(sql, [Number(id)]);
+    },
 
-        db.query(
-            sql,
-            [Number(id)],
-            callback
-        );
+    // 6. Tính tổng dung lượng các file đã lưu để gửi lên Dashboard UI
+    getStorageSize: async () => {
+        const sql = `
+            SELECT SUM(file_size) as totalSize 
+            FROM documents
+        `;
+        return queryPromise(sql, []);
     }
 };
 

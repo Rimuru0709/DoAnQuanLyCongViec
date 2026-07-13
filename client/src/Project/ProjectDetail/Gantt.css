@@ -1,9 +1,12 @@
-/* ================= GANTT ================= */
-
+/* Layout Bao Ngoài */
 .gantt-page {
     margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
 }
 
+/* Header & Bộ lọc */
 .gantt-top {
     display: flex;
     justify-content: space-between;
@@ -14,6 +17,7 @@
 .gantt-top h2 {
     margin: 8px 0 0;
     font-size: 26px;
+    color: #ffffff;
 }
 
 .gantt-filters {
@@ -29,8 +33,17 @@
     padding: 10px 16px;
     border-radius: 8px;
     cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
+.gantt-filters button:hover,
+.gantt-filters select:hover {
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+/* Khung Chứa Toàn Bộ Gantt Chart */
 .gantt-box-fixed {
     display: flex;
     width: 100%;
@@ -38,14 +51,17 @@
     border: 1px solid #243b5a;
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
+/* Phần Bảng Bên Trái (Cố định tên công việc) */
 .gantt-left-table {
     display: grid;
     grid-template-columns: 220px 100px 100px;
     flex: 0 0 420px;
     background: #0c1d32;
     z-index: 5;
+    border-right: 2px solid #1e3a5f;
 }
 
 .gantt-left-head {
@@ -55,23 +71,32 @@
     padding: 14px;
     border-right: 1px solid #1e3a5f;
     border-bottom: 1px solid #1e3a5f;
+    font-size: 14px;
 }
 
 .gantt-left-cell {
     height: 52px;
     padding: 14px;
-    color: white;
+    color: #f1f5f9;
     border-right: 1px solid #1e3a5f;
     border-bottom: 1px solid #1e3a5f;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.gantt-left-cell:hover {
+    background-color: rgba(59, 130, 246, 0.1);
 }
 
 .gantt-center {
     text-align: center;
 }
 
+/* Phần Cuộn Bên Phải (Lưới Timeline & Thanh Progress) */
 .gantt-right-scroll {
     flex: 1;
     overflow-x: auto;
@@ -81,6 +106,7 @@
 
 .gantt-right-grid {
     min-width: max-content;
+    position: relative;
 }
 
 .gantt-days-row {
@@ -96,6 +122,7 @@
     text-align: center;
     padding-top: 14px;
     border-right: 1px solid #1e3a5f;
+    position: relative;
 }
 
 .gantt-task-row {
@@ -104,12 +131,14 @@
     border-bottom: 1px solid #1e3a5f;
     background-image: linear-gradient(
         to right,
-        rgba(255, 255, 255, 0.05) 1px,
+        rgba(255, 255, 255, 0.03) 1px,
         transparent 1px
     );
     background-size: 36px 100%;
+    position: relative;
 }
 
+/* Thanh Tiến Độ (Progress Bars) */
 .gantt-bar-new {
     height: 26px;
     margin-top: 13px;
@@ -121,37 +150,133 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease, filter 0.15s ease;
 }
 
-.gantt-green {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+.gantt-bar-new:hover {
+    transform: scaleY(1.05);
+    filter: brightness(1.15);
 }
 
-.gantt-blue {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+/* Màu Sắc Đai Tiến Độ */
+.gantt-green  { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.gantt-blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.gantt-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+.gantt-orange { background: linear-gradient(135deg, #f59e0b, #f97316); }
+.gantt-red    { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.gantt-cyan   { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+
+/* ĐƯỜNG CHỈ ĐỨT ĐỎ BÁO NGÀY HIỆN TẠI (TODAY LINE) */
+.gantt-today-line-dotted {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 2px dashed #ef4444; 
+    z-index: 10;
+    pointer-events: none;
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.6));
 }
 
-.gantt-purple {
-    background: linear-gradient(135deg, #a855f7, #7c3aed);
+/* Tối Ưu Scrollbar */
+.gantt-right-scroll::-webkit-scrollbar { height: 8px; }
+.gantt-right-scroll::-webkit-scrollbar-thumb { background: #243b5a; border-radius: 999px; }
+.gantt-right-scroll::-webkit-scrollbar-thumb:hover { background: #35516f; }
+.gantt-right-scroll::-webkit-scrollbar-track { background: #071527; }
+
+
+/* ==========================================================================
+   KHỐI TIMELINE TIẾN ĐỘ PHÍA DƯỚI (MILESTONES PANEL) - ĐÃ ĐỒNG BỘ MÀU SẮC UI
+   ========================================================================== */
+.gantt-milestones-panel {
+    background-color: #0c1d32; 
+    border: 1px solid #243b5a;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-.gantt-orange {
-    background: linear-gradient(135deg, #f59e0b, #f97316);
+.milestones-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 28px;
+    margin-top: 0;
 }
 
-.gantt-red {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+.milestones-track-container {
+    position: relative;
+    width: 100%;
+    padding: 0 20px;
 }
 
-.gantt-right-scroll::-webkit-scrollbar {
-    height: 8px;
+/* Trục ngang kết nối các node */
+.milestones-line-bg {
+    position: absolute;
+    top: 17px; 
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: #1e3a5f;
+    z-index: 1;
 }
 
-.gantt-right-scroll::-webkit-scrollbar-thumb {
-    background: #35516f;
-    border-radius: 999px;
+.milestones-list {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
 }
 
-.gantt-right-scroll::-webkit-scrollbar-track {
-    background: #071527;
+.milestone-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+}
+
+/* Các Vòng Tròn Node */
+.milestone-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 13px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: default;
+}
+
+.milestone-node:hover .milestone-circle {
+    transform: scale(1.2); 
+}
+
+/* Phân nhóm màu sắc đặc thù cho Node icon trùng khớp với mã sự kiện */
+.gantt-ms-start   { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.gantt-ms-done    { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.gantt-ms-process { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.gantt-ms-end     { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+
+/* Ngày tháng phía dưới node */
+.milestone-date {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+/* Nhãn text hiển thị tên mốc sự kiện */
+.milestone-label {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    max-width: 130px;
+    line-height: 1.4;
 }
