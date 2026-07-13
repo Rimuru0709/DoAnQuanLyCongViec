@@ -5,7 +5,8 @@ const {
     getDocumentsByProject,
     uploadDocument,
     deleteDocument,
-    downloadDocument
+    downloadDocument,
+    getStorageStats 
 } = require("../controllers/documentController");
 
 const {
@@ -13,14 +14,21 @@ const {
     allowRoles
 } = require("../middlewares/authMiddleware");
 
-// Lấy tài liệu của một dự án
+// 1. Lấy thông số dung lượng bộ nhớ hệ thống (Đưa lên đầu để tránh bị trùng khớp với route động /:projectId)
+router.get(
+    "/storage/stats",
+    verifyToken,
+    getStorageStats
+);
+
+// 2. Lấy tài liệu của một dự án
 router.get(
     "/:projectId",
     verifyToken,
     getDocumentsByProject
 );
 
-// Upload tài liệu
+// 3. Upload tài liệu
 router.post(
     "/",
     verifyToken,
@@ -28,14 +36,14 @@ router.post(
     uploadDocument
 );
 
-// Tải tài liệu
+// 4. Tải tài liệu
 router.get(
     "/download/:id",
     verifyToken,
     downloadDocument
 );
 
-// Xóa tài liệu
+// 5. Xóa tài liệu
 router.delete(
     "/:id",
     verifyToken,

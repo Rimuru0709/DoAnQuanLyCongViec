@@ -1,364 +1,203 @@
-.main {
-    flex: 1;
-    min-height: 100vh;
-    background: linear-gradient(180deg, #030b16 0%, #071324 100%);
-}
-
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(24, 48, 74, 0.8);
-    background: rgba(6, 18, 36, 0.95);
-    backdrop-filter: blur(8px);
-    z-index: 10;
-}
-
-.topbar h1 {
-    color: white;
-    font-size: 22px;
-    margin: 0;
-}
-
-.page-content {
-    padding: 24px;
-}
-
+/* --- Khung tổng thể trang (Đồng bộ Deep Navy) --- */
 .report-page {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
+    padding: 24px;
+    background-color: #0b1329; /* Màu nền tối của hệ thống */
+    min-height: 100vh;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+/* --- Thanh bộ lọc (Filter Bar) hết bị nền trắng --- */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #111a36 !important; /* Ép màu nền tối hệ thống */
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border: none !important;
+}
+
+.filter-bar strong {
+    color: #ffffff !important; /* Chữ trắng */
+    font-size: 14px;
+}
+
+.filter-bar select {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #1e294b;
+    background-color: #1c2541; /* Nền select tối */
+    color: #ffffff; /* Chữ select trắng */
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.filter-bar select:focus {
+    border-color: #2563eb;
+}
+
+/* --- Khu vực Hero Banner trùng màu nền hệ thống --- */
 .report-hero {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
+    background: #111a36 !important; /* Đồng bộ màu card */
     padding: 24px;
-    background: linear-gradient(135deg, rgba(6, 18, 36, 0.98), rgba(8, 28, 48, 0.98));
-    border: 1px solid rgba(24, 48, 74, 0.9);
-    border-radius: 18px;
-    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
-}
-
-.eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #60a5fa;
-    margin: 0 0 6px;
-    font-weight: 700;
+    border-radius: 8px;
+    border-left: none !important; /* Bỏ viền cam nếu không hợp */
 }
 
 .report-hero h2 {
-    color: white;
     font-size: 24px;
-    margin: 0 0 8px;
+    color: #ffffff;
+    margin: 0 0 6px 0;
+    font-weight: 600;
 }
 
-.report-hero p {
-    color: #9fb1c8;
+.report-hero p, .report-hero .eyebrow {
+    color: #94a3b8;
     margin: 0;
-    max-width: 640px;
+    font-size: 14px;
 }
 
 .hero-actions {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 12px;
 }
 
-.btn-primary,
-.btn-secondary {
-    border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
+/* --- Hệ thống nút bấm (Buttons) --- */
 .btn-primary {
-    background: linear-gradient(135deg, #0d6efd, #2563eb);
-    color: white;
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+    background: #2563eb !important;
+    color: white !important;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8 !important;
 }
 
 .btn-secondary {
-    background: rgba(16, 35, 58, 0.9);
-    color: #dce8f7;
-    border: 1px solid #18304a;
+    background-color: #1c2541 !important;
+    color: #ffffff !important;
+    border: 1px solid #1e294b !important;
 }
 
-.btn-primary:hover,
 .btn-secondary:hover {
-    transform: translateY(-1px);
-    opacity: 0.95;
+    background-color: #232e52 !important;
 }
 
-.card {
-    background: linear-gradient(180deg, rgba(6, 18, 36, 0.96), rgba(7, 22, 39, 0.96));
-    border: 1px solid rgba(24, 48, 74, 0.9);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
-}
-
-.report-filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.filter-group label {
-    color: #9fb1c8;
-    font-size: 13px;
-}
-
-.filter-group select {
-    background: rgba(16, 35, 58, 0.9);
-    border: 1px solid #18304a;
-    color: white;
-    border-radius: 10px;
-    padding: 10px 12px;
-    outline: none;
-    cursor: pointer;
-}
-
+/* --- Lưới thẻ tổng quan (4 Card nhỏ) --- */
 .summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
 }
 
 .summary-card {
-    background: linear-gradient(135deg, rgba(6, 18, 36, 0.96), rgba(10, 28, 49, 0.96));
-    border: 1px solid rgba(24, 48, 74, 0.9);
-    border-radius: 14px;
-    padding: 18px;
     display: flex;
-    gap: 12px;
-    align-items: flex-start;
+    align-items: center;
+    gap: 16px;
+    background: #111a36 !important; /* Đồng bộ màu card */
+    padding: 20px;
+    border-radius: 8px;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
-    display: grid;
-    place-items: center;
-    border-radius: 12px;
-    background: rgba(13, 110, 253, 0.16);
-    color: #60a5fa;
-    flex-shrink: 0;
+    border-radius: 8px;
+    font-size: 18px;
+    background-color: rgba(255, 255, 255, 0.05) !important; /* Nền icon mờ tối */
 }
 
+/* Gắn màu chữ tương ứng cho sub-text trạng thái giống hệt trang tổng quan */
+.summary-card:nth-child(1) .sub-text { color: #10b981 !important; } /* Dự án - Xanh lá */
+.summary-card:nth-child(2) .sub-text { color: #3b82f6 !important; } /* Công việc - Xanh dương */
+.summary-card:nth-child(3) .sub-text { color: #06b6d4 !important; } /* Tài liệu - Đang làm/review */
+.summary-card:nth-child(4) .sub-text { color: #10b981 !important; } /* Dung lượng - Ổn định */
+
 .summary-content h3 {
-    margin: 0 0 4px;
-    color: white;
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+    color: #ffffff;
 }
 
 .summary-content p {
-    margin: 0 0 2px;
-    color: #9fb1c8;
+    margin: 2px 0 0 0;
+    color: #94a3b8;
     font-size: 14px;
-    font-weight: 500;
 }
 
-.sub-text {
+.summary-content .sub-text {
     font-size: 12px;
-    color: #64748b;
 }
 
-.report-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 16px;
-}
-
-.card-header {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    margin-bottom: 16px;
+/* --- Layout Khung Biểu đồ (Cards lớn) --- */
+.card {
+    background: #111a36 !important; /* Đồng bộ màu card lớn */
+    padding: 24px;
+    border-radius: 8px;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card-header h3 {
-    color: white;
-    margin: 0;
-    font-size: 16px;
+    font-size: 18px;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    font-weight: 600;
 }
 
 .card-header span {
-    color: #64748b;
-    font-size: 12px;
-}
-
-.chart-card {
-    padding: 12px 0 4px;
-    position: relative;
-}
-
-/* Cấu hình màu nền cho ô Tooltip nhỏ khi di chuột vào Recharts */
-.recharts-tooltip-wrapper .recharts-default-tooltip {
-    background-color: #0d1e31 !important;
-    border: 1px solid #18304a !important;
-    border-radius: 8px;
-}
-.recharts-tooltip-wrapper .recharts-tooltip-item {
-    color: #60a5fa !important;
-}
-
-.warning-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.warning-item {
-    display: flex;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 12px;
-    background: rgba(16, 35, 58, 0.5);
-}
-
-/* Các trạng thái cảnh báo rủi ro */
-.warning-item.urgent {
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-.warning-item.urgent svg {
-    color: #ef4444;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.warning-item.safe {
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.warning-item strong {
-    display: block;
-    color: white;
-    margin-bottom: 4px;
-}
-
-.warning-item span {
-    color: #9fb1c8;
     font-size: 13px;
-    line-height: 1.4;
+    color: #64748b;
 }
 
+/* --- Bảng dữ liệu thô (Table) --- */
 .table-responsive {
     overflow-x: auto;
+    margin-top: 12px;
 }
 
 .report-table {
     width: 100%;
     border-collapse: collapse;
-}
-
-.report-table th,
-.report-table td {
     text-align: left;
-    padding: 14px 12px;
-    border-bottom: 1px solid rgba(24, 48, 74, 0.6);
-    color: #dce8f7;
     font-size: 14px;
 }
 
 .report-table th {
-    color: #9fb1c8;
-    font-weight: 600;
-    background: rgba(16, 35, 58, 0.3);
-}
-
-.report-table tr:hover td {
-    background: rgba(24, 48, 74, 0.2);
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 12px;
+    background-color: #162246 !important;
+    color: #94a3b8;
+    padding: 14px 16px;
     font-weight: 600;
 }
 
-.status-badge.on-track {
-    background: rgba(34, 197, 94, 0.16);
-    color: #86efac;
+.report-table td {
+    padding: 16px 16px;
+    color: #e2e8f0;
+    border-bottom: 1px solid #1e294b;
 }
 
-.status-badge.at-risk {
-    background: rgba(245, 158, 11, 0.16);
-    color: #fcd34d;
-}
-
-.status-badge.delayed {
-    background: rgba(239, 68, 68, 0.16);
-    color: #fda4af;
-}
-
-/* SỬA ĐỔI: Bổ sung biểu ngữ thông báo lỗi kết nối */
-.status-banner {
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-}
-
-.error-banner {
-    background: rgba(239, 68, 68, 0.14);
-    color: #fca5a5;
-    border: 1px solid rgba(239, 68, 68, 0.25);
+.report-table tbody tr:hover {
+    background-color: #162246;
 }
 
 .empty-state {
-    color: #64748b;
-    padding: 32px 0;
+    padding: 40px;
     text-align: center;
-    font-size: 14px;
-}
-
-/* --- HỖ TRỢ CO GIÃN RESPONSIVE --- */
-@media (max-width: 992px) {
-    .report-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 16px;
-    }
-
-    .report-hero {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 16px;
-    }
-
-    .page-content {
-        padding: 16px;
-    }
+    color: #64748b;
 }

@@ -1,16 +1,16 @@
 /* ==========================================
-   BỐ CỤC CHÍNH
+   BỐ CỤC CHÍNH & NỀN
    ========================================== */
 .project-settings-layout {
     display: flex;
     width: 100%;
     min-height: 100vh;
-    background-color: #0b1329;
+    background-color: #071527;
 }
 
 .project-settings-container {
     flex: 1;
-    padding: 60px 40px;
+    padding: 40px;
     box-sizing: border-box;
     display: flex;
     justify-content: flex-start;
@@ -20,19 +20,50 @@
 .settings-form {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px; /* Tăng khoảng cách giữa các khối lớn */
     width: 100%;
-    max-width: 650px; 
+    max-width: 700px; 
     box-sizing: border-box;
 }
 
-.form-section-title {
+/* Tiêu đề lớn của trang */
+.page-main-title {
     color: #ffffff;
-    font-size: 22px; /* Tăng kích thước font chữ tiêu đề hệ thống */
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+}
+
+/* ==========================================
+   THIẾT KẾ CARD - NỔI BẬT
+   ========================================== */
+.settings-card-section {
+    background: rgba(16, 35, 58, 0.4);
+    border: 1px solid rgba(24, 48, 74, 0.7);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: border-color 0.3s ease;
+}
+
+.settings-card-section:hover {
+    border-color: rgba(37, 99, 235, 0.4); /* Highlight nhẹ khi hover vùng card */
+}
+
+/* Tiêu đề của từng phân khu */
+.form-section-title {
+    color: #3b82f6; /* Đổi sang màu xanh dương nổi bật */
+    font-size: 16px;
     font-weight: 600;
-    margin: 0 0 8px 0;
-    border-bottom: 1px solid rgba(24, 48, 74, 0.5);
-    padding-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(24, 48, 74, 0.6);
 }
 
 /* Cụm nhập liệu */
@@ -44,7 +75,7 @@
 }
 
 .form-group label {
-    color: #9fb1c8;
+    color: #ffffff;
     font-size: 14px;
     font-weight: 500;
 }
@@ -52,76 +83,65 @@
 .sub-text {
     color: #64748b;
     font-size: 13px;
-    margin: 4px 0 0 0;
+    margin: 2px 0 0 0;
+    line-height: 1.4;
 }
 
-/* Ô nhập liệu chữ */
+/* Ô nhập liệu & Select Dropdown */
 .settings-input {
-    background: rgba(16, 35, 58, 0.9);
+    background: rgba(11, 19, 41, 0.8);
     border: 1px solid #18304a;
     color: #ffffff;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 12px 14px;
     outline: none;
     font-size: 14px;
     width: 100%;
     box-sizing: border-box;
-    transition: border-color 0.15s ease;
+    transition: all 0.15s ease;
+}
+
+select.settings-input {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239fb1c8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
+    appearance: none !important;
+}
+
+select.settings-input option {
+    background: #0b1329;
+    color: #ffffff;
 }
 
 .settings-input:focus {
     border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Khu vực chọn màu (Color Picker) */
-.color-picker-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+/* ==========================================
+   COMPONENTS CHI TIẾT INTERFACE
+   ========================================== */
 
-input[type="color"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background: none;
-    border: 1px solid #18304a;
-    border-radius: 6px;
-    width: 48px;
-    height: 36px;
-    cursor: pointer;
-    padding: 0;
-}
-
-input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
-input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
-
-.color-code-text {
-    color: #ffffff;
-    font-size: 14px;
-    font-family: monospace;
-}
-
-/* Hàng bật tắt (Toggle Row) */
+/* Hàng bật tắt Toggle */
 .setting-toggle-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(24, 48, 74, 0.3);
+    padding: 4px 0;
     gap: 20px;
 }
 
 .toggle-text-group h4 {
     color: #ffffff;
     margin: 0;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-/* Giao diện nút gạt Switch thay thế Checkbox */
+/* Nút gạt Switch */
 .switch {
     position: relative;
     display: inline-block;
@@ -130,18 +150,14 @@ input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
     flex-shrink: 0;
 }
 
-.switch input { 
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.switch input { opacity: 0; width: 0; height: 0; }
 
 .slider {
     position: absolute;
     cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #16233a;
-    border: 1px solid #18304a;
+    background-color: #1e293b;
+    border: 1px solid #334155;
     transition: .3s;
 }
 
@@ -152,7 +168,7 @@ input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
     width: 16px;
     left: 3px;
     bottom: 3px;
-    background-color: #9fb1c8;
+    background-color: #94a3b8;
     transition: .3s;
 }
 
@@ -169,37 +185,110 @@ input:checked + .slider:before {
 .slider.round { border-radius: 24px; }
 .slider.round:before { border-radius: 50%; }
 
-/* Nút bấm lưu */
-.btn-primary {
-    background: linear-gradient(135deg, #0d6efd, #2563eb);
-    color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
+/* Khối Checkbox chọn ngày */
+.days-checkbox-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.days-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(11, 19, 41, 0.6);
+    border: 1px solid #18304a;
+    color: #9fb1c8;
+    padding: 8px 14px;
+    border-radius: 8px;
     cursor: pointer;
-    width: fit-content;
-    margin-top: 10px;
+    font-size: 13px;
+    user-select: none;
     transition: all 0.2s ease;
 }
 
-.btn-primary:hover { transform: translateY(-1px); }
-.btn-primary:disabled {
-    background: #1e293b;
-    color: #64748b;
-    border: 1px solid #334155;
-    cursor: not-allowed;
-    transform: none;
+.days-checkbox-group label:hover {
+    background: #18304a;
+    color: #ffffff;
 }
 
-/* Banner trạng thái */
+.days-checkbox-group label:has(input:checked) {
+    border-color: #2563eb;
+    background: rgba(37, 99, 235, 0.12);
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.days-checkbox-group input[type="checkbox"] {
+    accent-color: #2563eb;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+/* Vùng Color Picker */
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(11, 19, 41, 0.6);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #18304a;
+    width: fit-content;
+}
+
+/* Nút Submit lưu */
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%; /* Cho nút lưu kéo dài full hoặc fit-content tùy bạn */
+    max-width: 240px;
+    margin-top: 10px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+    transition: all 0.2s ease;
+    align-self: flex-start;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:disabled {
+    background: #1e293b !important;
+    color: #64748b !important;
+    border: 1px solid #334155;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Banner thông báo lỗi / thành công */
 .status-banner {
-    padding: 12px 14px;
+    padding: 12px 16px;
     border-radius: 8px;
     font-size: 14px;
     width: 100%;
     box-sizing: border-box;
+    margin-bottom: 5px;
 }
-.success-banner { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-.error-banner { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.success-banner { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+.error-banner { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+
+/* Khung lỗi phân quyền chặn trang */
+.unauthorized-card {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 24px;
+    color: #f87171;
+    max-width: 500px;
+}

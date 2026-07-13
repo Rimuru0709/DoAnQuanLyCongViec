@@ -1,79 +1,108 @@
-/* Layout cấu trúc vùng nội dung trang */
-.main {
-    flex: 1;
-    background: linear-gradient(180deg, #030b16 0%, #071324 100%);
-    min-height: 100vh;
+/* ==========================================
+   LAYOUT CHÍNH & TOPBAR
+   ========================================== */
+.document-page {
+    padding: 24px;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
 }
 
 .topbar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(24, 48, 74, 0.8);
-    background: rgba(6, 18, 36, 0.95);
-    backdrop-filter: blur(8px);
+    justify-content: space-between;
+    padding: 16px 24px;
+    background-color: #0f172a;
+    border-bottom: 1px solid #1e293b;
 }
 
 .topbar h1 {
-    color: white;
     font-size: 22px;
+    font-weight: 600;
+    color: #f8fafc;
     margin: 0;
 }
 
+/* Gom cụm Select Project và Search Box về bên phải */
+.topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Làm đẹp Dropdown chọn dự án */
+.project-selector-top select {
+    padding: 10px 16px;
+    border-radius: 8px;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.project-selector-top select:hover {
+    border-color: #3b82f6;
+    background-color: #24324d;
+}
+
+/* Ô tìm kiếm xịn mịn */
 .search-box {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(16, 35, 58, 0.9);
-    border: 1px solid #18304a;
-    padding: 10px 14px;
-    border-radius: 999px;
-    min-width: 280px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0 14px;
+    width: 280px;
+    transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.search-box svg {
+    color: #64748b;
+    margin-right: 10px;
+    font-size: 16px;
 }
 
 .search-box input {
-    background: transparent;
+    background: none;
     border: none;
-    outline: none;
-    color: white;
+    color: #f1f5f9;
+    padding: 10px 0;
     width: 100%;
+    font-size: 14px;
+    outline: none;
 }
 
 .search-box input::placeholder {
-    color: #6b7f96;
+    color: #64748b;
 }
 
-.page-content {
-    padding: 24px;
-}
-
-.document-page {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-/* 1. Khối thống kê dung lượng và hành động chính */
+/* ==========================================
+   STATS BAR (DUNG LƯỢNG & NÚT UPLOAD)
+   ========================================== */
 .document-stats {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
     gap: 20px;
-    flex-wrap: wrap;
 }
 
 .storage-card {
-    background: linear-gradient(135deg, rgba(6, 18, 36, 0.95), rgba(10, 28, 49, 0.95));
-    border: 1px solid rgba(24, 48, 74, 0.9);
-    padding: 18px 24px;
-    border-radius: 14px;
-    flex: 1;
-    min-width: 300px;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px 20px;
+    flex-grow: 1;
     max-width: 500px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
 }
 
 .storage-info {
@@ -85,151 +114,172 @@
 
 .storage-info h3 {
     font-size: 14px;
-    color: #9fb1c8;
+    font-weight: 500;
+    color: #94a3b8;
+    margin: 0;
 }
 
 .storage-info span {
     font-size: 14px;
     font-weight: 600;
-    color: white;
+    color: #3b82f6;
 }
 
 .progress-bar {
-    width: 100%;
+    background-color: #0f172a;
+    border-radius: 6px;
     height: 8px;
-    background: #10233a;
-    border-radius: 4px;
+    width: 100%;
     overflow: hidden;
 }
 
 .progress-fill {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
     height: 100%;
-    background: #0d6efd;
-    box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
-    border-radius: 4px;
+    border-radius: 6px;
     transition: width 0.4s ease;
 }
 
-/* Nút Tải lên tài liệu */
+/* Nút Upload đồng bộ chiều cao */
 .upload-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, #0d6efd, #2563eb);
-    color: white;
-    padding: 14px 24px;
+    background-color: #2563eb;
+    color: #ffffff;
     border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
 .upload-btn:hover {
-    background: #0b5ed7;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
 }
 
-/* 2. Thanh Tabs lọc loại file nhanh */
+/* ==========================================
+   FILTER TABS (CÁC NÚT PHÂN LOẠI)
+   ========================================== */
 .filter-tabs {
     display: flex;
-    gap: 10px;
-    border-bottom: 1px solid rgba(24, 48, 74, 0.8);
-    padding-bottom: 10px;
-    overflow-x: auto;
-    scrollbar-width: thin;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 12px;
 }
 
 .tab-btn {
-    background: transparent;
+    background: none;
     border: none;
-    color: #9fb1c8;
+    color: #94a3b8; /* Tăng độ sáng chữ để dễ đọc hơn bản cũ */
     padding: 8px 16px;
-    font-size: 14.5px;
-    cursor: pointer;
     border-radius: 6px;
-    transition: all 0.2s;
-    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-    color: white;
-    background: #10233a;
+    color: #f1f5f9;
+    background-color: #1e293b;
 }
 
 .tab-btn.active {
-    color: white;
-    background: #0d6efd;
-    font-weight: 500;
+    color: #ffffff;
+    background-color: #2563eb;
 }
 
-/* 3. Bảng dữ liệu */
+/* ==========================================
+   CARD DANH SÁCH & BẢNG TÀI LIỆU
+   ========================================== */
 .document-card {
-    background: linear-gradient(180deg, rgba(6, 18, 36, 0.96), rgba(7, 22, 39, 0.96));
-    border: 1px solid rgba(24, 48, 74, 0.9);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #334155;
+    background-color: #1e293b;
 }
 
 .card-header h3 {
-    font-size: 18px;
-    color: white;
-    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f8fafc;
+    margin: 0;
 }
 
-.table-responsive {
-    overflow-x: auto;
+/* Trạng thái trống (Tăng độ sáng chữ gợi ý) */
+.empty-document {
+    padding: 60px 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 15px;
+    font-style: italic;
 }
 
+/* Thiết kế bảng chuẩn Dashboard */
 .document-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-}
-
-.document-table th, .document-table td {
-    padding: 16px;
-    border-bottom: 1px solid #18304a;
-    color: #c9d6e5;
-    font-size: 14.5px;
+    font-size: 14px;
 }
 
 .document-table th {
-    color: #9fb1c8;
-    font-weight: 600;
-    background: rgba(9, 26, 48, 0.95);
+    background-color: #0f172a;
+    color: #94a3b8;
+    padding: 14px 20px;
+    font-weight: 500;
+    border-bottom: 1px solid #334155;
+}
+
+.document-table td {
+    padding: 14px 20px;
+    color: #cbd5e1;
+    border-bottom: 1px solid #334155;
 }
 
 .document-table tr:hover td {
-    background: rgba(16, 35, 58, 0.4);
+    background-color: #24324d; /* Hiệu ứng hover dòng cực mượt */
 }
 
-/* Cột tên file và định dạng màu icon */
+/* Cột Tên file kèm Icon */
 .file-name-cell {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
+.icon-doc {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.icon-doc.pdf { color: #ef4444; }
+.icon-doc.word { color: #3b82f6; }
+.icon-doc.excel { color: #10b981; }
+.icon-doc.image { color: #a855f7; }
+.icon-doc.info { color: #64748b; }
+
 .file-text-name {
-    color: white;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-weight: 500;
 }
 
-.icon-doc {
-    font-size: 20px;
-    flex-shrink: 0;
-}
-.icon-doc.word { color: #2b579a; }
-.icon-doc.pdf { color: #f40f12; }
-.icon-doc.excel { color: #217346; }
-.icon-doc.image { color: #e3a857; }
-
-/* Các nút hành động tải xuống / xóa */
+/* Các nút hành động Tải/Xóa */
 .actions-cell {
     display: flex;
     justify-content: center;
@@ -237,67 +287,64 @@
 }
 
 .action-btn {
-    background: rgba(16, 35, 58, 0.8);
-    border: 1px solid #18304a;
-    color: #9fb1c8;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.action-btn.download {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
 }
 
 .action-btn.download:hover {
-    color: #10b981;
-    border-color: #10b981;
-    background: rgba(16, 185, 129, 0.1);
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.action-btn.delete {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
 }
 
 .action-btn.delete:hover {
-    color: #ef4444;
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    background-color: #ef4444;
+    color: #ffffff;
 }
 
-.empty-document {
-    text-align: center;
-    padding: 40px;
-    color: #5c728d;
-    font-style: italic;
-}
-
-/* 4. MODAL POPUP LAYOUT (LỚP PHỦ THÊM MỚI FILE) */
+/* ==========================================
+   MODAL POPUP PHẦN UPLOAD
+   ========================================== */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background-color: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(4px);
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     z-index: 999;
 }
 
 .modal-content {
-    background: linear-gradient(180deg, rgba(6, 18, 36, 0.98), rgba(7, 22, 39, 0.98));
-    border: 1px solid rgba(24, 48, 74, 0.95);
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
     width: 100%;
-    max-width: 460px;
-    border-radius: 16px;
+    max-width: 450px;
     padding: 24px;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.45);
-    animation: fadeInModal 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-@keyframes fadeInModal {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 .modal-header {
@@ -305,132 +352,68 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid #18304a;
-    padding-bottom: 12px;
 }
 
 .modal-header h3 {
-    color: white;
+    margin: 0;
     font-size: 18px;
+    color: #f8fafc;
 }
 
 .close-modal-btn {
-    background: transparent;
+    background: none;
     border: none;
-    color: #9fb1c8;
-    font-size: 18px;
+    color: #94a3b8;
     cursor: pointer;
-}
-.close-modal-btn:hover { color: #ef4444; }
-
-.form-group-doc {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+    font-size: 16px;
 }
 
-.form-row-doc {
-    display: flex;
-    gap: 16px;
-}
-.form-row-doc .form-group-doc { flex: 1; }
+.close-modal-btn:hover { color: #f1f5f9; }
 
-.form-group-doc label {
-    color: #c9d6e5;
-    font-size: 14px;
-}
-
-.form-group-doc input, .form-group-doc select {
-    background: #10233a;
-    border: 1px solid #18304a;
-    padding: 12px;
+.upload-dropzone {
+    border: 2px dashed #334155;
     border-radius: 8px;
-    color: white;
-    outline: none;
-    font-size: 14.5px;
+    padding: 24px;
+    text-align: center;
+    background-color: #0f172a;
+    transition: all 0.2s ease;
 }
 
-.form-group-doc input:focus, .form-group-doc select:focus {
-    border-color: #0d6efd;
+.upload-dropzone:hover {
+    border-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.05);
 }
 
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-top: 24px;
+    margin-top: 20px;
 }
 
 .btn-cancel {
-    background: #10233a;
-    border: 1px solid #18304a;
-    color: #9fb1c8;
-    padding: 10px 20px;
-    border-radius: 8px;
+    background-color: #334155;
+    color: #f1f5f9;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
 }
-.btn-cancel:hover { background: #16304f; color: white; }
+
+.btn-cancel:hover { background-color: #475569; }
 
 .btn-submit {
-    background: #0d6efd;
+    background-color: #2563eb;
+    color: #ffffff;
     border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 10px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.btn-submit:hover { background: #0b5ed7; }
-
-/* Giao diện vùng bấm chọn file thực tế */
-.upload-dropzone {
-    border: 2px dashed #18304a;
-    background: rgba(16, 35, 58, 0.8);
-    padding: 30px 20px;
-    border-radius: 12px;
-    text-align: center;
-    transition: all 0.2s ease;
 }
 
-.upload-dropzone:hover {
-    border-color: #0d6efd;
-    background: rgba(13, 110, 253, 0.05);
-}
-
-.upload-dropzone p {
-    color: white;
-    font-size: 14.5px;
-    margin-bottom: 4px;
-    word-break: break-all;
-}
-
-@media (max-width: 768px) {
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .search-box {
-        width: 100%;
-        min-width: unset;
-    }
-
-    .document-stats {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .storage-card {
-        max-width: none;
-    }
-
-    .document-card {
-        padding: 18px;
-    }
+.btn-submit:disabled {
+    background-color: #1e293b;
+    color: #64748b;
+    cursor: not-allowed;
+    border: 1px solid #334155;
 }

@@ -275,18 +275,21 @@ CREATE TABLE task_labels (
         ON DELETE CASCADE
 );
 
+
 -- 15. Cài đặt chung
 CREATE TABLE system_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     theme_color VARCHAR(20) DEFAULT '#2563EB',
     enable_gantt TINYINT(1) DEFAULT 1,
     enable_timeline TINYINT(1) DEFAULT 1,
-    working_days VARCHAR(100)
-        DEFAULT 'Mon,Tue,Wed,Thu,Fri',
+    working_days VARCHAR(100) DEFAULT 'Mon,Tue,Wed,Thu,Fri',
     default_view VARCHAR(50) DEFAULT 'kanban',
-    admin_only_create_project TINYINT(1) DEFAULT 1,
+    admin_only_create_project TINYINT(1) DEFAULT 1, 
     max_upload_size INT DEFAULT 10
 );
+
+-- Khởi tạo sẵn dữ liệu cấu hình mặc định cho hệ thống
+INSERT INTO system_settings (id, theme_color) VALUES (1, '#2563EB');
 
 -- 16. Cài đặt từng dự án
 CREATE TABLE project_settings (
@@ -312,6 +315,7 @@ INSERT INTO users
     role,
     avatar
 )
+>>>>>>> bd37043e46899a537dcf7014fb8d06be4ae21578
 VALUES
 (
     'Nguyễn Văn A',

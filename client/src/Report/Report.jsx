@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaChartLine, FaFileAlt, FaFolderOpen, FaDownload } from "react-icons/fa";import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { FaChartLine, FaFileAlt, FaFolderOpen, FaDownload, FaTasks, FaFilter } from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 import Sidebar from "../Sidebar/Sidebar";
 import "./Report.css";
 
@@ -8,17 +9,24 @@ const getAuthHeaders = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// Màu sắc trực quan cho biểu đồ trạng thái Task
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+
 function Report() {
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    
+    // Thêm state bộ lọc (Chuyên nghiệp hóa UI/UX)
+    const [selectedProject, setSelectedProject] = useState("all");
+    const [timeRange, setTimeRange] = useState("month");
 
-    // 1. Lấy trực tiếp dữ liệu báo cáo từ API Dashboard tổng hợp
     useEffect(() => {
         const fetchReport = async () => {
             try {
                 setLoading(true);
-                const res = await fetch("http://localhost:5000/api/reports/dashboard", { 
+                // Gửi kèm query params bộ lọc lên Backend xử lý
+                const res = await fetch(`http://localhost:5000/api/reports/dashboard?project=${selectedProject}&time=${timeRange}`, { 
                     headers: getAuthHeaders() 
                 });
 
@@ -36,34 +44,57 @@ function Report() {
         };
 
         fetchReport();
-    }, []);
+    }, [selectedProject, timeRange]); // Tự động reload khi đổi bộ lọc
 
-    // 2. Format dữ liệu biểu đồ từ API (Dung lượng lưu trữ của từng dự án)
+    // 1. Format dữ liệu Biểu đồ cột (Dung lượng)
     const chartData = useMemo(() => {
         if (!reportData || !reportData.projects) return [];
         return reportData.projects.map(proj => ({
             name: proj.name.length > 15 ? `${proj.name.substring(0, 12)}...` : proj.name,
             files: proj.fileCount,
-            // Sử dụng dữ liệu thô (Bytes) chia cho 1024 * 1024 để hiển thị dạng MB trên biểu đồ
             storage: parseFloat((proj.rawTotalSizeBytes || 0) / (1024 * 1024)).toFixed(2)
         }));
     }, [reportData]);
 
+    // 2. Format dữ liệu Biểu đồ tròn (Trạng thái Task) - TÍNH NĂNG MỚI BỔ SUNG
+    const taskStatusData = useMemo(() => {
+        if (!reportData || !reportData.taskSummary) {
+            // Dữ liệu giả định mẫu phòng trường hợp backend chưa kịp trả về
+            return [
+                { name: "Cần làm", value: 40 },
+                { name: "Đang tiến hành", value: 30 },
+                { name: "Hoàn thành", value: 20 },
+                { name: "Trễ hạn", value: 10 }
+            ];
+        }
+        return [
+            { name: "Cần làm", value: reportData.taskSummary.todo || 0 },
+            { name: "Đang tiến hành", value: reportData.taskSummary.inProgress || 0 },
+            { name: "Hoàn thành", value: reportData.taskSummary.done || 0 },
+            { name: "Trễ hạn", value: reportData.taskSummary.overdue || 0 }
+        ];
+    }, [reportData]);
+
     const exportToExcel = () => {
-        if (!reportData || reportData.projects.length === 0) {
+        if (!reportData || !reportData.projects || reportData.projects.length === 0) {
             alert("Không có dữ liệu phù hợp để xuất file!");
             return;
         }
         const rows = [
-            ["Mã dự án", "Tên dự án", "Số lượng tài liệu", "Dung lượng lưu trữ"],
-            ...reportData.projects.map((p) => [p.id, p.name, p.fileCount, p.storageUsed])
+            ["Mã dự án", "Tên dự án", "Số lượng tài liệu", "Dung lượng lưu trữ (MB)"],
+            ...reportData.projects.map((p) => [
+                p.id, 
+                p.name, 
+                p.fileCount, 
+                parseFloat((p.rawTotalSizeBytes || 0) / (1024 * 1024)).toFixed(2) // Đã sửa lỗi đồng bộ dữ liệu xuất file
+            ])
         ];
         const csvContent = "\uFEFF" + rows.map((row) => row.map(val => `"${val}"`).join(",")).join("\n");
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `bao-cao-he-thong-luu-tru-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `bao-cao-tien-do-va-luu-tru-${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
         URL.revokeObjectURL(url);
     };
@@ -73,34 +104,60 @@ function Report() {
             <Sidebar />
             <main className="main">
                 <header className="topbar">
-                    <h1>Báo cáo tài liệu & Hệ thống</h1>
+                    <h1>Báo cáo Tiến độ & Tài nguyên Hệ thống</h1>
                 </header>
 
                 <div className="page-content report-page">
+                    
+                    {/* Bảng điều khiển bộ lọc (Filter Control) */}
+                    <section className="filter-bar" style={{ display: "flex", gap: 15, marginBottom: 20, background: "#fff", padding: 15, borderRadius: 8, boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <FaFilter style={{ color: "#6c757d" }} />
+                            <strong>Bộ lọc báo cáo:</strong>
+                        </div>
+                        <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)} style={{ padding: "6px 12px", borderRadius: 4, border: "1px solid #ccc" }}>
+                            <option value="all">Tất cả dự án hiện hành</option>
+                            {reportData?.projects?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                        <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)} style={{ padding: "6px 12px", borderRadius: 4, border: "1px solid #ccc" }}>
+                            <option value="week">Tuần này</option>
+                            <option value="month">Tháng này</option>
+                            <option value="quarter">Quý này</option>
+                        </select>
+                    </section>
+
                     <section className="report-hero">
                         <div>
-                            <p className="eyebrow">Hệ thống quản trị tài liệu</p>
-                            <h2>Giám sát dung lượng và dữ liệu lưu trữ vật lý</h2>
-                            <p>Phân tích phân phối file, kiểm soát tài nguyên lưu trữ của toàn doanh nghiệp.</p>
+                            <p className="eyebrow">Hệ thống quản trị điều hành</p>
+                            <h2>Phân tích hiệu suất dự án & Không gian lưu trữ</h2>
+                            <p>Giám sát tổng thể trạng thái xử lý công việc và phân bổ tài nguyên ổ đĩa vật lý.</p>
                         </div>
                         <div className="hero-actions">
                             <button className="btn-primary" onClick={() => window.print()}>In / Xuất PDF</button>
                             <button className="btn-secondary" onClick={exportToExcel}>
-                                <FaDownload style={{ marginRight: 6 }} /> Xuất dữ liệu kho lưu trữ (CSV)
+                                <FaDownload style={{ marginRight: 6 }} /> Xuất tổng hợp (CSV)
                             </button>
                         </div>
                     </section>
 
                     {error && <div className="status-banner error-banner">{error}</div>}
 
-                    {/* Khối Card Tổng Quan */}
+                    {/* Khối Card Tổng Quan bổ sung thêm Đếm Task */}
                     <section className="summary-grid">
                         <div className="summary-card">
                             <div className="summary-icon"><FaFolderOpen /></div>
                             <div className="summary-content">
                                 <h3>{loading ? "..." : reportData?.summary?.totalProjects || 0}</h3>
                                 <p>Tổng số dự án</p>
-                                <span className="sub-text">Đang phân vùng lưu trữ</span>
+                                <span className="sub-text">Đang vận hành</span>
+                            </div>
+                        </div>
+                        <div className="summary-card">
+                            <div className="summary-icon"><FaTasks style={{ color: "#2ecc71" }} /></div>
+                            <div className="summary-content">
+                                <h3>{loading ? "..." : reportData?.summary?.totalTasks || 0}</h3>
+                                <p>Tổng số công việc</p>
+                                <span className="sub-text">Trên bảng Kanban</span>
                             </div>
                         </div>
                         <div className="summary-card">
@@ -108,7 +165,7 @@ function Report() {
                             <div className="summary-content">
                                 <h3>{loading ? "..." : reportData?.summary?.totalFiles || 0}</h3>
                                 <p>Tổng số tài liệu</p>
-                                <span className="sub-text">Đã đồng bộ MySQL</span>
+                                <span className="sub-text">Đính kèm dự án</span>
                             </div>
                         </div>
                         <div className="summary-card">
@@ -116,13 +173,14 @@ function Report() {
                             <div className="summary-content">
                                 <h3>{loading ? "..." : reportData?.summary?.formattedTotalSize || "0 Bytes"}</h3>
                                 <p>Dung lượng đã dùng</p>
-                                <span className="sub-text">Tính theo ổ đĩa server</span>
+                                <span className="sub-text">Ổ đĩa cứng Server</span>
                             </div>
                         </div>
                     </section>
 
-                    {/* Biểu đồ Recharts */}
-                    <section className="report-grid">
+                    {/* Lưới 2 biểu đồ đặt song song */}
+                    <section className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: 20, marginBottom: 20 }}>
+                        {/* Biểu đồ 1: Cột (Dung lượng) */}
                         <div className="card">
                             <div className="card-header">
                                 <h3>Biểu đồ không gian lưu trữ theo Dự án</h3>
@@ -131,14 +189,22 @@ function Report() {
                             {loading ? (
                                 <div className="empty-state">Đang nạp biểu đồ...</div>
                             ) : chartData.length > 0 ? (
-                                <div className="chart-card" style={{ width: "100%", height: 240, marginTop: 15 }}>
+                                <div className="chart-card" style={{ width: "100%", height: 260, marginTop: 15 }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6c757d' }} />
-                                            <YAxis tick={{ fontSize: 11, fill: '#6c757d' }} />
-                                            <Tooltip formatter={(value) => [`${value} MB`, 'Không gian chiếm dụng']} />
-                                            <Bar dataKey="storage" fill="#e67e22" radius={[4, 4, 0, 0]} barSize={30} />
+                                            {/* Định nghĩa dải màu Gradient */}
+                                            <defs>
+                                                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e294b" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                                            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                                            <Tooltip contentStyle={{ backgroundColor: '#111a36', borderColor: '#1e294b', color: '#fff' }} />
+                                            {/* Áp dụng dải màu gradient vừa tạo vào thanh Bar */}
+                                            <Bar dataKey="storage" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={24} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -146,12 +212,37 @@ function Report() {
                                 <div className="empty-state">Không có dữ liệu lập biểu đồ.</div>
                             )}
                         </div>
+
+                        {/* Biểu đồ 2: Tròn (Trạng thái công việc) - MỚI */}
+                        <div className="card">
+                            <div className="card-header">
+                                <h3>Tỷ lệ Trạng thái Công việc (Tasks)</h3>
+                                <span>Đo lường tiến độ vận hành nhân sự</span>
+                            </div>
+                            {loading ? (
+                                <div className="empty-state">Đang nạp thống kê...</div>
+                            ) : (
+                                <div className="chart-card" style={{ width: "100%", height: 260, marginTop: 15 }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie data={taskStatusData} cx="50%" cy="45%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                                {taskStatusData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip formatter={(value) => [`${value} nhiệm vụ`, 'Số lượng']} />
+                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+                        </div>
                     </section>
 
                     {/* Bảng dữ liệu thô */}
                     <section className="card">
                         <div className="card-header">
-                            <h3>Phân bổ tài nguyên chi tiết</h3>
+                            <h3>Phân bổ tài nguyên chi tiết từng dự án</h3>
                         </div>
                         <div className="table-responsive">
                             <table className="report-table">

@@ -1,614 +1,342 @@
-import React, {
-    useEffect,
-    useMemo,
-    useRef,
-    useState
-} from "react";
+import React, { useMemo, useRef, useState } from "react";
 import "./Gantt.css";
 
-function Gantt({
-    tasks = [],
-    onTaskClick
-}) {
+const getMonthKey = (date) => {
+    const value = new Date(date);
+    return `${value.getFullYear()}-${value.getMonth()}`;
+};
+
+const ONE_DAY = 1000 * 60 * 60 * 24;
+
+function Gantt({ tasks = [], onTaskClick }) {
     const ganttRef = useRef(null);
 
-    const getMonthKey = (date) => {
-        const value = new Date(date);
-
-        return `${value.getFullYear()}-${value.getMonth()}`;
-    };
-
+    // 1. Tính toán danh sách tháng từ tasks
     const monthOptions = useMemo(() => {
         const values = tasks
-            .filter(
-                (task) =>
-                    task.start_date &&
-                    task.end_date
-            )
-            .flatMap((task) => {
-                const start =
-                    new Date(task.start_date);
+            .filter((task) => task.start_date && task.end_date)
+            .flatMap((task) => [
+                getMonthKey(task.start_date),
+                getMonthKey(task.end_date)
+            ]);
 
-                const end =
-                    new Date(task.end_date);
-
-                return [
-                    getMonthKey(start),
-                    getMonthKey(end)
-                ];
-            });
-
-        return [...new Set(values)].sort(
-            (first, second) => {
-                const [firstYear, firstMonth] =
-                    first.split("-").map(Number);
-
-                const [secondYear, secondMonth] =
-                    second.split("-").map(Number);
-
-                return (
-                    new Date(
-                        firstYear,
-                        firstMonth
-                    ) -
-                    new Date(
-                        secondYear,
-                        secondMonth
-                    )
-                );
-            }
-        );
+        return [...new Set(values)].sort((first, second) => {
+            const [fYear, fMonth] = first.split("-").map(Number);
+            const [sYear, sMonth] = second.split("-").map(Number);
+            return new Date(fYear, fMonth) - new Date(sYear, sMonth);
+        });
     }, [tasks]);
 
-    const currentMonthKey =
-        getMonthKey(new Date());
+    const currentMonthKey = useMemo(() => getMonthKey(new Date()), []);
 
-    const [selectedMonthKey, setSelectedMonthKey] =
-        useState(currentMonthKey);
+    const [selectedMonthKey, setSelectedMonthKey] = useState(currentMonthKey);
+    const [viewMode, setViewMode] = useState("MONTH");
+    const [weekStartDay, setWeekStartDay] = useState(1);
 
-    const [viewMode, setViewMode] =
-        useState("MONTH");
+    // Xác định monthKey thực tế dựa trên việc check monthOptions có hợp lệ không
+    const actualMonthKey = useMemo(() => {
+        if (monthOptions.length === 0) return currentMonthKey;
+        if (!monthOptions.includes(selectedMonthKey)) return monthOptions[0];
+        return selectedMonthKey;
+    }, [monthOptions, selectedMonthKey, currentMonthKey]);
 
-    const [weekStartDay, setWeekStartDay] =
-        useState(1);
+    const [selectedYear, selectedMonth] = actualMonthKey.split("-").map(Number);
 
-    useEffect(() => {
-        if (monthOptions.length === 0) {
-            setSelectedMonthKey(
-                currentMonthKey
-            );
+    const dayWidth = viewMode === "WEEK" ? 90 : 36;
 
-            return;
-        }
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-        if (
-            !monthOptions.includes(
-                selectedMonthKey
-            )
-        ) {
-            setSelectedMonthKey(
-                monthOptions[0]
-            );
-        }
-    }, [
-        monthOptions,
-        selectedMonthKey,
-        currentMonthKey
-    ]);
+    const safeWeekStartDay = Math.min(Math.max(1, weekStartDay), daysInMonth);
 
-    const [
-        selectedYear,
-        selectedMonth
-    ] = selectedMonthKey
-        .split("-")
-        .map(Number);
+    // 3. Bọc timelineStart và timelineEnd vào useMemo độc lập
+    const timelineStart = useMemo(() => {
+        return viewMode === "WEEK"
+            ? new Date(selectedYear, selectedMonth, safeWeekStartDay)
+            : new Date(selectedYear, selectedMonth, 1);
+    }, [viewMode, selectedYear, selectedMonth, safeWeekStartDay]);
 
-    const dayWidth =
-        viewMode === "WEEK"
-            ? 90
-            : 36;
+    const timelineEnd = useMemo(() => {
+        return viewMode === "WEEK"
+            ? new Date(selectedYear, selectedMonth, Math.min(safeWeekStartDay + 6, daysInMonth))
+            : new Date(selectedYear, selectedMonth, daysInMonth);
+    }, [viewMode, selectedYear, selectedMonth, safeWeekStartDay, daysInMonth]);
 
-    const daysInMonth =
-        new Date(
-            selectedYear,
-            selectedMonth + 1,
-            0
-        ).getDate();
+    const totalDays = Math.round((timelineEnd - timelineStart) / ONE_DAY) + 1;
 
-    const safeWeekStartDay = Math.min(
-        Math.max(1, weekStartDay),
-        daysInMonth
-    );
-
-    const timelineStart =
-        viewMode === "WEEK"
-            ? new Date(
-                selectedYear,
-                selectedMonth,
-                safeWeekStartDay
-            )
-            : new Date(
-                selectedYear,
-                selectedMonth,
-                1
-            );
-
-    const timelineEnd =
-        viewMode === "WEEK"
-            ? new Date(
-                selectedYear,
-                selectedMonth,
-                Math.min(
-                    safeWeekStartDay + 6,
-                    daysInMonth
-                )
-            )
-            : new Date(
-                selectedYear,
-                selectedMonth,
-                daysInMonth
-            );
-
-    const oneDay =
-        1000 * 60 * 60 * 24;
-
-    const totalDays =
-        Math.floor(
-            (timelineEnd - timelineStart) /
-            oneDay
-        ) + 1;
-
-    const days = Array.from(
-        { length: totalDays },
-        (_, index) => {
-            const day =
-                new Date(timelineStart);
-
-            day.setDate(
-                timelineStart.getDate() +
-                index
-            );
-
+    const days = useMemo(() => {
+        return Array.from({ length: totalDays }, (_, index) => {
+            const day = new Date(timelineStart);
+            day.setDate(timelineStart.getDate() + index);
             return day;
-        }
-    );
+        });
+    }, [timelineStart, totalDays]);
 
-    const validTasks = tasks.filter(
-        (task) => {
-            if (
-                !task.start_date ||
-                !task.end_date
-            ) {
+    const validTasks = useMemo(() => {
+        return tasks.filter((task) => {
+            if (!task.start_date || !task.end_date) return false;
+
+            const start = new Date(task.start_date);
+            const end = new Date(task.end_date);
+
+            if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
                 return false;
             }
 
-            const start =
-                new Date(task.start_date);
+            return start <= timelineEnd && end >= timelineStart;
+        });
+    }, [tasks, timelineStart, timelineEnd]);
 
-            const end =
-                new Date(task.end_date);
+    // TÍNH TOÁN ĐƯỜNG KẺ "TODAY LINE" (ĐÚNG THEO NGÀY HIỆN TẠI)
+    const todayLineOffset = useMemo(() => {
+        const today = new Date();
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const startOfTimeline = new Date(timelineStart.getFullYear(), timelineStart.getMonth(), timelineStart.getDate());
 
-            if (
-                Number.isNaN(start.getTime()) ||
-                Number.isNaN(end.getTime())
-            ) {
-                return false;
-            }
-
-            return (
-                start <= timelineEnd &&
-                end >= timelineStart
-            );
+        if (startOfToday >= startOfTimeline && startOfToday <= timelineEnd) {
+            return Math.round((startOfToday - startOfTimeline) / ONE_DAY);
         }
-    );
+        return -1;
+    }, [timelineStart, timelineEnd]);
+
+    // TỰ ĐỘNG LỌC VÀ CHUẨN HÓA CÁC MỐC TIẾN ĐỘ QUAN TRỌNG (MILESTONES) BÊN DƯỚI
+    const milestones = useMemo(() => {
+        if (tasks.length === 0) return [];
+
+        const sortedTasks = [...tasks]
+            .filter((t) => t.start_date && t.end_date)
+            .sort((a, b) => new Date(a.end_date) - new Date(b.end_date));
+
+        if (sortedTasks.length === 0) return [];
+
+        const list = [];
+
+        // 1. Mốc điểm đầu: Ngày bắt đầu của task đầu tiên
+        list.push({
+            date: sortedTasks[0].start_date,
+            label: "Bắt đầu dự án",
+            icon: "▶",
+            className: "gantt-ms-start"
+        });
+
+        // 2. Mốc điểm giữa: Ngày kết thúc của các task độc lập (Loại bỏ trùng ngày để UI không bị rối)
+        const seenDates = new Set();
+        sortedTasks.forEach((task, index) => {
+            const isLast = index === sortedTasks.length - 1;
+            const dateStr = new Date(task.end_date).toDateString();
+
+            // Nếu không phải task cuối cùng và ngày này chưa được tạo mốc
+            if (!isLast && !seenDates.has(dateStr)) {
+                seenDates.add(dateStr);
+                list.push({
+                    date: task.end_date,
+                    label: `Hoàn thành ${task.title}`,
+                    icon: "✓",
+                    className: task.status === "HOAN_THANH" ? "gantt-ms-done" : "gantt-ms-process"
+                });
+            }
+        });
+
+        // 3. Mốc điểm cuối: Ngày kết thúc của task cuối cùng trong chuỗi
+        const lastTask = sortedTasks[sortedTasks.length - 1];
+        list.push({
+            date: lastTask.end_date,
+            label: "Triển khai dự án",
+            icon: "⚑",
+            className: "gantt-ms-end"
+        });
+
+        return list;
+    }, [tasks]);
 
     const formatDate = (date) => {
-        if (!date) {
-            return "Chưa có";
-        }
-
-        return new Date(
-            date
-        ).toLocaleDateString("vi-VN");
+        if (!date) return "Chưa có";
+        return new Date(date).toLocaleDateString("vi-VN");
     };
 
-    const getDay = (date) =>
-        String(
-            new Date(date).getDate()
-        ).padStart(2, "0");
+    const getDayLabel = (date) => String(new Date(date).getDate()).padStart(2, "0");
 
-    const getDuration = (
-        start,
-        end
-    ) => {
-        const startDate =
-            new Date(start);
-
-        const endDate =
-            new Date(end);
-
-        return Math.max(
-            1,
-            Math.floor(
-                (endDate - startDate) /
-                oneDay
-            ) + 1
-        );
+    const getDuration = (start, end) => {
+        return Math.max(1, Math.round((new Date(end) - new Date(start)) / ONE_DAY) + 1);
     };
 
     const getBarClass = (status) => {
         switch (status) {
-            case "HOAN_THANH":
-                return "gantt-green";
-
-            case "DANG_LAM":
-                return "gantt-blue";
-
-            case "DANG_REVIEW":
-                return "gantt-purple";
-
-            case "QUA_HAN":
-                return "gantt-red";
-
-            default:
-                return "gantt-orange";
+            case "HOAN_THANH": return "gantt-green";
+            case "DANG_LAM": return "gantt-blue";
+            case "DANG_REVIEW": return "gantt-purple";
+            case "QUA_HAN": return "gantt-red";
+            default: return "gantt-orange";
         }
     };
 
     const handleToday = () => {
         const now = new Date();
-
-        setSelectedMonthKey(
-            getMonthKey(now)
-        );
-
+        setSelectedMonthKey(getMonthKey(now));
         if (viewMode === "WEEK") {
-            const day = now.getDate();
-
-            const start =
-                day -
-                ((day - 1) % 7);
-
-            setWeekStartDay(start);
+            setWeekStartDay(now.getDate() - ((now.getDate() - 1) % 7));
         }
-
         setTimeout(() => {
-            if (ganttRef.current) {
-                ganttRef.current.scrollLeft =
-                    0;
+            if (ganttRef.current && todayLineOffset !== -1) {
+                ganttRef.current.scrollLeft = (todayLineOffset * dayWidth) - 150;
             }
         }, 100);
     };
 
-    const handleTaskClick = (task) => {
-        if (
-            typeof onTaskClick ===
-            "function"
-        ) {
-            onTaskClick(task);
-        }
-    };
-
-    const weekOptions = Array.from(
-        {
-            length: Math.ceil(
-                daysInMonth / 7
-            )
-        },
-        (_, index) => {
-            const start =
-                index * 7 + 1;
-
-            const end =
-                Math.min(
-                    start + 6,
-                    daysInMonth
-                );
-
-            return {
-                start,
-                end,
-                label:
-                    `Tuần ${index + 1}: ` +
-                    `${start} - ${end}`
-            };
-        }
-    );
-
     return (
         <div className="gantt-page">
+            {/* Top Filter Panel */}
             <div className="gantt-top">
                 <div>
-                    <div className="breadcrumb">
-                        Dự án &gt; Gantt
-                    </div>
-
+                    <div className="breadcrumb">Dự án &gt; Website bán hàng &gt; Gantt</div>
                     <h2>Gantt Chart</h2>
                 </div>
-
                 <div className="gantt-filters">
                     <select
-                        value={
-                            selectedMonthKey
-                        }
-                        onChange={(event) => {
-                            setSelectedMonthKey(
-                                event.target.value
-                            );
-
+                        value={actualMonthKey}
+                        onChange={(e) => {
+                            setSelectedMonthKey(e.target.value);
                             setWeekStartDay(1);
                         }}
                     >
-                        {monthOptions.length ===
-                        0 ? (
-                            <option
-                                value={
-                                    currentMonthKey
-                                }
-                            >
-                                Tháng{" "}
-                                {selectedMonth + 1},{" "}
-                                {selectedYear}
+                        {monthOptions.length === 0 ? (
+                            <option value={currentMonthKey}>
+                                Tháng {selectedMonth + 1}, {selectedYear}
                             </option>
                         ) : (
-                            monthOptions.map(
-                                (item) => {
-                                    const [
-                                        year,
-                                        month
-                                    ] = item
-                                        .split("-")
-                                        .map(Number);
-
-                                    return (
-                                        <option
-                                            key={item}
-                                            value={item}
-                                        >
-                                            Tháng{" "}
-                                            {month + 1},{" "}
-                                            {year}
-                                        </option>
-                                    );
-                                }
-                            )
+                            monthOptions.map((item) => {
+                                const [year, month] = item.split("-").map(Number);
+                                return (
+                                    <option key={item} value={item}>
+                                        Tháng {month + 1}, {year}
+                                    </option>
+                                );
+                            })
                         )}
                     </select>
-
                     {viewMode === "WEEK" && (
                         <select
-                            value={
-                                safeWeekStartDay
-                            }
-                            onChange={(event) =>
-                                setWeekStartDay(
-                                    Number(
-                                        event.target
-                                            .value
-                                    )
-                                )
-                            }
+                            value={safeWeekStartDay}
+                            onChange={(e) => setWeekStartDay(Number(e.target.value))}
                         >
-                            {weekOptions.map(
-                                (week) => (
-                                    <option
-                                        key={
-                                            week.start
-                                        }
-                                        value={
-                                            week.start
-                                        }
-                                    >
-                                        {
-                                            week.label
-                                        }
-                                    </option>
-                                )
-                            )}
+                            {Array.from({ length: Math.ceil(daysInMonth / 7) }, (_, i) => ({
+                                start: i * 7 + 1,
+                                end: Math.min(i * 7 + 7, daysInMonth)
+                            })).map((w) => (
+                                <option key={w.start} value={w.start}>
+                                    {`Tuần: ${w.start} - ${w.end}`}
+                                </option>
+                            ))}
                         </select>
                     )}
-
-                    <button
-                        type="button"
-                        onClick={handleToday}
-                    >
+                    <button type="button" onClick={handleToday}>
                         Hôm nay
                     </button>
-
                     <select
                         value={viewMode}
-                        onChange={(event) => {
-                            setViewMode(
-                                event.target.value
-                            );
-
+                        onChange={(e) => {
+                            setViewMode(e.target.value);
                             setWeekStartDay(1);
                         }}
                     >
-                        <option value="MONTH">
-                            Tháng
-                        </option>
-
-                        <option value="WEEK">
-                            Tuần
-                        </option>
+                        <option value="MONTH">Tháng</option>
+                        <option value="WEEK">Tuần</option>
                     </select>
                 </div>
             </div>
 
+            {/* Main Gantt Chart */}
             {validTasks.length === 0 ? (
                 <div className="detail-card tab-content">
-                    <p>
-                        Khoảng thời gian này chưa
-                        có công việc nào.
-                    </p>
+                    <p>Khoảng thời gian này chưa có công việc nào.</p>
                 </div>
             ) : (
                 <div className="gantt-box-fixed">
                     <div className="gantt-left-table">
-                        <div className="gantt-left-head">
-                            Công việc
-                        </div>
-
-                        <div className="gantt-left-head">
-                            Bắt đầu
-                        </div>
-
-                        <div className="gantt-left-head">
-                            Kết thúc
-                        </div>
-
-                        {validTasks.map(
-                            (task, index) => (
-                                <React.Fragment
-                                    key={task.id}
-                                >
-                                    <div
-                                        className="gantt-left-cell"
-                                        onClick={() =>
-                                            handleTaskClick(
-                                                task
-                                            )
-                                        }
-                                    >
-                                        {index + 1}.{" "}
-                                        {task.title}
-                                    </div>
-
-                                    <div className="gantt-left-cell gantt-center">
-                                        {formatDate(
-                                            task.start_date
-                                        )}
-                                    </div>
-
-                                    <div className="gantt-left-cell gantt-center">
-                                        {formatDate(
-                                            task.end_date
-                                        )}
-                                    </div>
-                                </React.Fragment>
-                            )
-                        )}
+                        <div className="gantt-left-head">Công việc</div>
+                        <div className="gantt-left-head">Bắt đầu</div>
+                        <div className="gantt-left-head">Kết thúc</div>
+                        {validTasks.map((task, index) => (
+                            <React.Fragment key={task.id}>
+                                <div className="gantt-left-cell" onClick={() => onTaskClick?.(task)}>
+                                    {index + 1}. {task.title}
+                                </div>
+                                <div className="gantt-left-cell gantt-center">
+                                    {formatDate(task.start_date).substring(0, 5)}
+                                </div>
+                                <div className="gantt-left-cell gantt-center">
+                                    {formatDate(task.end_date).substring(0, 5)}
+                                </div>
+                            </React.Fragment>
+                        ))}
                     </div>
 
-                    <div
-                        className="gantt-right-scroll"
-                        ref={ganttRef}
-                    >
-                        <div
-                            className="gantt-right-grid"
-                            style={{
-                                width:
-                                    `${totalDays * dayWidth}px`
-                            }}
-                        >
+                    <div className="gantt-right-scroll" ref={ganttRef}>
+                        <div className="gantt-right-grid" style={{ width: `${totalDays * dayWidth}px` }}>
+                            {/* ĐƯỜNG KẺ ĐỨT TODAY LINE ĐỎ XUYÊN GRID */}
+                            {todayLineOffset !== -1 && (
+                                <div
+                                    className="gantt-today-line-dotted"
+                                    style={{ left: `${todayLineOffset * dayWidth + dayWidth / 2}px` }}
+                                />
+                            )}
+
                             <div
                                 className="gantt-days-row"
-                                style={{
-                                    gridTemplateColumns:
-                                        `repeat(${totalDays}, ${dayWidth}px)`
-                                }}
+                                style={{ gridTemplateColumns: `repeat(${totalDays}, ${dayWidth}px)` }}
                             >
-                                {days.map(
-                                    (day, index) => (
-                                        <div
-                                            className="gantt-day-cell"
-                                            key={
-                                                `${day.toISOString()}-${index}`
-                                            }
-                                        >
-                                            {getDay(day)}
-                                        </div>
-                                    )
-                                )}
+                                {days.map((day, index) => (
+                                    <div className="gantt-day-cell" key={`${day.toISOString()}-${index}`}>
+                                        {getDayLabel(day)}
+                                    </div>
+                                ))}
                             </div>
 
-                            {validTasks.map(
-                                (task) => {
-                                    const taskStart =
-                                        new Date(
-                                            task.start_date
-                                        );
+                            {validTasks.map((task) => {
+                                const taskStart = new Date(task.start_date);
+                                const taskEnd = new Date(task.end_date);
+                                const displayStart = taskStart < timelineStart ? timelineStart : taskStart;
+                                const displayEnd = taskEnd > timelineEnd ? timelineEnd : taskEnd;
+                                const offset = Math.round((displayStart - timelineStart) / ONE_DAY);
+                                const duration = getDuration(displayStart, displayEnd);
+                                const progress = Math.min(100, Math.max(0, Number(task.progress) || 0));
 
-                                    const taskEnd =
-                                        new Date(
-                                            task.end_date
-                                        );
-
-                                    const displayStart =
-                                        taskStart <
-                                        timelineStart
-                                            ? timelineStart
-                                            : taskStart;
-
-                                    const displayEnd =
-                                        taskEnd >
-                                        timelineEnd
-                                            ? timelineEnd
-                                            : taskEnd;
-
-                                    const offset =
-                                        Math.floor(
-                                            (
-                                                displayStart -
-                                                timelineStart
-                                            ) / oneDay
-                                        );
-
-                                    const duration =
-                                        getDuration(
-                                            displayStart,
-                                            displayEnd
-                                        );
-
-                                    const progress =
-                                        Math.min(
-                                            100,
-                                            Math.max(
-                                                0,
-                                                Number(
-                                                    task.progress
-                                                ) || 0
-                                            )
-                                        );
-
-                                    return (
+                                return (
+                                    <div
+                                        className="gantt-task-row"
+                                        key={task.id}
+                                        style={{ gridTemplateColumns: `repeat(${totalDays}, ${dayWidth}px)` }}
+                                    >
                                         <div
-                                            className="gantt-task-row"
-                                            key={
-                                                task.id
-                                            }
-                                            style={{
-                                                gridTemplateColumns:
-                                                    `repeat(${totalDays}, ${dayWidth}px)`
-                                            }}
+                                            className={`gantt-bar-new ${getBarClass(task.status)}`}
+                                            style={{ gridColumn: `${offset + 1} / span ${duration}` }}
+                                            onClick={() => onTaskClick?.(task)}
                                         >
-                                            <div
-                                                className={
-                                                    `gantt-bar-new ` +
-                                                    getBarClass(
-                                                        task.status
-                                                    )
-                                                }
-                                                style={{
-                                                    gridColumn:
-                                                        `${offset + 1} / span ${duration}`
-                                                }}
-                                                onClick={() =>
-                                                    handleTaskClick(
-                                                        task
-                                                    )
-                                                }
-                                                title={
-                                                    `${task.title} - ${progress}%`
-                                                }
-                                            >
-                                                {progress}%
-                                            </div>
+                                            {progress}%
                                         </div>
-                                    );
-                                }
-                            )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* BLOCK TIMELINE TIẾN ĐỘ PHÍA DƯỚI */}
+            {milestones.length > 0 && (
+                <div className="gantt-milestones-panel">
+                    <h3 className="milestones-title">Timeline tiến độ</h3>
+                    <div className="milestones-track-container">
+                        <div className="milestones-line-bg" />
+                        <div className="milestones-list">
+                            {milestones.map((ms, index) => (
+                                <div className="milestone-node" key={index}>
+                                    <div className={`milestone-circle ${ms.className}`}>
+                                        {ms.icon}
+                                    </div>
+                                    <div className="milestone-date">{formatDate(ms.date)}</div>
+                                    <div className="milestone-label">{ms.label}</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
