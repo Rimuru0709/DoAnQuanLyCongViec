@@ -3,34 +3,9 @@
     min-height: 100vh;
 }
 
-.user-box {
-    margin-top: 80px;
-    background: #10233a;
-    padding: 15px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.avatar {
-    width: 42px;
-    height: 42px;
-    background: #0d6efd;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.user-box p {
-    font-size: 13px;
-    color: #9fb1c8;
-}
-
 .main {
     flex: 1;
+    min-width: 0;
     padding: 22px;
 }
 
@@ -38,46 +13,59 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
     margin-bottom: 25px;
 }
 
 .topbar h1 {
-    font-size: 24px;
+    margin: 0;
+    font-size: 28px;
+}
+
+.topbar p {
+    margin-top: 6px;
+    color: #9fb1c8;
 }
 
 .topbar input {
     width: 430px;
-    background: #0b1c31;
+    max-width: 100%;
+    padding: 14px 16px;
     border: 1px solid #1d3855;
-    color: white;
-    padding: 13px 16px;
     border-radius: 10px;
+    outline: none;
+    background: #0b1c31;
+    color: #ffffff;
+}
+
+.topbar input:focus {
+    border-color: #2563eb;
 }
 
 .stats {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 18px;
 }
 
 .stat-card,
 .card {
-    background: #0d1f35;
+    padding: 20px;
     border: 1px solid #1d3855;
     border-radius: 14px;
-    padding: 20px;
+    background: #0d1f35;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
 .stat-card p {
-    color: #b7c7d9;
     margin-bottom: 12px;
+    color: #b7c7d9;
 }
 
 .stat-card h2 {
-    font-size: 32px;
     margin-bottom: 10px;
+    font-size: 32px;
 }
 
 .stat-card span {
@@ -100,18 +88,28 @@
     margin-bottom: 18px;
 }
 
+/* Vòng tròn tiến độ động */
 .circle {
-    width: 190px;
-    height: 190px;
+    width: 220px;
+    height: 220px;
+    margin: 24px auto 16px;
+    border: none;
     border-radius: 50%;
-    border: 28px solid #19d37a;
-    border-left-color: #0d6efd;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
-    font-weight: bold;
-    margin: 10px auto;
+}
+
+.circle-inner {
+    width: 155px;
+    height: 155px;
+    border-radius: 50%;
+    background: #07182d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 700;
 }
 
 .progress-card p {
@@ -119,36 +117,51 @@
     color: #a9bdd3;
 }
 
+/* Biểu đồ cột */
 .bars {
     display: flex;
     height: 230px;
-    align-items: end;
+    align-items: flex-end;
     justify-content: space-around;
     gap: 15px;
 }
 
-.bars div {
+.bars > div {
     width: 70px;
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: end;
+    justify-content: flex-end;
     align-items: center;
+}
+
+.bars b {
+    margin-bottom: 8px;
+    font-size: 14px;
 }
 
 .bars span {
     width: 45px;
-    background: linear-gradient(#2ee57c, #0d6efd);
+    min-height: 5px;
     border-radius: 8px 8px 0 0;
+    background: linear-gradient(
+        to bottom,
+        #2ee57c,
+        #0d6efd
+    );
 }
 
 .bars p {
     margin-top: 10px;
+    text-align: center;
     font-size: 12px;
     color: #c8d6e5;
 }
 
+/* Hoạt động gần đây */
 .activity-card ul {
+    margin: 0;
+    padding: 0;
     list-style: none;
 }
 
@@ -156,39 +169,86 @@
     padding: 12px 0;
     border-bottom: 1px solid #1d3855;
     color: #dce7f3;
+    cursor: pointer;
 }
 
+.activity-card li:last-child {
+    border-bottom: none;
+}
+
+.activity-card li:hover {
+    color: #60a5fa;
+}
+
+/* Khu vực nội dung dưới */
 .content-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
     gap: 18px;
 }
 
 .kanban-board {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(240px, 1fr));
     gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 10px;
 }
 
 .column {
-    background: #10243c;
+    min-width: 0;
+    padding: 14px;
     border: 1px solid #24415f;
     border-radius: 12px;
-    padding: 14px;
+    background: #10243c;
 }
 
 .column h4 {
     margin-bottom: 12px;
 }
 
+.column > p {
+    color: #91a7bf;
+    font-size: 14px;
+}
+
 .task {
-    background: #162c48;
-    border: 1px solid #2b4a6d;
-    padding: 14px;
-    border-radius: 10px;
     margin-bottom: 12px;
+    padding: 14px;
+    border: 1px solid #2b4a6d;
+    border-radius: 10px;
+    background: #162c48;
     color: #dce8f7;
     font-size: 14px;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.task:hover {
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+}
+
+.task b {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task small {
+    display: block;
+    margin-top: 8px;
+    color: #9fb1c8;
+}
+
+.task span {
+    display: block;
+    margin-top: 8px;
+    color: #31d67b;
+    font-weight: 700;
 }
 
 .column button {
@@ -201,58 +261,128 @@
     cursor: pointer;
 }
 
+.column button:hover {
+    background: #2563eb;
+}
+
+/* Cột bên phải */
 .right-panel {
     display: flex;
     flex-direction: column;
     gap: 18px;
 }
 
-.right-panel p {
-    margin-bottom: 12px;
-    color: #cbd8e6;
+.upcoming-project {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #1d3855;
+    cursor: pointer;
 }
 
-.line-chart {
-    height: 160px;
-    background: linear-gradient(135deg, transparent 40%, #0d6efd 41%, transparent 43%),
-        linear-gradient(25deg, transparent 45%, #31d67b 46%, transparent 48%);
-    border: 1px solid #1d3855;
-    border-radius: 12px;
+.upcoming-project:last-child {
+    border-bottom: none;
 }
 
-@media (max-width: 1200px) {
-    .sidebar {
-        width: 85px;
-        padding: 24px 12px;
+.upcoming-project:hover b {
+    color: #60a5fa;
+}
+
+.upcoming-project small {
+    display: block;
+    margin-top: 5px;
+    color: #9fb1c8;
+}
+
+.upcoming-project > span {
+    color: #31d67b;
+    font-weight: 700;
+}
+
+/* Tiến độ từng dự án */
+.project-progress-item {
+    margin-top: 18px;
+    cursor: pointer;
+}
+
+.project-progress-item > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.project-progress-item:hover span {
+    color: #60a5fa;
+}
+
+.project-progress-line {
+    height: 7px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #203d60;
+}
+
+.project-progress-line span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #22c55e;
+}
+
+/* Thông báo */
+.toast-success {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    padding: 14px 20px;
+    border-radius: 10px;
+    background: #16a34a;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .stats {
+        grid-template-columns: repeat(3, 1fr);
     }
 
-    .sidebar h2 {
-        display: none;
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    .sidebar nav a {
-        justify-content: center;
-        padding: 16px 0;
+    .activity-card {
+        grid-column: 1 / -1;
     }
 
-    .sidebar nav a span {
-        display: none;
+    .kanban-board {
+        grid-template-columns: repeat(2, 1fr);
     }
+}
 
-    .user-box {
-        display: none;
-    }
-
+@media (max-width: 1000px) {
     .stats,
     .dashboard-grid,
-    .content-grid,
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .activity-card {
+        grid-column: auto;
+    }
+
     .kanban-board {
         grid-template-columns: 1fr;
     }
 
     .topbar {
         flex-direction: column;
-        gap: 15px;
         align-items: stretch;
     }
 
@@ -260,3 +390,86 @@
         width: 100%;
     }
 }
+
+@media (max-width: 600px) {
+    .main {
+        padding: 14px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .circle {
+        width: 185px;
+        height: 185px;
+    }
+
+    .circle-inner {
+        width: 130px;
+        height: 130px;
+        font-size: 34px;
+    }
+
+    .bars > div {
+        width: 55px;
+    }
+
+    .bars span {
+        width: 35px;
+    }
+}
+
+/* Các khối danh sách dài */
+.activity-card,
+.right-panel .card {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+/* Thanh cuộn */
+.activity-card::-webkit-scrollbar,
+.right-panel .card::-webkit-scrollbar {
+    width: 7px;
+}
+
+.activity-card::-webkit-scrollbar-track,
+.right-panel .card::-webkit-scrollbar-track {
+    background: #0b1c31;
+    border-radius: 10px;
+}
+
+.activity-card::-webkit-scrollbar-thumb,
+.right-panel .card::-webkit-scrollbar-thumb {
+    background: #315274;
+    border-radius: 10px;
+}
+
+.activity-card::-webkit-scrollbar-thumb:hover,
+.right-panel .card::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+.kanban {
+    overflow: hidden;
+}
+
+.kanban-board {
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.kanban-board::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+    background: #0b1c31;
+    border-radius: 10px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+    background: #315274;
+    border-radius: 10px;
+}
+

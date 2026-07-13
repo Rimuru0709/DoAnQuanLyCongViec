@@ -42,6 +42,8 @@ function Setting({
     const canManageProject =
         currentUser?.role === "ADMIN" ||
         currentUser?.role === "MANAGER";
+    const isAdmin =
+        currentUser?.role === "ADMIN";
 
     const formatDateInput = (date) => {
         if (!date) {
@@ -137,9 +139,9 @@ function Setting({
     const handleSave = async (event) => {
         event.preventDefault();
 
-        if (!canManageProject) {
+        if (!isAdmin) {
             showToast(
-                "Bạn không có quyền cập nhật dự án"
+                "Chỉ Admin mới được xóa dự án"
             );
 
             return;
@@ -157,7 +159,7 @@ function Setting({
             formData.start_date &&
             formData.end_date &&
             new Date(formData.end_date) <
-                new Date(formData.start_date)
+            new Date(formData.start_date)
         ) {
             showToast(
                 "Ngày kết thúc không được trước ngày bắt đầu"
@@ -496,7 +498,7 @@ function Setting({
                                 type="button"
                                 className={
                                     formData.color ===
-                                    color
+                                        color
                                         ? "color-circle active"
                                         : "color-circle"
                                 }
@@ -562,32 +564,32 @@ function Setting({
                         </div>
                     </div>
 
-                    <div className="setting-card danger-zone">
-                        <h3>Danger Zone</h3>
+                    {isAdmin && (
+                        <div className="setting-card danger-zone">
+                            <h3>Danger Zone</h3>
 
-                        <p>
-                            Xóa dự án này sẽ xóa toàn bộ
-                            công việc, tài liệu và thành viên
-                            liên quan. Hành động này không
-                            thể hoàn tác.
-                        </p>
+                            <p>
+                                Xóa dự án này sẽ xóa toàn bộ
+                                công việc, tài liệu và thành viên
+                                liên quan. Hành động này không
+                                thể hoàn tác.
+                            </p>
 
-                        <button
-                            type="button"
-                            className="btn-setting-delete"
-                            onClick={() =>
-                                setShowDeleteConfirm(
-                                    true
-                                )
-                            }
-                        >
-                            Xóa dự án
-                        </button>
-                    </div>
+                            <button
+                                type="button"
+                                className="btn-setting-delete"
+                                onClick={() =>
+                                    setShowDeleteConfirm(true)
+                                }
+                            >
+                                Xóa dự án
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {showDeleteConfirm && (
+            {isAdmin && showDeleteConfirm && (
                 <div className="member-modal-overlay">
                     <div className="member-modal">
                         <h2>Xóa dự án</h2>

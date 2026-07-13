@@ -6,6 +6,7 @@ COLLATE utf8mb4_unicode_ci;
 
 USE project_master;
 
+-- 1. Người dùng
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -17,6 +18,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 2. Dự án
 CREATE TABLE projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
@@ -42,13 +44,17 @@ CREATE TABLE projects (
         ON DELETE SET NULL
 );
 
+-- 3. Thành viên dự án
 CREATE TABLE project_members (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     user_id INT NOT NULL,
     `position` VARCHAR(100),
-    role_in_project ENUM('OWNER', 'MANAGER', 'MEMBER')
-        DEFAULT 'MEMBER',
+    role_in_project ENUM(
+        'OWNER',
+        'MANAGER',
+        'MEMBER'
+    ) DEFAULT 'MEMBER',
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (project_id, user_id),
     FOREIGN KEY (project_id)
@@ -59,6 +65,7 @@ CREATE TABLE project_members (
         ON DELETE CASCADE
 );
 
+-- 4. Cột Kanban
 CREATE TABLE kanban_columns (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -69,6 +76,7 @@ CREATE TABLE kanban_columns (
         ON DELETE CASCADE
 );
 
+-- 5. Công việc
 CREATE TABLE tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -85,8 +93,11 @@ CREATE TABLE tasks (
         'HOAN_THANH',
         'QUA_HAN'
     ) DEFAULT 'CHUA_LAM',
-    priority ENUM('THAP', 'TRUNG_BINH', 'CAO')
-        DEFAULT 'TRUNG_BINH',
+    priority ENUM(
+        'THAP',
+        'TRUNG_BINH',
+        'CAO'
+    ) DEFAULT 'TRUNG_BINH',
     progress INT DEFAULT 0,
     task_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -101,11 +112,17 @@ CREATE TABLE tasks (
         ON DELETE SET NULL
 );
 
+-- 6. Phụ thuộc công việc
 CREATE TABLE task_dependencies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
     depends_on_task_id INT NOT NULL,
-    dependency_type ENUM('FS', 'SS', 'FF', 'SF') DEFAULT 'FS',
+    dependency_type ENUM(
+        'FS',
+        'SS',
+        'FF',
+        'SF'
+    ) DEFAULT 'FS',
     UNIQUE (task_id, depends_on_task_id),
     FOREIGN KEY (task_id)
         REFERENCES tasks(id)
@@ -115,6 +132,7 @@ CREATE TABLE task_dependencies (
         ON DELETE CASCADE
 );
 
+-- 7. Bình luận
 CREATE TABLE task_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -129,6 +147,7 @@ CREATE TABLE task_comments (
         ON DELETE SET NULL
 );
 
+-- 8. Checklist
 CREATE TABLE task_checklists (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -140,13 +159,14 @@ CREATE TABLE task_checklists (
         ON DELETE CASCADE
 );
 
+-- 9. Tài liệu dự án
 CREATE TABLE documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_path VARCHAR(255) NOT NULL,
     file_type VARCHAR(100),
-    file_size BIGINT,
+    file_size BIGINT DEFAULT 0,
     uploaded_by VARCHAR(100),
     version VARCHAR(20) DEFAULT 'v1.0',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -155,6 +175,7 @@ CREATE TABLE documents (
         ON DELETE CASCADE
 );
 
+-- 10. File đính kèm công việc
 CREATE TABLE task_attachments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -170,6 +191,7 @@ CREATE TABLE task_attachments (
         ON DELETE SET NULL
 );
 
+-- 11. Hoạt động
 CREATE TABLE activities (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT,
@@ -189,12 +211,17 @@ CREATE TABLE activities (
         ON DELETE SET NULL
 );
 
+-- 12. Thông báo
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    type ENUM('info', 'warning', 'system') DEFAULT 'info',
+    type ENUM(
+        'info',
+        'warning',
+        'system'
+    ) DEFAULT 'info',
     is_read TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)
@@ -202,6 +229,7 @@ CREATE TABLE notifications (
         ON DELETE CASCADE
 );
 
+-- 13. Sự kiện lịch
 CREATE TABLE calendar_events (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT,
@@ -223,6 +251,7 @@ CREATE TABLE calendar_events (
         ON DELETE SET NULL
 );
 
+-- 14. Nhãn
 CREATE TABLE labels (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -246,9 +275,8 @@ CREATE TABLE task_labels (
         ON DELETE CASCADE
 );
 
--- 16. Cài đặt riêng của dự án
-DROP TABLE IF EXISTS system_settings;
 
+-- 15. Cài đặt chung
 CREATE TABLE system_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     theme_color VARCHAR(20) DEFAULT '#2563EB',
@@ -256,56 +284,94 @@ CREATE TABLE system_settings (
     enable_timeline TINYINT(1) DEFAULT 1,
     working_days VARCHAR(100) DEFAULT 'Mon,Tue,Wed,Thu,Fri',
     default_view VARCHAR(50) DEFAULT 'kanban',
-    admin_only_create_project TINYINT(1) DEFAULT 0,
+    admin_only_create_project TINYINT(1) DEFAULT 1, 
     max_upload_size INT DEFAULT 10
 );
 
 -- Khởi tạo sẵn dữ liệu cấu hình mặc định cho hệ thống
 INSERT INTO system_settings (id, theme_color) VALUES (1, '#2563EB');
 
--- Dữ liệu
+-- 16. Cài đặt từng dự án
+CREATE TABLE project_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL UNIQUE,
+    theme_color VARCHAR(20) DEFAULT '#2563EB',
+    enable_gantt TINYINT(1) DEFAULT 1,
+    enable_timeline TINYINT(1) DEFAULT 1,
+    working_days VARCHAR(100)
+        DEFAULT 'Mon,Tue,Wed,Thu,Fri',
+    FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE CASCADE
+);
 
-INSERT INTO users (full_name, email, password, phone, role, avatar)
+-- Dữ liệu người dùng
+INSERT INTO users
+(
+    full_name,
+    email,
+    password,
+    phone,
+    role,
+    avatar
+)
+>>>>>>> bd37043e46899a537dcf7014fb8d06be4ae21578
 VALUES
 (
     'Nguyễn Văn A',
     'admin@gmail.com',
     '$2b$10$NYNSzCQFNd3nATIrZp9mbuLDFrK0qmBDEcQN4KEF.VP0CIyTzN1oq',
     '0900000001',
-    'ADMIN'
+    'ADMIN',
+    NULL
 ),
 (
     'Trần Thị B',
     'frontend@gmail.com',
     '$2b$10$NYNSzCQFNd3nATIrZp9mbuLDFrK0qmBDEcQN4KEF.VP0CIyTzN1oq',
     '0900000002',
-    'MANAGER'
+    'MANAGER',
+    NULL
 ),
 (
     'Lê Văn C',
     'backend@gmail.com',
     '$2b$10$NYNSzCQFNd3nATIrZp9mbuLDFrK0qmBDEcQN4KEF.VP0CIyTzN1oq',
     '0900000003',
-    'MEMBER'
+    'MEMBER',
+    NULL
 ),
 (
     'Phạm Thị D',
     'tester@gmail.com',
     '$2b$10$NYNSzCQFNd3nATIrZp9mbuLDFrK0qmBDEcQN4KEF.VP0CIyTzN1oq',
     '0900000004',
-    'MEMBER'
+    'MEMBER',
+    NULL
 ),
 (
     'Hoàng Văn E',
     'designer@gmail.com',
     '$2b$10$NYNSzCQFNd3nATIrZp9mbuLDFrK0qmBDEcQN4KEF.VP0CIyTzN1oq',
     '0900000005',
-    'MEMBER'
+    'MEMBER',
+    NULL
 );
 
+-- Dữ liệu dự án
 INSERT INTO projects
-(name, description, customer, manager_name, start_date, end_date,
- status, progress, color, created_by)
+(
+    name,
+    description,
+    customer,
+    manager_name,
+    start_date,
+    end_date,
+    status,
+    progress,
+    color,
+    created_by
+)
 VALUES
 (
     'Website bán hàng',
@@ -329,7 +395,7 @@ VALUES
     'DANG_THUC_HIEN',
     0,
     '#22C55E',
-    2
+    1
 ),
 (
     'Hệ thống CRM',
@@ -344,6 +410,7 @@ VALUES
     1
 );
 
+-- Thành viên dự án
 INSERT INTO project_members
 (project_id, user_id, position, role_in_project)
 VALUES
@@ -352,12 +419,15 @@ VALUES
 (1, 3, 'Backend Developer', 'MEMBER'),
 (1, 4, 'Tester', 'MEMBER'),
 (1, 5, 'Designer', 'MEMBER'),
+
 (2, 2, 'Chủ dự án', 'OWNER'),
 (2, 3, 'Backend Developer', 'MEMBER'),
 (2, 4, 'Tester', 'MEMBER'),
+
 (3, 1, 'Chủ dự án', 'OWNER'),
 (3, 5, 'Designer', 'MEMBER');
 
+-- Cột Kanban
 INSERT INTO kanban_columns
 (project_id, name, column_order)
 VALUES
@@ -365,44 +435,87 @@ VALUES
 (1, 'Đang thực hiện', 2),
 (1, 'Đang review', 3),
 (1, 'Hoàn thành', 4),
+
 (2, 'Việc cần làm', 1),
 (2, 'Đang thực hiện', 2),
 (2, 'Đang review', 3),
 (2, 'Hoàn thành', 4),
+
 (3, 'Việc cần làm', 1),
 (3, 'Đang thực hiện', 2),
 (3, 'Đang review', 3),
 (3, 'Hoàn thành', 4);
 
+-- Công việc mẫu
 INSERT INTO tasks
-(project_id, column_id, title, description, assigned_to,
- start_date, end_date, status, priority, progress, task_order)
+(
+    project_id,
+    column_id,
+    title,
+    description,
+    assigned_to,
+    start_date,
+    end_date,
+    status,
+    priority,
+    progress,
+    task_order
+)
 VALUES
 (
-    1, 4, 'Phân tích yêu cầu',
+    1,
+    4,
+    'Phân tích yêu cầu',
     'Thu thập và phân tích yêu cầu dự án',
-    1, '2026-07-01', '2026-07-03',
-    'HOAN_THANH', 'CAO', 100, 1
+    1,
+    '2026-07-01',
+    '2026-07-03',
+    'HOAN_THANH',
+    'CAO',
+    100,
+    1
 ),
 (
-    1, 2, 'Thiết kế giao diện',
+    1,
+    2,
+    'Thiết kế giao diện',
     'Thiết kế UI cho website bán hàng',
-    5, '2026-07-04', '2026-07-10',
-    'DANG_LAM', 'CAO', 80, 2
+    2,
+    '2026-07-04',
+    '2026-07-10',
+    'DANG_LAM',
+    'CAO',
+    80,
+    2
 ),
 (
-    1, 2, 'Xây dựng API sản phẩm',
+    1,
+    2,
+    'Xây dựng API sản phẩm',
     'Xây dựng API Node.js cho sản phẩm',
-    3, '2026-07-08', '2026-07-18',
-    'DANG_LAM', 'CAO', 70, 3
+    3,
+    '2026-07-08',
+    '2026-07-18',
+    'DANG_LAM',
+    'CAO',
+    70,
+    3
 ),
 (
-    1, 3, 'Kiểm thử chức năng thanh toán',
+    1,
+    3,
+    'Kiểm thử chức năng thanh toán',
     'Kiểm thử quy trình thanh toán',
-    4, '2026-07-19', '2026-07-23',
-    'DANG_REVIEW', 'TRUNG_BINH', 90, 4
+    4,
+    '2026-07-19',
+    '2026-07-23',
+    'DANG_REVIEW',
+    'TRUNG_BINH',
+    90,
+    4
 );
 
+-- Nhãn
 INSERT INTO labels
 (project_id, name, color)
 VALUES
@@ -411,6 +524,31 @@ VALUES
 (1, 'Bug', '#EF4444'),
 (1, 'UI', '#A855F7');
 
+-- Cài đặt chung
+INSERT INTO system_settings
+(
+    id,
+    theme_color,
+    enable_gantt,
+    enable_timeline,
+    working_days,
+    default_view,
+    admin_only_create_project,
+    max_upload_size
+)
+VALUES
+(
+    1,
+    '#2563EB',
+    1,
+    1,
+    'Mon,Tue,Wed,Thu,Fri',
+    'kanban',
+    1,
+    10
+);
+
+-- Cài đặt từng dự án
 INSERT INTO project_settings
 (project_id, theme_color)
 VALUES
@@ -418,10 +556,31 @@ VALUES
 (2, '#22C55E'),
 (3, '#A855F7');
 
+-- Thông báo
 INSERT INTO notifications
 (user_id, title, content, type)
 VALUES
-(2, 'Dự án mới', 'Bạn đang quản lý dự án quản lý nhân sự', 'info'),
-(3, 'Công việc mới', 'Bạn được giao xây dựng API sản phẩm', 'info'),
-(4, 'Kiểm thử', 'Bạn được giao kiểm thử thanh toán', 'warning'),
-(5, 'Thiết kế', 'Bạn được giao thiết kế giao diện', 'info');
+(
+    2,
+    'Dự án mới',
+    'Bạn đang quản lý dự án quản lý nhân sự',
+    'info'
+),
+(
+    3,
+    'Công việc mới',
+    'Bạn được giao xây dựng API sản phẩm',
+    'info'
+),
+(
+    4,
+    'Kiểm thử',
+    'Bạn được giao kiểm thử thanh toán',
+    'warning'
+),
+(
+    5,
+    'Thiết kế',
+    'Bạn được thêm vào nhóm thiết kế',
+    'info'
+);
