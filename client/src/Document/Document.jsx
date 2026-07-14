@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./Document.css";
 import Sidebar from "../Sidebar/Sidebar";
 import { 
     FaFileWord, FaFilePdf, FaFileExcel, FaFileImage, FaFileAlt,
-    FaDownload, FaTrash, FaUpload, FaSearch, FaPlus, FaTimes 
+    FaDownload, FaTrash, FaUpload, FaSearch, FaPlus, FaTimes, FaChevronDown 
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -17,13 +17,24 @@ function Document() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [totalStorageUsed, setTotalStorageUsed] = useState(0); 
 
+    // State phục vụ việc tìm kiếm dự án (Searchable Select)
+    const [projectSearchInput, setProjectSearchInput] = useState("");
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // State phục vụ hộp thoại xác nhận xóa tự chế (Custom Confirm Modal)
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        docId: null,
+        docName: ""
+    });
+
     const maxStorage = 100; // 100 MB
     const storagePercentage = maxStorage > 0 ? (totalStorageUsed / maxStorage) * 100 : 0;
 
     const API_BASE_URL = "http://localhost:5000/api/documents";
     const PROJECTS_API_URL = "http://localhost:5000/api/projects"; 
 
-    // Giữ nguyên tham chiếu hàm lấy token
     const getAuthHeaders = useCallback(() => {
         const token = localStorage.getItem("token");
         return token ? { Authorization: `Bearer ${token}` } : {};
@@ -38,7 +49,6 @@ function Document() {
         }
     };
 
-    // Hàm lấy thông số dung lượng độc lập
     const fetchStorageStats = useCallback(async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/storage/stats`, { headers: getAuthHeaders() });
@@ -52,7 +62,6 @@ function Document() {
         }
     }, [getAuthHeaders]);
 
-    // Hàm cập nhật danh sách tài liệu
     const refreshDocumentsList = useCallback(async () => {
         if (!selectedProject) return; 
         try {
@@ -75,7 +84,6 @@ function Document() {
         }
     }, [selectedProject, getAuthHeaders]); 
 
-    // Tự động tải lại dữ liệu khi người dùng chuyển đổi dự án
     useEffect(() => {
         const handleProjectChange = async () => {
             if (selectedProject) {
@@ -85,14 +93,11 @@ function Document() {
                 setDocuments([]); 
             }
         };
-
         handleProjectChange(); 
     }, [selectedProject, refreshDocumentsList, fetchStorageStats]);
 
-    // Khởi tạo danh sách dự án khi vào trang lần đầu
     useEffect(() => {
         let isMounted = true;
-
         const initProjects = async () => {
             try {
                 const resProj = await fetch(PROJECTS_API_URL, { headers: getAuthHeaders() });
@@ -108,10 +113,20 @@ function Document() {
                 if (isMounted) toast.error("Không thể kết nối dữ liệu từ server!");
             }
         };
-
         initProjects();
         return () => { isMounted = false; };
     }, [getAuthHeaders, fetchStorageStats]); 
+
+    // Đóng dropdown tìm kiếm dự án khi click ra ngoài vùng hiển thị
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const getFileIcon = (type) => {
         if (!type) return <FaFileAlt className="icon-doc info" />;
@@ -158,7 +173,7 @@ function Document() {
             if (res.ok) {
                 toast.success("Tải lên tệp tin thành công!");
                 await refreshDocumentsList(); 
-                await fetchStorageStats(); // SỬA TẠI ĐÂY: Cập nhật lại thanh dung lượng tổng sau khi upload thành công
+                await fetchStorageStats(); 
                 setIsModalOpen(false);
                 setSelectedFile(null);
             } else {
@@ -171,26 +186,42 @@ function Document() {
         }
     };
 
-    const handleDeleteDocument = async (id, name) => {
-        if (window.confirm(`Bạn có chắc chắn muốn xóa tài liệu: ${name}?`)) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/${id}`, {
-                    method: "DELETE",
-                    headers: getAuthHeaders()
-                });
-                if (res.ok) {
-                    toast.success("Đã xóa tài liệu!");
-                    await refreshDocumentsList();
-                    await fetchStorageStats(); // SỬA TẠI ĐÂY: Cập nhật lại thanh dung lượng tổng sau khi xóa thành công
-                } else {
-                    toast.error("Xóa tài liệu thất bại.");
-                }
-            } catch (error) {
-                console.error(error);
-                toast.error("Không thể xóa file!");
+    // Hàm kích hoạt mở Custom Confirm Modal xác nhận xóa
+    const triggerDeleteConfirm = (id, name) => {
+        setConfirmModal({
+            isOpen: true,
+            docId: id,
+            docName: name
+        });
+    };
+
+    // Hàm thực thi hành động xóa khi người dùng click xác nhận trong Custom Modal
+    const handleConfirmDelete = async () => {
+        const { docId } = confirmModal;
+        try {
+            const res = await fetch(`${API_BASE_URL}/${docId}`, {
+                method: "DELETE",
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                toast.success("Đã xóa tài liệu!");
+                await refreshDocumentsList();
+                await fetchStorageStats(); 
+            } else {
+                toast.error("Xóa tài liệu thất bại.");
             }
+        } catch (error) {
+            console.error(error);
+            toast.error("Không thể xóa file!");
+        } finally {
+            // Đóng modal xác nhận xóa
+            setConfirmModal({ isOpen: false, docId: null, docName: "" });
         }
     };
+
+    const filteredProjects = projects.filter(proj => 
+        proj.name.toLowerCase().includes(projectSearchInput.toLowerCase())
+    );
 
     const filteredDocs = documents.filter(doc => {
         const matchesSearch = doc.name ? doc.name.toLowerCase().includes(searchTerm.toLowerCase()) : false;
@@ -208,6 +239,30 @@ function Document() {
         }
     });
 
+    const currentProjectName = projects.find(p => p.id === selectedProject)?.name || "";
+
+    const handleDownloadFile = (doc) => {
+        if (!doc || !doc.url) {
+            toast.error("Đường dẫn file không hợp lệ hoặc không tồn tại!");
+            return;
+        }
+
+    const cleanUrl = doc.url.startsWith("http") 
+        ? doc.url 
+        : `http://localhost:5000/${doc.url.replace(/^\//, "")}`;
+
+    const link = document.createElement("a");
+    link.href = cleanUrl;
+    link.setAttribute("download", doc.name || "download");
+    
+    link.rel = "noopener noreferrer";
+    
+    document.body.appendChild(link);
+    link.click();
+    
+    document.body.removeChild(link);
+    };
+
     return (
         <div className="app">
             <Sidebar />
@@ -215,18 +270,50 @@ function Document() {
                 <header className="topbar">
                     <h1>Tài liệu hệ thống</h1>
                     
-                    {/* Bọc cụm này lại để CSS căn chỉnh sang bên phải */}
                     <div className="topbar-controls">
-                        <div className="project-selector-top">
-                            <select 
-                                value={selectedProject} 
-                                onChange={(e) => setSelectedProject(e.target.value)}
-                            >
-                                <option value="">-- Chọn dự án xem tài liệu --</option>
-                                {projects.map(proj => (
-                                    <option key={proj.id} value={proj.id}>{proj.name}</option>
-                                ))}
-                            </select>
+                        {/* CUSTOM SEARCHABLE SELECT DỰ ÁN */}
+                        <div className="project-searchable-select" ref={dropdownRef}>
+                            <div className="searchable-input-wrapper" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                                <input 
+                                    type="text"
+                                    placeholder="Nhập & tìm tên dự án..."
+                                    value={isDropdownOpen ? projectSearchInput : (currentProjectName || projectSearchInput)}
+                                    onChange={(e) => {
+                                        setProjectSearchInput(e.target.value);
+                                        setIsDropdownOpen(true);
+                                    }}
+                                />
+                                <FaChevronDown className={`arrow-icon ${isDropdownOpen ? "open" : ""}`} />
+                            </div>
+
+                            {isDropdownOpen && (
+                                <ul className="searchable-dropdown-list">
+                                    <li onClick={() => {
+                                        setSelectedProject("");
+                                        setProjectSearchInput("");
+                                        setIsDropdownOpen(false);
+                                    }}>
+                                        -- Bỏ chọn dự án --
+                                    </li>
+                                    {filteredProjects.length > 0 ? (
+                                        filteredProjects.map(proj => (
+                                            <li 
+                                                key={proj.id} 
+                                                className={selectedProject === proj.id ? "selected" : ""}
+                                                onClick={() => {
+                                                    setSelectedProject(proj.id);
+                                                    setProjectSearchInput(proj.name);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                            >
+                                                {proj.name}
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li className="no-result">Không tìm thấy dự án phù hợp</li>
+                                    )}
+                                </ul>
+                            )}
                         </div>
 
                         <div className="search-box">
@@ -254,7 +341,10 @@ function Document() {
                             </div>
                         </div>
 
-                        <button className="upload-btn" onClick={() => setIsModalOpen(true)}>
+                        <button className="upload-btn" onClick={() => {
+                            setProjectSearchInput(currentProjectName);
+                            setIsModalOpen(true);
+                        }}>
                             <FaPlus /> Tải lên tài liệu mới
                         </button>
                     </div>
@@ -274,7 +364,7 @@ function Document() {
                         
                         <div className="table-responsive">
                             {!selectedProject ? (
-                                <div className="empty-document">Vui lòng chọn một dự án ở thanh trên để xem tài liệu.</div>
+                                <div className="empty-document">Vui lòng nhập và chọn một dự án ở thanh trên để xem tài liệu.</div>
                             ) : filteredDocs.length === 0 ? (
                                 <div className="empty-document">Không tìm thấy tài liệu nào trong dự án này.</div>
                             ) : (
@@ -299,17 +389,19 @@ function Document() {
                                                 <td>{doc.uploader}</td>
                                                 <td>{new Date(doc.createdAt).toLocaleDateString("vi-VN")}</td>
                                                 <td className="actions-cell">
-                                                    <a 
-                                                        href={doc.url?.startsWith("http") ? doc.url : `http://localhost:5000${doc.url}`} 
-                                                        download={doc.name}
+                                                    <button 
+                                                        type="button"
                                                         className="action-btn download" 
                                                         title="Tải xuống"
-                                                        target="_blank" 
-                                                        rel="noreferrer"
+                                                        onClick={() => handleDownloadFile(doc)} // Gọi hàm tải file an toàn tại đây
                                                     >
                                                         <FaDownload />
-                                                    </a>
-                                                    <button className="action-btn delete" title="Xóa tài liệu" onClick={() => handleDeleteDocument(doc.id, doc.name)}>
+                                                    </button>
+                                                    <button 
+                                                        className="action-btn delete" 
+                                                        title="Xóa tài liệu" 
+                                                        onClick={() => triggerDeleteConfirm(doc.id, doc.name)}
+                                                    >
                                                         <FaTrash />
                                                     </button>
                                                 </td>
@@ -323,7 +415,7 @@ function Document() {
                 </div>
             </main>
 
-            {/* MODAL POPUP */}
+            {/* MODAL UPLOAD TÀI LIỆU */}
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -336,17 +428,19 @@ function Document() {
                         <form onSubmit={handleUploadFile}>
                             <div className="form-group-doc" style={{ marginBottom: "15px" }}>
                                 <label style={{ fontWeight: "600", marginBottom: "6px", display: "block" }}>Thuộc dự án (*):</label>
-                                <select 
-                                    value={selectedProject} 
-                                    onChange={(e) => setSelectedProject(e.target.value)}
-                                    required
-                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", backgroundColor: "#1e293b", color: "#fff", border: "1px solid #334155" }}
-                                >
-                                    <option value="">-- Chọn dự án tải lên --</option>
-                                    {projects.map(proj => (
-                                        <option key={proj.id} value={proj.id}>{proj.name}</option>
-                                    ))}
-                                </select>
+                                <div style={{ 
+                                    padding: "10px", 
+                                    borderRadius: "6px", 
+                                    backgroundColor: "#1e293b", 
+                                    color: "#fff", 
+                                    border: "1px solid #334155",
+                                    fontSize: "14px"
+                                }}>
+                                    {currentProjectName || <span style={{color: '#dc3545'}}>Chưa chọn dự án ở thanh công cụ ngoài!</span>}
+                                </div>
+                                <small style={{color: '#94a3b8', marginTop: '4px', display: 'block'}}>
+                                    * Mẹo: Để đổi dự án khác, vui lòng thay đổi ở thanh công cụ phía ngoài màn hình chính.
+                                </small>
                             </div>
 
                             <div className="form-group-doc">
@@ -370,6 +464,40 @@ function Document() {
                                 <button type="submit" className="btn-submit" disabled={!selectedFile || !selectedProject}>Xác nhận tải lên</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM CONFIRM MODAL XÁC NHẬN XÓA TỰ CHẾ */}
+            {confirmModal.isOpen && (
+                <div className="modal-overlay delete-confirm-overlay">
+                    <div className="confirm-modal-content">
+                        <div className="confirm-modal-icon">
+                            <FaTrash />
+                        </div>
+                        <h3>Xác nhận xóa tài liệu</h3>
+                        <p>
+                            Bạn có chắc chắn muốn xóa tài liệu này? <br />
+                            <strong className="confirm-doc-name" title={confirmModal.docName}>
+                                {confirmModal.docName}
+                            </strong>
+                        </p>
+                        <div className="confirm-modal-actions">
+                            <button 
+                                type="button" 
+                                className="btn-confirm-cancel" 
+                                onClick={() => setConfirmModal({ isOpen: false, docId: null, docName: "" })}
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button 
+                                type="button" 
+                                className="btn-confirm-danger" 
+                                onClick={handleConfirmDelete}
+                            >
+                                Đồng ý xóa
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

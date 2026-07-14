@@ -20,13 +20,16 @@ function Notification() {
     const [hasMore, setHasMore] = useState(true);
     const LIMIT = 10;
 
-    // 1. useEffect chính: Tải trang 1 khi mới vào hoặc khi thay đổi Bộ lọc (Tabs)
+    // 1. Tải trang đầu tiên (Page 1) khi thay đổi Bộ lọc (Filter)
     useEffect(() => {
         let isMounted = true;
         
         const loadFirstPage = async () => {
             try {
                 setLoading(true);
+                // Đảm bảo luôn reset page về 1 khi đổi bộ lọc
+                setPage(1); 
+
                 const res = await fetch(`http://localhost:5000/api/notifications?page=1&limit=${LIMIT}&filter=${filter}`, { 
                     headers: getAuthHeaders() 
                 });
@@ -36,7 +39,6 @@ function Notification() {
                 const data = await res.json();
                 
                 if (isMounted) {
-                    // Trích xuất mảng dữ liệu từ thuộc tính .results của Controller trả về
                     const newNotifs = data.results && Array.isArray(data.results) ? data.results : data;
                     setNotifications(newNotifs);
                     setHasMore(newNotifs.length >= LIMIT);
@@ -46,7 +48,6 @@ function Notification() {
                 console.error(err);
                 if (isMounted) {
                     setError("Lỗi kết nối API hệ thống. Đang hiển thị dữ liệu kiểm thử.");
-                    // Dữ liệu giả lập chạy offline phòng trường hợp API Backend của bạn chưa sẵn sàng
                     setNotifications([
                         { id: 1, title: "Dự án Website quá hạn", content: "Dự án 'E-Commerce Website' đã quá hạn hoàn thành 2 ngày.", type: "warning", is_read: false, created_at: new Date().toISOString() },
                         { id: 2, title: "Hệ thống bảo trì", content: "Hệ thống sẽ bảo trì định kỳ vào lúc 23:00 đêm nay.", type: "system", is_read: false, created_at: new Date().toISOString() },
@@ -62,12 +63,12 @@ function Notification() {
         loadFirstPage();
 
         return () => { isMounted = false; };
-    }, [filter]); 
+    }, [filter]); // Chỉ chạy lại khi thay đổi filter
 
-    // 2. useEffect phụ trợ: Real-time Polling ngầm cập nhật dữ liệu mới sau mỗi 30 giây
-    // Chỉ tự động cập nhật ngầm khi người dùng đang ở trang 1 để tránh lỗi xung đột phân trang
+    // 2. Real-time Polling cập nhật tự động (Sửa lỗi rò rỉ bộ nhớ)
     useEffect(() => {
-        if (page !== 1) return; // Nếu đang đọc các trang cũ hơn, tạm dừng Polling ngầm để không bị nhảy cuộn màn hình
+        // Chỉ chạy polling tự động nếu đang ở trang 1
+        if (page !== 1) return; 
 
         const interval = setInterval(() => {
             fetch(`http://localhost:5000/api/notifications?page=1&limit=${LIMIT}&filter=${filter}`, { headers: getAuthHeaders() })
@@ -82,15 +83,16 @@ function Notification() {
                 .catch(err => console.error("Realtime polling error:", err));
         }, 30000); 
 
+        // QUAN TRỌNG: Phải dọn dẹp interval khi filter hoặc page thay đổi để tránh chạy ngầm chồng chéo
         return () => clearInterval(interval);
     }, [filter, page]);
 
-    // 3. Đếm số lượng thông báo chưa đọc hiển thị lên Badge topbar
+    // 3. Đếm số thông báo chưa đọc
     const unreadCount = useMemo(() => {
         return notifications.filter(n => !n.is_read).length;
     }, [notifications]);
 
-    // 4. Luồng xử lý gọi API tải trang tiếp theo độc lập
+    // 4. Luồng xử lý tải trang tiếp theo (Tối ưu ghép mảng không trùng lặp ID)
     const fetchNextPage = async (nextPage) => {
         try {
             setLoadingMore(true);
@@ -102,8 +104,12 @@ function Notification() {
             
             const newNotifs = data.results && Array.isArray(data.results) ? data.results : data;
             
-            // Hợp nhất mảng cũ và mảng mới tải về thêm vào cuối danh sách
-            setNotifications(prev => [...prev, ...newNotifs]);
+            // Lọc loại bỏ trùng lặp id trước khi nối mảng (đề phòng dữ liệu real-time đổ về bị trùng)
+            setNotifications(prev => {
+                const existingIds = new Set(prev.map(n => n.id));
+                const uniqueNewNotifs = newNotifs.filter(n => !existingIds.has(n.id));
+                return [...prev, ...uniqueNewNotifs];
+            });
             setHasMore(newNotifs.length >= LIMIT);
         } catch (err) {
             console.error(err);
@@ -118,10 +124,10 @@ function Notification() {
         fetchNextPage(nextPage); 
     };
 
-    // 5. API nghiệp vụ: Đánh dấu một mục đã đọc
+    // 5. Đánh dấu một mục đã đọc
     const markAsRead = async (id) => {
         try {
-            // Lập tức tối ưu UI trước (Optimistic UI Update) giúp ứng dụng mượt mà không có độ trễ
+            // Optimistic UI Update (Cập nhật giao diện lập tức trước khi gọi API)
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
             await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
                 method: "PUT",
@@ -132,7 +138,7 @@ function Notification() {
         }
     };
 
-    // 6. API nghiệp vụ: Đánh dấu tất cả mục đã đọc
+    // 6. Đánh dấu tất cả mục đã đọc
     const markAllAsRead = async () => {
         try {
             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
@@ -145,7 +151,7 @@ function Notification() {
         }
     };
 
-    // 7. API nghiệp vụ: Xóa một hàng thông báo
+    // 7. Xóa một hàng thông báo
     const deleteNotification = async (id) => {
         try {
             setNotifications(prev => prev.filter(n => n.id !== id));
@@ -158,7 +164,7 @@ function Notification() {
         }
     };
 
-    // 8. API nghiệp vụ: Dọn sạch hòm thư thông báo
+    // 8. Dọn sạch hòm thư thông báo
     const clearAllNotifications = async () => {
         if (!window.confirm("Bạn có chắc chắn muốn xóa toàn bộ thông báo không? Hành động này không thể hoàn tác.")) return;
         try {
@@ -185,6 +191,12 @@ function Notification() {
         return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + " - " + date.toLocaleDateString("vi-VN");
     };
 
+    // Hàm chuyển đổi tab mượt mà không bị lỗi dính trang
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+        setPage(1); // Reset page về 1
+    };
+
     return (
         <div className="app">
             <Sidebar />
@@ -196,11 +208,13 @@ function Notification() {
                         {unreadCount > 0 && <span className="unread-badge-count">{unreadCount} mới</span>}
                     </div>
                     <div className="hero-actions">
+                        {/* Chỉ hiện nút "Đọc tất cả" khi có ít nhất một thông báo CHƯA đọc */}
                         {unreadCount > 0 && (
                             <button className="btn-secondary btn-sm" onClick={markAllAsRead}>
                                 <FaCheckCircle style={{ marginRight: 6 }} /> Đọc tất cả
                             </button>
                         )}
+                        {/* Chỉ hiện nút "Xóa sạch" khi danh sách thực sự có thông báo */}
                         {notifications.length > 0 && (
                             <button className="btn-secondary btn-sm btn-danger-hover" onClick={clearAllNotifications}>
                                 <FaTrashAlt style={{ marginRight: 6 }} /> Xóa sạch hòm thư
@@ -216,13 +230,13 @@ function Notification() {
                     <div className="notif-tabs">
                         <button 
                             className={`tab-item ${filter === "all" ? "active" : ""}`} 
-                            onClick={() => { setFilter("all"); setPage(1); }}
+                            onClick={() => handleFilterChange("all")}
                         >
                             Tất cả
                         </button>
                         <button 
                             className={`tab-item ${filter === "unread" ? "active" : ""}`} 
-                            onClick={() => { setFilter("unread"); setPage(1); }}
+                            onClick={() => handleFilterChange("unread")}
                         >
                             Chưa đọc
                         </button>

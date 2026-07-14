@@ -2,7 +2,10 @@ const db = require("../config/db");
 
 // 1. Lấy danh sách thông báo có phân trang và bộ lọc
 const getByUserId = (userId, filter, page, limit, callback) => {
-    const offset = (page - 1) * limit;
+    // Ép kiểu chắc chắn là số nguyên để chống tấn công SQL Injection khi nối chuỗi
+    const safeLimit = parseInt(limit, 10) || 10;
+    const safeOffset = (parseInt(page, 10) - 1 || 0) * safeLimit;
+
     let sql = "SELECT * FROM notifications WHERE user_id = ?";
     let params = [userId];
 
@@ -11,8 +14,8 @@ const getByUserId = (userId, filter, page, limit, callback) => {
         sql += " AND is_read = 0";
     }
 
-    sql += " ORDER BY id DESC LIMIT ? OFFSET ?";
-    params.push(Number(limit), Number(offset));
+    // Nối thẳng giá trị an toàn vào LIMIT và OFFSET để tránh lỗi driver thư viện mysql
+    sql += ` ORDER BY id DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
 
     db.query(sql, params, callback);
 };
