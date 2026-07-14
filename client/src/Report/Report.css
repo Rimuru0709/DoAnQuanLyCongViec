@@ -28,19 +28,35 @@
 }
 
 .filter-bar select {
-    padding: 8px 16px;
+    padding: 8px 36px 8px 16px; /* Chừa khoảng trống bên phải cho mũi tên */
     border-radius: 6px;
-    border: 1px solid #1e294b;
-    background-color: #1c2541; /* Nền select tối */
-    color: #ffffff; /* Chữ select trắng */
+    border: 1px solid #14213d; 
+    background-color: #0b1329; 
+    color: #ffffff; 
     font-size: 14px;
     cursor: pointer;
     outline: none;
-    transition: all 0.2s;
+    
+    /* Thiết lập độ rộng tối thiểu để chữ ngắn hay dài đều hiển thị đẹp, không bị co */
+    min-width: 140px; 
+    
+    /* Vô hiệu hóa mũi tên mặc định của trình duyệt */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* Icon mũi tên chỉ xuống màu trắng */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 14px) center; /* Ghim mũi tên sát lề phải */
+    
+    transition: all 0.2s ease-in-out;
 }
 
-.filter-bar select:focus {
-    border-color: #2563eb;
+.filter-bar select:focus,
+.filter-bar select:hover {
+    border-color: #2563eb; 
+    background-color: #0f1a36; 
 }
 
 /* --- Khu vực Hero Banner trùng màu nền hệ thống --- */
@@ -122,11 +138,11 @@
     background-color: rgba(255, 255, 255, 0.05) !important; /* Nền icon mờ tối */
 }
 
-/* Gắn màu chữ tương ứng cho sub-text trạng thái giống hệt trang tổng quan */
-.summary-card:nth-child(1) .sub-text { color: #10b981 !important; } /* Dự án - Xanh lá */
-.summary-card:nth-child(2) .sub-text { color: #3b82f6 !important; } /* Công việc - Xanh dương */
-.summary-card:nth-child(3) .sub-text { color: #06b6d4 !important; } /* Tài liệu - Đang làm/review */
-.summary-card:nth-child(4) .sub-text { color: #10b981 !important; } /* Dung lượng - Ổn định */
+/* Sử dụng kiểu loại trừ thay vì số thứ tự cố định để tránh lệch màu khi ẩn phần tử */
+.summary-card:nth-of-type(1) .sub-text { color: #10b981 !important; } /* Dự án - Xanh lá */
+.summary-card:nth-of-type(2) .sub-text { color: #3b82f6 !important; } /* Công việc - Xanh dương */
+.summary-card:nth-of-type(3) .sub-text { color: #06b6d4 !important; } /* Tài liệu - Đang làm/review */
+.summary-card:nth-of-type(4) .sub-text { color: #10b981 !important; } /* Dung lượng - Ổn định */
 
 .summary-content h3 {
     font-size: 28px;

@@ -1,9 +1,17 @@
-/* Layout Bao Ngoài */
+/* ==========================================================================
+   Layout Bao Ngoài & Khung Chứa
+   ========================================================================== */
 .gantt-page {
     margin-top: 18px;
     display: flex;
     flex-direction: column;
     gap: 32px;
+    box-sizing: border-box;
+}
+
+/* Đồng bộ box-sizing cho toàn bộ sub-component */
+.gantt-page *, .gantt-page *::before, .gantt-page *::after {
+    box-sizing: border-box;
 }
 
 /* Header & Bộ lọc */
@@ -43,7 +51,6 @@
     color: #ffffff;
 }
 
-/* Khung Chứa Toàn Bộ Gantt Chart */
 .gantt-box-fixed {
     display: flex;
     width: 100%;
@@ -54,7 +61,9 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-/* Phần Bảng Bên Trái (Cố định tên công việc) */
+/* ==========================================================================
+   Phần Bảng Bên Trái (Cố định thông tin task)
+   ========================================================================== */
 .gantt-left-table {
     display: grid;
     grid-template-columns: 220px 100px 100px;
@@ -68,15 +77,20 @@
     background: #0b1a2d;
     color: #cbd5e1;
     font-weight: 700;
-    padding: 14px;
+    height: 49px; /* Khớp chính xác với chiều cao cột ngày (.gantt-days-row) */
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
     border-right: 1px solid #1e3a5f;
     border-bottom: 1px solid #1e3a5f;
     font-size: 14px;
 }
 
 .gantt-left-cell {
-    height: 52px;
-    padding: 14px;
+    height: 52px; /* Khớp chính xác với .gantt-task-row */
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
     color: #f1f5f9;
     border-right: 1px solid #1e3a5f;
     border-bottom: 1px solid #1e3a5f;
@@ -93,10 +107,13 @@
 }
 
 .gantt-center {
+    justify-content: center;
     text-align: center;
 }
 
-/* Phần Cuộn Bên Phải (Lưới Timeline & Thanh Progress) */
+/* ==========================================================================
+   Phần Cuộn Lưới Grid & Progress Bars Bên Phải
+   ========================================================================== */
 .gantt-right-scroll {
     flex: 1;
     overflow-x: auto;
@@ -159,15 +176,24 @@
     filter: brightness(1.15);
 }
 
-/* Màu Sắc Đai Tiến Độ */
-.gantt-green  { background: linear-gradient(135deg, #22c55e, #16a34a); }
-.gantt-blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.gantt-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
-.gantt-orange { background: linear-gradient(135deg, #f59e0b, #f97316); }
-.gantt-red    { background: linear-gradient(135deg, #ef4444, #dc2626); }
-.gantt-cyan   { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+/* ==========================================================================
+   ĐỒNG BỘ MÀU SẮC GRADIENT CAO CẤP (DÙNG CHUNG CHO GANTT BAR & TIMELINE NODE)
+   ========================================================================== */
+.gantt-green, .milestone-circle.gantt-green   { background: linear-gradient(135deg, #22c55e, #16a34a) !important; }
+.gantt-blue, .milestone-circle.gantt-blue     { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; }
+.gantt-purple, .milestone-circle.gantt-purple { background: linear-gradient(135deg, #a855f7, #7c3aed) !important; }
+.gantt-orange, .milestone-circle.gantt-orange { background: linear-gradient(135deg, #f59e0b, #f97316) !important; }
+.gantt-red, .milestone-circle.gantt-red       { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
+.gantt-cyan, .milestone-circle.gantt-cyan     { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; }
 
-/* ĐƯỜNG CHỈ ĐỨT ĐỎ BÁO NGÀY HIỆN TẠI (TODAY LINE) */
+/* Các lớp fallback hoặc bổ trợ điểm mốc thủ công cũ */
+.gantt-ms-start   { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.gantt-ms-done    { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.gantt-ms-process { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.gantt-ms-end     { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+
+
+/* Đường chỉ Today màu đỏ */
 .gantt-today-line-dotted {
     position: absolute;
     top: 0;
@@ -187,7 +213,7 @@
 
 
 /* ==========================================================================
-   KHỐI TIMELINE TIẾN ĐỘ PHÍA DƯỚI (MILESTONES PANEL) - ĐÃ ĐỒNG BỘ MÀU SẮC UI
+   Khối Timeline Tiến Độ Phía Dưới (Milestones Panel)
    ========================================================================== */
 .gantt-milestones-panel {
     background-color: #0c1d32; 
@@ -215,7 +241,7 @@
 /* Trục ngang kết nối các node */
 .milestones-line-bg {
     position: absolute;
-    top: 17px; 
+    top: 18px; /* Căn chỉnh hoàn hảo đi qua tâm của vòng tròn 36px */
     left: 40px;
     right: 40px;
     height: 2px;
@@ -238,33 +264,30 @@
     flex: 1;
 }
 
-/* Các Vòng Tròn Node */
+/* Vòng Tròn Node - Gom lại thành một khối thống nhất */
 .milestone-circle {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: bold;
     margin-bottom: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 5;
     cursor: default;
 }
 
 .milestone-node:hover .milestone-circle {
     transform: scale(1.2); 
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
 }
 
-/* Phân nhóm màu sắc đặc thù cho Node icon trùng khớp với mã sự kiện */
-.gantt-ms-start   { background: linear-gradient(135deg, #22c55e, #16a34a); }
-.gantt-ms-done    { background: linear-gradient(135deg, #22c55e, #16a34a); }
-.gantt-ms-process { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.gantt-ms-end     { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-
-/* Ngày tháng phía dưới node */
+/* Thông tin Text bên dưới Node */
 .milestone-date {
     color: #94a3b8;
     font-size: 12px;
@@ -272,7 +295,6 @@
     margin-bottom: 4px;
 }
 
-/* Nhãn text hiển thị tên mốc sự kiện */
 .milestone-label {
     color: #ffffff;
     font-size: 13px;

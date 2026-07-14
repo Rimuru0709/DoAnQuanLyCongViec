@@ -11,9 +11,29 @@ const ONE_DAY = 1000 * 60 * 60 * 24;
 function Gantt({ tasks = [], onTaskClick }) {
     const ganttRef = useRef(null);
 
-    // 1. Tính toán danh sách tháng từ tasks
+    // 1. SẮP XẾP DANH SÁCH CÔNG VIỆC THEO NGÀY BẮT ĐẦU TĂNG DẦN (TỪ SỚM NHẤT ĐẾN MUỘN NHẤT)
+    const sortedAllTasks = useMemo(() => {
+        return [...tasks].sort((a, b) => {
+            if (!a.start_date) return 1;
+            if (!b.start_date) return -1;
+            return new Date(a.start_date) - new Date(b.start_date);
+        });
+    }, [tasks]);
+
+    // Hàm trả về Class màu dựa theo Trạng thái (được gom về một nơi để tái sử dụng)
+    const getBarClass = (status) => {
+        switch (status) {
+            case "HOAN_THANH": return "gantt-green";
+            case "DANG_LAM": return "gantt-blue";
+            case "DANG_REVIEW": return "gantt-purple";
+            case "QUA_HAN": return "gantt-red";
+            default: return "gantt-orange";
+        }
+    };
+
+    // Tính toán danh sách tháng từ sortedAllTasks
     const monthOptions = useMemo(() => {
-        const values = tasks
+        const values = sortedAllTasks
             .filter((task) => task.start_date && task.end_date)
             .flatMap((task) => [
                 getMonthKey(task.start_date),
@@ -25,7 +45,7 @@ function Gantt({ tasks = [], onTaskClick }) {
             const [sYear, sMonth] = second.split("-").map(Number);
             return new Date(fYear, fMonth) - new Date(sYear, sMonth);
         });
-    }, [tasks]);
+    }, [sortedAllTasks]);
 
     const currentMonthKey = useMemo(() => getMonthKey(new Date()), []);
 
@@ -48,7 +68,7 @@ function Gantt({ tasks = [], onTaskClick }) {
 
     const safeWeekStartDay = Math.min(Math.max(1, weekStartDay), daysInMonth);
 
-    // 3. Bọc timelineStart và timelineEnd vào useMemo độc lập
+    // Bọc timelineStart và timelineEnd vào useMemo độc lập
     const timelineStart = useMemo(() => {
         return viewMode === "WEEK"
             ? new Date(selectedYear, selectedMonth, safeWeekStartDay)
@@ -71,8 +91,9 @@ function Gantt({ tasks = [], onTaskClick }) {
         });
     }, [timelineStart, totalDays]);
 
+    // 2. LỌC CÁC CÔNG VIỆC TRONG KHUNG NHÌN (Sử dụng sortedAllTasks đã sắp xếp đúng thứ tự)
     const validTasks = useMemo(() => {
-        return tasks.filter((task) => {
+        return sortedAllTasks.filter((task) => {
             if (!task.start_date || !task.end_date) return false;
 
             const start = new Date(task.start_date);
@@ -84,7 +105,7 @@ function Gantt({ tasks = [], onTaskClick }) {
 
             return start <= timelineEnd && end >= timelineStart;
         });
-    }, [tasks, timelineStart, timelineEnd]);
+    }, [sortedAllTasks, timelineStart, timelineEnd]);
 
     // TÍNH TOÁN ĐƯỜNG KẺ "TODAY LINE" (ĐÚNG THEO NGÀY HIỆN TẠI)
     const todayLineOffset = useMemo(() => {
@@ -98,55 +119,52 @@ function Gantt({ tasks = [], onTaskClick }) {
         return -1;
     }, [timelineStart, timelineEnd]);
 
-    // TỰ ĐỘNG LỌC VÀ CHUẨN HÓA CÁC MỐC TIẾN ĐỘ QUAN TRỌNG (MILESTONES) BÊN DƯỚI
+    // 3. TỰ ĐỘNG LỌC VÀ CHUẨN HÓA CÁC MỐC TIẾN ĐỘ (ĐỒNG BỘ MÀU TASK)
     const milestones = useMemo(() => {
-        if (tasks.length === 0) return [];
+        if (sortedAllTasks.length === 0) return [];
 
-        const sortedTasks = [...tasks]
-            .filter((t) => t.start_date && t.end_date)
-            .sort((a, b) => new Date(a.end_date) - new Date(b.end_date));
-
-        if (sortedTasks.length === 0) return [];
+        const validMilestones = sortedAllTasks.filter((t) => t.start_date && t.end_date);
+        if (validMilestones.length === 0) return [];
 
         const list = [];
 
-        // 1. Mốc điểm đầu: Ngày bắt đầu của task đầu tiên
+        // Mốc 1: Bắt đầu dự án (Lấy theo ngày bắt đầu của task đầu tiên)
+        // Đồng bộ màu sắc bằng class của chính task đầu tiên này
         list.push({
-            date: sortedTasks[0].start_date,
+            date: validMilestones[0].start_date,
             label: "Bắt đầu dự án",
             icon: "▶",
-            className: "gantt-ms-start"
+            className: `gantt-ms-start ${getBarClass(validMilestones[0].status)}`
         });
 
-        // 2. Mốc điểm giữa: Ngày kết thúc của các task độc lập (Loại bỏ trùng ngày để UI không bị rối)
+        // Mốc 2: Hoàn thành từng task thành phần
         const seenDates = new Set();
-        sortedTasks.forEach((task, index) => {
-            const isLast = index === sortedTasks.length - 1;
+        validMilestones.forEach((task, index) => {
+            const isLast = index === validMilestones.length - 1;
             const dateStr = new Date(task.end_date).toDateString();
 
-            // Nếu không phải task cuối cùng và ngày này chưa được tạo mốc
             if (!isLast && !seenDates.has(dateStr)) {
                 seenDates.add(dateStr);
                 list.push({
                     date: task.end_date,
                     label: `Hoàn thành ${task.title}`,
                     icon: "✓",
-                    className: task.status === "HOAN_THANH" ? "gantt-ms-done" : "gantt-ms-process"
+                    className: getBarClass(task.status) // Đồng bộ class màu động từ task.status
                 });
             }
         });
 
-        // 3. Mốc điểm cuối: Ngày kết thúc của task cuối cùng trong chuỗi
-        const lastTask = sortedTasks[sortedTasks.length - 1];
+        // Mốc 3: Triển khai dự án (Ngày kết thúc của task cuối cùng)
+        const lastTask = validMilestones[validMilestones.length - 1];
         list.push({
             date: lastTask.end_date,
             label: "Triển khai dự án",
             icon: "⚑",
-            className: "gantt-ms-end"
+            className: `gantt-ms-end ${getBarClass(lastTask.status)}` // Đồng bộ class màu của task cuối
         });
 
         return list;
-    }, [tasks]);
+    }, [sortedAllTasks]);
 
     const formatDate = (date) => {
         if (!date) return "Chưa có";
@@ -157,16 +175,6 @@ function Gantt({ tasks = [], onTaskClick }) {
 
     const getDuration = (start, end) => {
         return Math.max(1, Math.round((new Date(end) - new Date(start)) / ONE_DAY) + 1);
-    };
-
-    const getBarClass = (status) => {
-        switch (status) {
-            case "HOAN_THANH": return "gantt-green";
-            case "DANG_LAM": return "gantt-blue";
-            case "DANG_REVIEW": return "gantt-purple";
-            case "QUA_HAN": return "gantt-red";
-            default: return "gantt-orange";
-        }
     };
 
     const handleToday = () => {
@@ -330,6 +338,7 @@ function Gantt({ tasks = [], onTaskClick }) {
                         <div className="milestones-list">
                             {milestones.map((ms, index) => (
                                 <div className="milestone-node" key={index}>
+                                    {/* ms.className ở đây đã chứa cả "gantt-green", "gantt-blue" tương thích CSS với Gantt Chart */}
                                     <div className={`milestone-circle ${ms.className}`}>
                                         {ms.icon}
                                     </div>

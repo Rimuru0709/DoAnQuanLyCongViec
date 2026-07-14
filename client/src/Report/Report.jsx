@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaChartLine, FaFileAlt, FaFolderOpen, FaDownload, FaTasks, FaFilter } from "react-icons/fa";
+import { FaChartLine, FaFileAlt, FaFolderOpen, FaDownload, FaTasks, FaFilter, FaSearch } from "react-icons/fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 import Sidebar from "../Sidebar/Sidebar";
 import "./Report.css";
@@ -17,16 +17,46 @@ function Report() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     
-    // Thêm state bộ lọc (Chuyên nghiệp hóa UI/UX)
-    const [selectedProject, setSelectedProject] = useState("all");
-    const [timeRange, setTimeRange] = useState("month");
+    // 1. STATE BỘ LỌC MỚI
+    const [projectNameInput, setProjectNameInput] = useState(""); // Ô nhập tên dự án thực tế
+    const [debouncedProjectName, setDebouncedProjectName] = useState(""); // Giá trị tên dự án sau khi delay
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Mặc định tháng hiện tại
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Mặc định năm hiện tại
 
+    // Danh sách năm cho bộ lọc (Ví dụ lấy từ 2020 đến năm hiện tại + 1)
+    const currentYear = new Date().getFullYear();
+    const yearsList = useMemo(() => {
+        const years = [];
+        for (let y = currentYear + 1; y >= 2020; y--) {
+            years.push(y);
+        }
+        return years;
+    }, [currentYear]);
+
+    // 2. CƠ CHẾ DEBOUNCE: Đợi người dùng gõ xong 500ms mới kích hoạt gọi API
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedProjectName(projectNameInput);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [projectNameInput]);
+
+    // 3. GỌI API KHI THAY ĐỔI BỘ LỌC
     useEffect(() => {
         const fetchReport = async () => {
             try {
                 setLoading(true);
-                // Gửi kèm query params bộ lọc lên Backend xử lý
-                const res = await fetch(`http://localhost:5000/api/reports/dashboard?project=${selectedProject}&time=${timeRange}`, { 
+                // Gửi tên dự án, tháng, năm lên Backend xử lý query
+                const queryParams = new URLSearchParams({
+                    projectName: debouncedProjectName,
+                    month: selectedMonth,
+                    year: selectedYear
+                });
+
+                const res = await fetch(`http://localhost:5000/api/reports/dashboard?${queryParams.toString()}`, { 
                     headers: getAuthHeaders() 
                 });
 
@@ -44,9 +74,9 @@ function Report() {
         };
 
         fetchReport();
-    }, [selectedProject, timeRange]); // Tự động reload khi đổi bộ lọc
+    }, [debouncedProjectName, selectedMonth, selectedYear]); 
 
-    // 1. Format dữ liệu Biểu đồ cột (Dung lượng)
+    // 4. Format dữ liệu Biểu đồ cột (Dung lượng)
     const chartData = useMemo(() => {
         if (!reportData || !reportData.projects) return [];
         return reportData.projects.map(proj => ({
@@ -56,10 +86,9 @@ function Report() {
         }));
     }, [reportData]);
 
-    // 2. Format dữ liệu Biểu đồ tròn (Trạng thái Task) - TÍNH NĂNG MỚI BỔ SUNG
+    // 5. Format dữ liệu Biểu đồ tròn (Trạng thái Task)
     const taskStatusData = useMemo(() => {
         if (!reportData || !reportData.taskSummary) {
-            // Dữ liệu giả định mẫu phòng trường hợp backend chưa kịp trả về
             return [
                 { name: "Cần làm", value: 40 },
                 { name: "Đang tiến hành", value: 30 },
@@ -86,7 +115,7 @@ function Report() {
                 p.id, 
                 p.name, 
                 p.fileCount, 
-                parseFloat((p.rawTotalSizeBytes || 0) / (1024 * 1024)).toFixed(2) // Đã sửa lỗi đồng bộ dữ liệu xuất file
+                parseFloat((p.rawTotalSizeBytes || 0) / (1024 * 1024)).toFixed(2)
             ])
         ];
         const csvContent = "\uFEFF" + rows.map((row) => row.map(val => `"${val}"`).join(",")).join("\n");
@@ -94,7 +123,7 @@ function Report() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `bao-cao-tien-do-va-luu-tru-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `bao-cao-tien-do-${selectedMonth}-${selectedYear}.csv`;
         link.click();
         URL.revokeObjectURL(url);
     };
@@ -109,20 +138,56 @@ function Report() {
 
                 <div className="page-content report-page">
                     
-                    {/* Bảng điều khiển bộ lọc (Filter Control) */}
-                    <section className="filter-bar" style={{ display: "flex", gap: 15, marginBottom: 20, background: "#fff", padding: 15, borderRadius: 8, boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
+                    {/* BẢNG ĐIỀU KHIỂN BỘ LỌC ĐÃ ĐƯỢC CẬP NHẬT */}
+                    <section className="filter-bar">
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <FaFilter style={{ color: "#6c757d" }} />
+                            <FaFilter style={{ color: "#64748b" }} />
                             <strong>Bộ lọc báo cáo:</strong>
                         </div>
-                        <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)} style={{ padding: "6px 12px", borderRadius: 4, border: "1px solid #ccc" }}>
-                            <option value="all">Tất cả dự án hiện hành</option>
-                            {reportData?.projects?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        
+                        {/* 1. Ô nhập tìm kiếm dự án bằng tay */}
+                        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                            <FaSearch style={{ position: "absolute", left: 12, color: "#64748b", fontSize: 13 }} />
+                            <input 
+                                type="text"
+                                placeholder="Nhập tên dự án..."
+                                value={projectNameInput}
+                                onChange={(e) => setProjectNameInput(e.target.value)}
+                                style={{
+                                    padding: "8px 12px 8px 34px",
+                                    borderRadius: "6px",
+                                    border: "1px solid #14213d",
+                                    backgroundColor: "#0b1329",
+                                    color: "#ffffff",
+                                    fontSize: "14px",
+                                    outline: "none",
+                                    width: "210px",
+                                    transition: "all 0.2s"
+                                }}
+                                className="project-search-input"
+                            />
+                        </div>
+
+                        {/* 2. Chọn Tháng */}
+                        <select 
+                            value={selectedMonth} 
+                            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                        >
+                            <option value="">Chọn tất cả tháng</option>
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                                <option key={m} value={m}>Tháng {m}</option>
+                            ))}
                         </select>
-                        <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)} style={{ padding: "6px 12px", borderRadius: 4, border: "1px solid #ccc" }}>
-                            <option value="week">Tuần này</option>
-                            <option value="month">Tháng này</option>
-                            <option value="quarter">Quý này</option>
+
+                        {/* 3. Chọn Năm */}
+                        <select 
+                            value={selectedYear} 
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        >
+                            <option value="">Chọn tất cả năm</option>
+                            {yearsList.map(y => (
+                                <option key={y} value={y}>Năm {y}</option>
+                            ))}
                         </select>
                     </section>
 
@@ -142,7 +207,7 @@ function Report() {
 
                     {error && <div className="status-banner error-banner">{error}</div>}
 
-                    {/* Khối Card Tổng Quan bổ sung thêm Đếm Task */}
+                    {/* Khối Card Tổng Quan */}
                     <section className="summary-grid">
                         <div className="summary-card">
                             <div className="summary-icon"><FaFolderOpen /></div>
@@ -178,9 +243,9 @@ function Report() {
                         </div>
                     </section>
 
-                    {/* Lưới 2 biểu đồ đặt song song */}
+                    {/* Lưới 2 biểu đồ */}
                     <section className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: 20, marginBottom: 20 }}>
-                        {/* Biểu đồ 1: Cột (Dung lượng) */}
+                        {/* Biểu đồ 1 */}
                         <div className="card">
                             <div className="card-header">
                                 <h3>Biểu đồ không gian lưu trữ theo Dự án</h3>
@@ -192,7 +257,6 @@ function Report() {
                                 <div className="chart-card" style={{ width: "100%", height: 260, marginTop: 15 }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                                            {/* Định nghĩa dải màu Gradient */}
                                             <defs>
                                                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
@@ -203,7 +267,6 @@ function Report() {
                                             <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                                             <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
                                             <Tooltip contentStyle={{ backgroundColor: '#111a36', borderColor: '#1e294b', color: '#fff' }} />
-                                            {/* Áp dụng dải màu gradient vừa tạo vào thanh Bar */}
                                             <Bar dataKey="storage" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={24} />
                                         </BarChart>
                                     </ResponsiveContainer>
@@ -213,7 +276,7 @@ function Report() {
                             )}
                         </div>
 
-                        {/* Biểu đồ 2: Tròn (Trạng thái công việc) - MỚI */}
+                        {/* Biểu đồ 2 */}
                         <div className="card">
                             <div className="card-header">
                                 <h3>Tỷ lệ Trạng thái Công việc (Tasks)</h3>
@@ -268,7 +331,7 @@ function Report() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="3" className="empty-state">Hệ thống trống.</td>
+                                            <td colSpan="3" className="empty-state">Không tìm thấy dữ liệu phù hợp.</td>
                                         </tr>
                                     )}
                                 </tbody>
