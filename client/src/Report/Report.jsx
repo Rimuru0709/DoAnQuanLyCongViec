@@ -27,6 +27,7 @@ function Report() {
     const [debouncedProjectName, setDebouncedProjectName] = useState(""); // Giá trị tên dự án sau khi delay
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Mặc định tháng hiện tại
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Mặc định năm hiện tại    
+    const [selectedQuarter, setSelectedQuarter] = useState("");
 
     // 2. CƠ CHẾ DEBOUNCE: Đợi người dùng gõ xong 500ms mới kích hoạt gọi API
     useEffect(() => {
@@ -45,7 +46,8 @@ function Report() {
             try {
                 setLoading(true);
                 // Gửi tên dự án, tháng, năm lên Backend xử lý query
-                const queryParams = new URLSearchParams();
+                const queryParams =
+                    new URLSearchParams();
 
                 if (debouncedProjectName.trim()) {
                     queryParams.set(
@@ -58,6 +60,13 @@ function Report() {
                     queryParams.set(
                         "month",
                         String(selectedMonth)
+                    );
+                }
+
+                if (selectedQuarter !== "") {
+                    queryParams.set(
+                        "quarter",
+                        String(selectedQuarter)
                     );
                 }
 
@@ -86,7 +95,7 @@ function Report() {
         };
 
         fetchReport();
-    }, [debouncedProjectName, selectedMonth, selectedYear]);
+    }, [debouncedProjectName, selectedMonth, selectedQuarter, selectedYear]);
 
     // 4. Format dữ liệu Biểu đồ cột (Dung lượng)
     const chartData = useMemo(() => {
@@ -135,7 +144,20 @@ function Report() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `bao-cao-tien-do-${selectedMonth}-${selectedYear}.csv`;
+        const timeLabel =
+            selectedQuarter !== ""
+                ? `quy-${selectedQuarter}`
+                : selectedMonth !== ""
+                    ? `thang-${selectedMonth}`
+                    : "tat-ca-thoi-gian";
+
+        const yearLabel =
+            selectedYear !== ""
+                ? selectedYear
+                : "tat-ca-nam";
+
+        link.download =
+            `bao-cao-${timeLabel}-${yearLabel}.csv`;
         link.click();
         URL.revokeObjectURL(url);
     };
@@ -183,18 +205,59 @@ function Report() {
                         {/* 2. Chọn Tháng */}
                         <select
                             value={selectedMonth}
-                            onChange={(e) =>
-                                setSelectedMonth(
-                                    e.target.value === ""
+                            onChange={(event) => {
+                                const value =
+                                    event.target.value === ""
                                         ? ""
-                                        : Number(e.target.value)
-                                )
-                            }
+                                        : Number(event.target.value);
+
+                                setSelectedMonth(value);
+
+                                if (value !== "") {
+                                    setSelectedQuarter("");
+                                }
+                            }}
                         >
                             <option value="">Chọn tất cả tháng</option>
                             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
                                 <option key={m} value={m}>Tháng {m}</option>
                             ))}
+                        </select>
+
+                        <select
+                            value={selectedQuarter}
+                            onChange={(event) => {
+                                const value =
+                                    event.target.value === ""
+                                        ? ""
+                                        : Number(event.target.value);
+
+                                setSelectedQuarter(value);
+
+                                if (value !== "") {
+                                    setSelectedMonth("");
+                                }
+                            }}
+                        >
+                            <option value="">
+                                Chọn tất cả quý
+                            </option>
+
+                            <option value="1">
+                                Quý I
+                            </option>
+
+                            <option value="2">
+                                Quý II
+                            </option>
+
+                            <option value="3">
+                                Quý III
+                            </option>
+
+                            <option value="4">
+                                Quý IV
+                            </option>
                         </select>
 
                         {/* 3. Chọn Năm */}
