@@ -1,90 +1,276 @@
-const Notification = require("../models/notificationModel");
+const Notification = require(
+    "../models/notificationModel"
+);
 
-// Lấy danh sách thông báo (Phục vụ Infinite Scroll / Pagination ở React)
-const getUserNotifications = (req, res) => {
-    const userId = req.user?.id || 1; // Fallback về 1 để test nếu chưa bật Middleware Authen
-    
-    // Ép kiểu các tham số phân trang ngay lập tức để tránh lỗi cú pháp SQL ở Model
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const filter = req.query.filter || "all";
+/*
+|--------------------------------------------------------------------------
+| Lấy danh sách thông báo
+|--------------------------------------------------------------------------
+*/
 
-    Notification.getByUserId(userId, filter, page, limit, (err, results) => {
-        if (err) {
-            return res.status(500).json({ 
-                message: "Lỗi cơ sở dữ liệu khi tải danh sách thông báo", 
-                error: err.message || err 
+const getUserNotifications = (
+    req,
+    res
+) => {
+    const userId = req.user.id;
+
+    const page = Math.max(
+        1,
+        parseInt(req.query.page, 10) || 1
+    );
+
+    const limit = Math.min(
+        50,
+        Math.max(
+            1,
+            parseInt(req.query.limit, 10) || 10
+        )
+    );
+
+    const filter =
+        req.query.filter === "unread"
+            ? "unread"
+            : "all";
+
+    Notification.getByUserId(
+        userId,
+        filter,
+        page,
+        limit,
+        (err, results) => {
+            if (err) {
+                console.error(
+                    "Lỗi tải thông báo:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể tải danh sách thông báo",
+                    error: err.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                results:
+                    Array.isArray(results)
+                        ? results
+                        : [],
+                page,
+                limit
             });
         }
-        
-        res.json({
-            results: results || [],
-            page: page,
-            limit: limit
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Đánh dấu một thông báo đã đọc
+|--------------------------------------------------------------------------
+*/
+
+const readNotification = (
+    req,
+    res
+) => {
+    const notificationId =
+        Number(req.params.id);
+
+    const userId = req.user.id;
+
+    if (
+        !Number.isInteger(notificationId) ||
+        notificationId <= 0
+    ) {
+        return res.status(400).json({
+            success: false,
+            message:
+                "Mã thông báo không hợp lệ"
         });
-    });
-};
+    }
 
-// Đánh dấu đã đọc 1 cái
-const readNotification = (req, res) => {
-    const { id } = req.params;
-    const userId = req.user?.id || 1;
+    Notification.markAsRead(
+        notificationId,
+        userId,
+        (err, result) => {
+            if (err) {
+                console.error(
+                    "Lỗi đánh dấu đã đọc:",
+                    err
+                );
 
-    Notification.markAsRead(id, userId, (err, result) => {
-        if (err) {
-            return res.status(500).json({ 
-                message: "Không thể cập nhật trạng thái đã đọc cho thông báo này", 
-                error: err.message || err 
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể cập nhật thông báo",
+                    error: err.message
+                });
+            }
+
+            if (
+                !result ||
+                result.affectedRows === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Không tìm thấy thông báo"
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message:
+                    "Đã đánh dấu thông báo là đã đọc"
             });
         }
-        res.json({ message: "Đã đánh dấu đọc thông báo này thành công" });
-    });
+    );
 };
 
-// Đọc hết sạch sành sanh
-const readAllNotifications = (req, res) => {
-    const userId = req.user?.id || 1;
+/*
+|--------------------------------------------------------------------------
+| Đánh dấu tất cả đã đọc
+|--------------------------------------------------------------------------
+*/
 
-    Notification.markAllAsRead(userId, (err, result) => {
-        if (err) {
-            return res.status(500).json({ 
-                message: "Không thể cập nhật trạng thái đã đọc cho toàn bộ thông báo", 
-                error: err.message || err 
+const readAllNotifications = (
+    req,
+    res
+) => {
+    const userId = req.user.id;
+
+    Notification.markAllAsRead(
+        userId,
+        (err, result) => {
+            if (err) {
+                console.error(
+                    "Lỗi đánh dấu tất cả đã đọc:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể đánh dấu tất cả thông báo",
+                    error: err.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message:
+                    "Đã đánh dấu tất cả thông báo là đã đọc",
+                affectedRows:
+                    result?.affectedRows || 0
             });
         }
-        res.json({ message: "Đã đánh dấu đọc toàn bộ hòm thư" });
-    });
+    );
 };
 
-// Xóa 1 thông báo cụ thể
-const removeNotification = (req, res) => {
-    const { id } = req.params;
-    const userId = req.user?.id || 1;
+/*
+|--------------------------------------------------------------------------
+| Xóa một thông báo
+|--------------------------------------------------------------------------
+*/
 
-    Notification.deleteById(id, userId, (err, result) => {
-        if (err) {
-            return res.status(500).json({ 
-                message: "Không thể xóa thông báo này", 
-                error: err.message || err 
+const removeNotification = (
+    req,
+    res
+) => {
+    const notificationId =
+        Number(req.params.id);
+
+    const userId = req.user.id;
+
+    if (
+        !Number.isInteger(notificationId) ||
+        notificationId <= 0
+    ) {
+        return res.status(400).json({
+            success: false,
+            message:
+                "Mã thông báo không hợp lệ"
+        });
+    }
+
+    Notification.deleteById(
+        notificationId,
+        userId,
+        (err, result) => {
+            if (err) {
+                console.error(
+                    "Lỗi xóa thông báo:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể xóa thông báo",
+                    error: err.message
+                });
+            }
+
+            if (
+                !result ||
+                result.affectedRows === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Không tìm thấy thông báo"
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message:
+                    "Xóa thông báo thành công"
             });
         }
-        res.json({ message: "Xóa thông báo thành công" });
-    });
+    );
 };
 
-// Dọn sạch thùng rác hòm thư thông báo
-const cleanAllNotifications = (req, res) => {
-    const userId = req.user?.id || 1;
+/*
+|--------------------------------------------------------------------------
+| Xóa toàn bộ thông báo
+|--------------------------------------------------------------------------
+*/
 
-    Notification.clearAll(userId, (err, result) => {
-        if (err) {
-            return res.status(500).json({ 
-                message: "Không thể dọn sạch hòm thư thông báo", 
-                error: err.message || err 
+const cleanAllNotifications = (
+    req,
+    res
+) => {
+    const userId = req.user.id;
+
+    Notification.clearAll(
+        userId,
+        (err, result) => {
+            if (err) {
+                console.error(
+                    "Lỗi xóa toàn bộ thông báo:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Không thể xóa toàn bộ thông báo",
+                    error: err.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message:
+                    "Đã xóa toàn bộ thông báo",
+                affectedRows:
+                    result?.affectedRows || 0
             });
         }
-        res.json({ message: "Đã xóa sạch hòm thư thông báo" });
-    });
+    );
 };
 
 module.exports = {

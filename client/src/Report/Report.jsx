@@ -12,11 +12,16 @@ const getAuthHeaders = () => {
 // Màu sắc trực quan cho biểu đồ trạng thái Task
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+const yearOptions = Array.from(
+    { length: 101 },
+    (_, index) => 2000 + index
+);
+
 function Report() {
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    
+
     // 1. STATE BỘ LỌC MỚI
     const [projectNameInput, setProjectNameInput] = useState(""); // Ô nhập tên dự án thực tế
     const [debouncedProjectName, setDebouncedProjectName] = useState(""); // Giá trị tên dự án sau khi delay
@@ -40,14 +45,31 @@ function Report() {
             try {
                 setLoading(true);
                 // Gửi tên dự án, tháng, năm lên Backend xử lý query
-                const queryParams = new URLSearchParams({
-                    projectName: debouncedProjectName,
-                    month: selectedMonth,
-                    year: selectedYear
-                });
+                const queryParams = new URLSearchParams();
 
-                const res = await fetch(`http://localhost:5000/api/reports/dashboard?${queryParams.toString()}`, { 
-                    headers: getAuthHeaders() 
+                if (debouncedProjectName.trim()) {
+                    queryParams.set(
+                        "projectName",
+                        debouncedProjectName.trim()
+                    );
+                }
+
+                if (selectedMonth !== "") {
+                    queryParams.set(
+                        "month",
+                        String(selectedMonth)
+                    );
+                }
+
+                if (selectedYear !== "") {
+                    queryParams.set(
+                        "year",
+                        String(selectedYear)
+                    );
+                }
+
+                const res = await fetch(`http://localhost:5000/api/reports/dashboard?${queryParams.toString()}`, {
+                    headers: getAuthHeaders()
                 });
 
                 if (!res.ok) throw new Error("Không thể tải dữ liệu báo cáo tổng hợp");
@@ -64,7 +86,7 @@ function Report() {
         };
 
         fetchReport();
-    }, [debouncedProjectName, selectedMonth, selectedYear]); 
+    }, [debouncedProjectName, selectedMonth, selectedYear]);
 
     // 4. Format dữ liệu Biểu đồ cột (Dung lượng)
     const chartData = useMemo(() => {
@@ -102,9 +124,9 @@ function Report() {
         const rows = [
             ["Mã dự án", "Tên dự án", "Số lượng tài liệu", "Dung lượng lưu trữ (MB)"],
             ...reportData.projects.map((p) => [
-                p.id, 
-                p.name, 
-                p.fileCount, 
+                p.id,
+                p.name,
+                p.fileCount,
                 parseFloat((p.rawTotalSizeBytes || 0) / (1024 * 1024)).toFixed(2)
             ])
         ];
@@ -127,18 +149,18 @@ function Report() {
                 </header>
 
                 <div className="page-content report-page">
-                    
+
                     {/* BẢNG ĐIỀU KHIỂN BỘ LỌC ĐÃ ĐƯỢC CẬP NHẬT */}
                     <section className="filter-bar">
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <FaFilter style={{ color: "#64748b" }} />
                             <strong>Bộ lọc báo cáo:</strong>
                         </div>
-                        
+
                         {/* 1. Ô nhập tìm kiếm dự án bằng tay */}
                         <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                             <FaSearch style={{ position: "absolute", left: 12, color: "#64748b", fontSize: 13 }} />
-                            <input 
+                            <input
                                 type="text"
                                 placeholder="Nhập tên dự án..."
                                 value={projectNameInput}
@@ -159,9 +181,15 @@ function Report() {
                         </div>
 
                         {/* 2. Chọn Tháng */}
-                        <select 
-                            value={selectedMonth} 
-                            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) =>
+                                setSelectedMonth(
+                                    e.target.value === ""
+                                        ? ""
+                                        : Number(e.target.value)
+                                )
+                            }
                         >
                             <option value="">Chọn tất cả tháng</option>
                             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -170,14 +198,27 @@ function Report() {
                         </select>
 
                         {/* 3. Chọn Năm */}
-                        <select 
-                            value={selectedYear} 
-                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        <select
+                            value={selectedYear}
+                            onChange={(e) =>
+                                setSelectedYear(
+                                    e.target.value === ""
+                                        ? ""
+                                        : Number(e.target.value)
+                                )
+                            }
                         >
-                            <option value="">Chọn tất cả năm</option>
-                            {/* Sử dụng trực tiếp danh sách năm từ API trả về */}
-                            {reportData?.availableYears?.map(y => (
-                                <option key={y} value={y}>Năm {y}</option>
+                            <option value="">
+                                Chọn tất cả năm
+                            </option>
+
+                            {yearOptions.map((year) => (
+                                <option
+                                    key={year}
+                                    value={year}
+                                >
+                                    Năm {year}
+                                </option>
                             ))}
                         </select>
                     </section>
@@ -250,8 +291,8 @@ function Report() {
                                         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
-                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3} />
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#1e294b" vertical={false} />

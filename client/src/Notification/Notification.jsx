@@ -1,200 +1,698 @@
-import { useState, useEffect, useMemo } from "react";
-import { FaBell, FaCheck, FaTrash, FaInfoCircle, FaExclamationTriangle, FaCog, FaCheckCircle, FaTrashAlt } from "react-icons/fa";
+import {
+    useEffect,
+    useMemo,
+    useState
+} from "react";
+
+import {
+    FaBell,
+    FaCheck,
+    FaTrash,
+    FaInfoCircle,
+    FaExclamationTriangle,
+    FaCog,
+    FaCheckCircle,
+    FaTrashAlt
+} from "react-icons/fa";
+
 import Sidebar from "../Sidebar/Sidebar";
 import "./Notification.css";
 
+const API_URL =
+    "http://localhost:5000/api/notifications";
+
+const LIMIT = 10;
+
+/*
+|--------------------------------------------------------------------------
+| Header xác thực
+|--------------------------------------------------------------------------
+*/
+
 const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const token =
+        localStorage.getItem("token");
+
+    return token
+        ? {
+            Authorization:
+                `Bearer ${token}`
+        }
+        : {};
 };
 
 function Notification() {
-    const [notifications, setNotifications] = useState([]);
-    const [filter, setFilter] = useState("all"); 
-    const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [error, setError] = useState("");
-    
-    // Quản lý phân trang thực tế
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const LIMIT = 10;
+    const [
+        notifications,
+        setNotifications
+    ] = useState([]);
 
-    // 1. Tải trang đầu tiên (Page 1) khi thay đổi Bộ lọc (Filter)
+    const [
+        filter,
+        setFilter
+    ] = useState("all");
+
+    const [
+        loading,
+        setLoading
+    ] = useState(true);
+
+    const [
+        loadingMore,
+        setLoadingMore
+    ] = useState(false);
+
+    const [
+        error,
+        setError
+    ] = useState("");
+
+    const [
+        page,
+        setPage
+    ] = useState(1);
+
+    const [
+        hasMore,
+        setHasMore
+    ] = useState(true);
+
+    const [
+        showClearModal,
+        setShowClearModal
+    ] = useState(false);
+
+    const [
+        clearingAll,
+        setClearingAll
+    ] = useState(false);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Đọc dữ liệu JSON an toàn
+    |--------------------------------------------------------------------------
+    */
+
+    const parseResponse = async (
+        response
+    ) => {
+        try {
+            return await response.json();
+        } catch {
+            return {};
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Báo cho Sidebar cập nhật chấm đỏ
+    |--------------------------------------------------------------------------
+    */
+
+    const notifySidebarUpdated = () => {
+        window.dispatchEvent(
+            new Event(
+                "notification-updated"
+            )
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy danh sách thông báo
+    |--------------------------------------------------------------------------
+    */
+
+    const fetchNotifications = async (
+        targetPage = 1,
+        targetFilter = filter
+    ) => {
+        const response = await fetch(
+            `${API_URL}?page=${targetPage}&limit=${LIMIT}&filter=${targetFilter}`,
+            {
+                headers:
+                    getAuthHeaders()
+            }
+        );
+
+        const data =
+            await parseResponse(response);
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                "Không thể tải danh sách thông báo"
+            );
+        }
+
+        return Array.isArray(
+            data.results
+        )
+            ? data.results
+            : [];
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tải trang đầu tiên khi đổi bộ lọc
+    |--------------------------------------------------------------------------
+    */
+
     useEffect(() => {
         let isMounted = true;
-        
-        const loadFirstPage = async () => {
-            try {
-                setLoading(true);
-                // Đảm bảo luôn reset page về 1 khi đổi bộ lọc
-                setPage(1); 
 
-                const res = await fetch(`http://localhost:5000/api/notifications?page=1&limit=${LIMIT}&filter=${filter}`, { 
-                    headers: getAuthHeaders() 
-                });
-                
-                if (!res.ok) throw new Error("Không thể tải danh sách thông báo");
-                
-                const data = await res.json();
-                
-                if (isMounted) {
-                    const newNotifs = data.results && Array.isArray(data.results) ? data.results : data;
-                    setNotifications(newNotifs);
-                    setHasMore(newNotifs.length >= LIMIT);
+        const loadFirstPage =
+            async () => {
+                try {
+                    setLoading(true);
                     setError("");
+                    setPage(1);
+
+                    const newNotifications =
+                        await fetchNotifications(
+                            1,
+                            filter
+                        );
+
+                    if (!isMounted) {
+                        return;
+                    }
+
+                    setNotifications(
+                        newNotifications
+                    );
+
+                    setHasMore(
+                        newNotifications.length >=
+                        LIMIT
+                    );
+                } catch (err) {
+                    console.error(
+                        "Lỗi tải thông báo:",
+                        err
+                    );
+
+                    if (isMounted) {
+                        setNotifications([]);
+                        setHasMore(false);
+
+                        setError(
+                            err.message ||
+                            "Không thể kết nối đến server"
+                        );
+                    }
+                } finally {
+                    if (isMounted) {
+                        setLoading(false);
+                    }
                 }
-            } catch (err) {
-                console.error(err);
-                if (isMounted) {
-                    setError("Lỗi kết nối API hệ thống. Đang hiển thị dữ liệu kiểm thử.");
-                    setNotifications([
-                        { id: 1, title: "Dự án Website quá hạn", content: "Dự án 'E-Commerce Website' đã quá hạn hoàn thành 2 ngày.", type: "warning", is_read: false, created_at: new Date().toISOString() },
-                        { id: 2, title: "Hệ thống bảo trì", content: "Hệ thống sẽ bảo trì định kỳ vào lúc 23:00 đêm nay.", type: "system", is_read: false, created_at: new Date().toISOString() },
-                        { id: 3, title: "Phân công công việc mới", content: "Bạn đã được gán vào công việc 'Thiết kế giao diện Dashboard'.", type: "info", is_read: true, created_at: new Date().toISOString() }
-                    ]);
-                    setHasMore(false);
-                }
-            } finally {
-                if (isMounted) setLoading(false);
-            }
-        };
+            };
 
         loadFirstPage();
 
-        return () => { isMounted = false; };
-    }, [filter]); // Chỉ chạy lại khi thay đổi filter
+        return () => {
+            isMounted = false;
+        };
+    }, [filter]);
 
-    // 2. Real-time Polling cập nhật tự động (Sửa lỗi rò rỉ bộ nhớ)
+    /*
+    |--------------------------------------------------------------------------
+    | Polling thông báo mới mỗi 30 giây
+    |--------------------------------------------------------------------------
+    */
+
     useEffect(() => {
-        // Chỉ chạy polling tự động nếu đang ở trang 1
-        if (page !== 1) return; 
+        if (page !== 1) {
+            return undefined;
+        }
 
-        const interval = setInterval(() => {
-            fetch(`http://localhost:5000/api/notifications?page=1&limit=${LIMIT}&filter=${filter}`, { headers: getAuthHeaders() })
-                .then(res => {
-                    if (!res.ok) throw new Error();
-                    return res.json();
-                })
-                .then(data => {
-                    const newNotifs = data.results && Array.isArray(data.results) ? data.results : data;
-                    setNotifications(newNotifs);
-                })
-                .catch(err => console.error("Realtime polling error:", err));
-        }, 30000); 
+        const interval =
+            setInterval(
+                async () => {
+                    try {
+                        const newNotifications =
+                            await fetchNotifications(
+                                1,
+                                filter
+                            );
 
-        // QUAN TRỌNG: Phải dọn dẹp interval khi filter hoặc page thay đổi để tránh chạy ngầm chồng chéo
-        return () => clearInterval(interval);
+                        setNotifications(
+                            newNotifications
+                        );
+
+                        setHasMore(
+                            newNotifications.length >=
+                            LIMIT
+                        );
+                    } catch (err) {
+                        console.error(
+                            "Lỗi cập nhật thông báo tự động:",
+                            err
+                        );
+                    }
+                },
+                30000
+            );
+
+        return () => {
+            clearInterval(interval);
+        };
     }, [filter, page]);
 
-    // 3. Đếm số thông báo chưa đọc
-    const unreadCount = useMemo(() => {
-        return notifications.filter(n => !n.is_read).length;
-    }, [notifications]);
+    /*
+    |--------------------------------------------------------------------------
+    | Đếm thông báo chưa đọc
+    |--------------------------------------------------------------------------
+    */
 
-    // 4. Luồng xử lý tải trang tiếp theo (Tối ưu ghép mảng không trùng lặp ID)
-    const fetchNextPage = async (nextPage) => {
+    const unreadCount =
+        useMemo(() => {
+            return notifications.filter(
+                (notification) =>
+                    !Boolean(
+                        notification.is_read
+                    )
+            ).length;
+        }, [notifications]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tải thêm thông báo
+    |--------------------------------------------------------------------------
+    */
+
+    const fetchNextPage = async (
+        nextPage
+    ) => {
         try {
             setLoadingMore(true);
-            const res = await fetch(`http://localhost:5000/api/notifications?page=${nextPage}&limit=${LIMIT}&filter=${filter}`, { 
-                headers: getAuthHeaders() 
-            });
-            if (!res.ok) throw new Error("Không thể tải thêm thông báo");
-            const data = await res.json();
-            
-            const newNotifs = data.results && Array.isArray(data.results) ? data.results : data;
-            
-            // Lọc loại bỏ trùng lặp id trước khi nối mảng (đề phòng dữ liệu real-time đổ về bị trùng)
-            setNotifications(prev => {
-                const existingIds = new Set(prev.map(n => n.id));
-                const uniqueNewNotifs = newNotifs.filter(n => !existingIds.has(n.id));
-                return [...prev, ...uniqueNewNotifs];
-            });
-            setHasMore(newNotifs.length >= LIMIT);
+            setError("");
+
+            const newNotifications =
+                await fetchNotifications(
+                    nextPage,
+                    filter
+                );
+
+            setNotifications(
+                (previous) => {
+                    const existingIds =
+                        new Set(
+                            previous.map(
+                                (notification) =>
+                                    notification.id
+                            )
+                        );
+
+                    const uniqueItems =
+                        newNotifications.filter(
+                            (notification) =>
+                                !existingIds.has(
+                                    notification.id
+                                )
+                        );
+
+                    return [
+                        ...previous,
+                        ...uniqueItems
+                    ];
+                }
+            );
+
+            setHasMore(
+                newNotifications.length >=
+                LIMIT
+            );
         } catch (err) {
-            console.error(err);
+            console.error(
+                "Lỗi tải thêm thông báo:",
+                err
+            );
+
+            setError(
+                err.message ||
+                "Không thể tải thêm thông báo"
+            );
         } finally {
             setLoadingMore(false);
         }
     };
 
     const handleLoadMore = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);      
-        fetchNextPage(nextPage); 
+        if (
+            loadingMore ||
+            !hasMore
+        ) {
+            return;
+        }
+
+        const nextPage =
+            page + 1;
+
+        setPage(nextPage);
+
+        fetchNextPage(
+            nextPage
+        );
     };
 
-    // 5. Đánh dấu một mục đã đọc
-    const markAsRead = async (id) => {
+    /*
+    |--------------------------------------------------------------------------
+    | Đánh dấu một thông báo đã đọc
+    |--------------------------------------------------------------------------
+    */
+
+    const markAsRead = async (
+        id
+    ) => {
+        const previousNotifications =
+            notifications;
+
+        setNotifications(
+            (previous) =>
+                previous.map(
+                    (notification) =>
+                        notification.id === id
+                            ? {
+                                ...notification,
+                                is_read: 1
+                            }
+                            : notification
+                )
+        );
+
         try {
-            // Optimistic UI Update (Cập nhật giao diện lập tức trước khi gọi API)
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-            await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
-                method: "PUT",
-                headers: getAuthHeaders()
-            });
+            const response =
+                await fetch(
+                    `${API_URL}/${id}/read`,
+                    {
+                        method: "PUT",
+                        headers:
+                            getAuthHeaders()
+                    }
+                );
+
+            const data =
+                await parseResponse(
+                    response
+                );
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                    "Không thể đánh dấu thông báo đã đọc"
+                );
+            }
+
+            setError("");
+
+            notifySidebarUpdated();
         } catch (err) {
-            console.error(err);
+            console.error(
+                "Lỗi đánh dấu đã đọc:",
+                err
+            );
+
+            setNotifications(
+                previousNotifications
+            );
+
+            setError(
+                err.message ||
+                "Không thể cập nhật thông báo"
+            );
         }
     };
 
-    // 6. Đánh dấu tất cả mục đã đọc
-    const markAllAsRead = async () => {
-        try {
-            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-            await fetch(`http://localhost:5000/api/notifications/read-all`, {
-                method: "PUT",
-                headers: getAuthHeaders()
-            });
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    /*
+    |--------------------------------------------------------------------------
+    | Đánh dấu tất cả đã đọc
+    |--------------------------------------------------------------------------
+    */
 
-    // 7. Xóa một hàng thông báo
-    const deleteNotification = async (id) => {
-        try {
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            await fetch(`http://localhost:5000/api/notifications/${id}`, {
-                method: "DELETE",
-                headers: getAuthHeaders()
-            });
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    const markAllAsRead =
+        async () => {
+            const previousNotifications =
+                notifications;
 
-    // 8. Dọn sạch hòm thư thông báo
-    const clearAllNotifications = async () => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa toàn bộ thông báo không? Hành động này không thể hoàn tác.")) return;
-        try {
-            setNotifications([]);
-            await fetch(`http://localhost:5000/api/notifications/clear-all`, {
-                method: "DELETE",
-                headers: getAuthHeaders()
-            });
-        } catch (err) {
-            console.error(err);
-        }
-    };
+            setNotifications(
+                (previous) =>
+                    previous.map(
+                        (notification) => ({
+                            ...notification,
+                            is_read: 1
+                        })
+                    )
+            );
 
-    const renderIcon = (type) => {
+            try {
+                const response =
+                    await fetch(
+                        `${API_URL}/read-all`,
+                        {
+                            method: "PUT",
+                            headers:
+                                getAuthHeaders()
+                        }
+                    );
+
+                const data =
+                    await parseResponse(
+                        response
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Không thể đánh dấu tất cả thông báo đã đọc"
+                    );
+                }
+
+                setError("");
+
+                notifySidebarUpdated();
+            } catch (err) {
+                console.error(
+                    "Lỗi đánh dấu tất cả đã đọc:",
+                    err
+                );
+
+                setNotifications(
+                    previousNotifications
+                );
+
+                setError(
+                    err.message ||
+                    "Không thể cập nhật thông báo"
+                );
+            }
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Xóa một thông báo
+    |--------------------------------------------------------------------------
+    */
+
+    const deleteNotification =
+        async (id) => {
+            const previousNotifications =
+                notifications;
+
+            setNotifications(
+                (previous) =>
+                    previous.filter(
+                        (notification) =>
+                            notification.id !==
+                            id
+                    )
+            );
+
+            try {
+                const response =
+                    await fetch(
+                        `${API_URL}/${id}`,
+                        {
+                            method:
+                                "DELETE",
+                            headers:
+                                getAuthHeaders()
+                        }
+                    );
+
+                const data =
+                    await parseResponse(
+                        response
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Không thể xóa thông báo"
+                    );
+                }
+
+                setError("");
+
+                notifySidebarUpdated();
+            } catch (err) {
+                console.error(
+                    "Lỗi xóa thông báo:",
+                    err
+                );
+
+                setNotifications(
+                    previousNotifications
+                );
+
+                setError(
+                    err.message ||
+                    "Không thể xóa thông báo"
+                );
+            }
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Xóa toàn bộ thông báo
+    |--------------------------------------------------------------------------
+    */
+
+    const clearAllNotifications =
+        async () => {
+            try {
+                setClearingAll(true);
+                setError("");
+
+                const response =
+                    await fetch(
+                        `${API_URL}/clear-all`,
+                        {
+                            method:
+                                "DELETE",
+                            headers:
+                                getAuthHeaders()
+                        }
+                    );
+
+                const data =
+                    await parseResponse(
+                        response
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Không thể xóa toàn bộ thông báo"
+                    );
+                }
+
+                setNotifications([]);
+                setHasMore(false);
+                setPage(1);
+                setShowClearModal(false);
+
+                notifySidebarUpdated();
+            } catch (err) {
+                console.error(
+                    "Lỗi xóa toàn bộ thông báo:",
+                    err
+                );
+
+                setError(
+                    err.message ||
+                    "Không thể xóa toàn bộ thông báo"
+                );
+            } finally {
+                setClearingAll(false);
+            }
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hiển thị biểu tượng
+    |--------------------------------------------------------------------------
+    */
+
+    const renderIcon = (
+        type
+    ) => {
         switch (type) {
-            case "warning": return <FaExclamationTriangle className="notif-icon icon-warning" />;
-            case "system": return <FaCog className="notif-icon icon-system" />;
-            default: return <FaInfoCircle className="notif-icon icon-info" />;
+            case "warning":
+                return (
+                    <FaExclamationTriangle className="notif-icon icon-warning" />
+                );
+
+            case "system":
+                return (
+                    <FaCog className="notif-icon icon-system" />
+                );
+
+            default:
+                return (
+                    <FaInfoCircle className="notif-icon icon-info" />
+                );
         }
     };
 
-    const formatTime = (dateStr) => {
-        const date = new Date(dateStr);
-        return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + " - " + date.toLocaleDateString("vi-VN");
+    /*
+    |--------------------------------------------------------------------------
+    | Định dạng thời gian
+    |--------------------------------------------------------------------------
+    */
+
+    const formatTime = (
+        dateString
+    ) => {
+        if (!dateString) {
+            return "";
+        }
+
+        const date =
+            new Date(dateString);
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return "";
+        }
+
+        const time =
+            date.toLocaleTimeString(
+                "vi-VN",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        const day =
+            date.toLocaleDateString(
+                "vi-VN"
+            );
+
+        return `${time} - ${day}`;
     };
 
-    // Hàm chuyển đổi tab mượt mà không bị lỗi dính trang
-    const handleFilterChange = (newFilter) => {
+    /*
+    |--------------------------------------------------------------------------
+    | Đổi bộ lọc
+    |--------------------------------------------------------------------------
+    */
+
+    const handleFilterChange = (
+        newFilter
+    ) => {
+        if (
+            newFilter === filter
+        ) {
+            return;
+        }
+
         setFilter(newFilter);
-        setPage(1); // Reset page về 1
+        setPage(1);
     };
 
     return (
@@ -203,85 +701,228 @@ function Notification() {
 
             <main className="main">
                 <header className="topbar">
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <h1>Thông báo</h1>
-                        {unreadCount > 0 && <span className="unread-badge-count">{unreadCount} mới</span>}
-                    </div>
-                    <div className="hero-actions">
-                        {/* Chỉ hiện nút "Đọc tất cả" khi có ít nhất một thông báo CHƯA đọc */}
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems:
+                                "center",
+                            gap: 12
+                        }}
+                    >
+                        <h1>
+                            Thông báo
+                        </h1>
+
                         {unreadCount > 0 && (
-                            <button className="btn-secondary btn-sm" onClick={markAllAsRead}>
-                                <FaCheckCircle style={{ marginRight: 6 }} /> Đọc tất cả
+                            <span className="unread-badge-count">
+                                {unreadCount} mới
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="hero-actions">
+                        {unreadCount >
+                            0 && (
+                            <button
+                                type="button"
+                                className="btn-secondary btn-sm"
+                                onClick={
+                                    markAllAsRead
+                                }
+                            >
+                                <FaCheckCircle
+                                    style={{
+                                        marginRight:
+                                            6
+                                    }}
+                                />
+
+                                Đọc tất cả
                             </button>
                         )}
-                        {/* Chỉ hiện nút "Xóa sạch" khi danh sách thực sự có thông báo */}
-                        {notifications.length > 0 && (
-                            <button className="btn-secondary btn-sm btn-danger-hover" onClick={clearAllNotifications}>
-                                <FaTrashAlt style={{ marginRight: 6 }} /> Xóa sạch hòm thư
+
+                        {notifications.length >
+                            0 && (
+                            <button
+                                type="button"
+                                className="btn-secondary btn-sm btn-danger-hover"
+                                onClick={() =>
+                                    setShowClearModal(
+                                        true
+                                    )
+                                }
+                            >
+                                <FaTrashAlt
+                                    style={{
+                                        marginRight:
+                                            6
+                                    }}
+                                />
+
+                                Xóa sạch hòm thư
                             </button>
                         )}
                     </div>
                 </header>
 
                 <div className="page-content report-page">
-                    {error && <div className="status-banner error-banner">{error}</div>}
+                    {error && (
+                        <div className="status-banner error-banner">
+                            {error}
+                        </div>
+                    )}
 
-                    {/* Bộ lọc lựa chọn Tabs */}
                     <div className="notif-tabs">
-                        <button 
-                            className={`tab-item ${filter === "all" ? "active" : ""}`} 
-                            onClick={() => handleFilterChange("all")}
+                        <button
+                            type="button"
+                            className={`tab-item ${
+                                filter ===
+                                "all"
+                                    ? "active"
+                                    : ""
+                            }`}
+                            onClick={() =>
+                                handleFilterChange(
+                                    "all"
+                                )
+                            }
                         >
                             Tất cả
                         </button>
-                        <button 
-                            className={`tab-item ${filter === "unread" ? "active" : ""}`} 
-                            onClick={() => handleFilterChange("unread")}
+
+                        <button
+                            type="button"
+                            className={`tab-item ${
+                                filter ===
+                                "unread"
+                                    ? "active"
+                                    : ""
+                            }`}
+                            onClick={() =>
+                                handleFilterChange(
+                                    "unread"
+                                )
+                            }
                         >
                             Chưa đọc
                         </button>
                     </div>
 
-                    {/* Khung danh sách */}
                     <div className="card notif-card-container">
                         {loading ? (
-                            <div className="empty-state">Đang đồng bộ dữ liệu thông báo...</div>
-                        ) : notifications.length > 0 ? (
+                            <div className="empty-state">
+                                Đang đồng bộ dữ liệu thông báo...
+                            </div>
+                        ) : notifications.length >
+                            0 ? (
                             <>
                                 <div className="notif-list">
-                                    {notifications.map((notif) => (
-                                        <div key={notif.id} className={`notif-item ${!notif.is_read ? "unread" : ""}`}>
-                                            <div className="notif-left">
-                                                {renderIcon(notif.type)}
-                                                <div className="notif-main-content">
-                                                    <h4 className="notif-title">
-                                                        {notif.title}
-                                                        {!notif.is_read && <span className="unread-dot"></span>}
-                                                    </h4>
-                                                    <p className="notif-desc">{notif.content}</p>
-                                                    <span className="notif-time">{formatTime(notif.created_at)}</span>
+                                    {notifications.map(
+                                        (
+                                            notification
+                                        ) => (
+                                            <div
+                                                key={
+                                                    notification.id
+                                                }
+                                                className={`notif-item ${
+                                                    !Boolean(
+                                                        notification.is_read
+                                                    )
+                                                        ? "unread"
+                                                        : ""
+                                                }`}
+                                            >
+                                                <div className="notif-left">
+                                                    {renderIcon(
+                                                        notification.type
+                                                    )}
+
+                                                    <div className="notif-main-content">
+                                                        <h4 className="notif-title">
+                                                            {
+                                                                notification.title
+                                                            }
+
+                                                            {!Boolean(
+                                                                notification.is_read
+                                                            ) && (
+                                                                <span className="unread-dot" />
+                                                            )}
+                                                        </h4>
+
+                                                        <p className="notif-desc">
+                                                            {
+                                                                notification.content
+                                                            }
+                                                        </p>
+
+                                                        <span className="notif-time">
+                                                            {formatTime(
+                                                                notification.created_at
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="notif-actions">
+                                                    {!Boolean(
+                                                        notification.is_read
+                                                    ) && (
+                                                        <button
+                                                            type="button"
+                                                            className="action-btn check-btn"
+                                                            title="Đánh dấu đã đọc"
+                                                            onClick={() =>
+                                                                markAsRead(
+                                                                    notification.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <FaCheck />
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        className="action-btn delete-btn"
+                                                        title="Xóa"
+                                                        onClick={() =>
+                                                            deleteNotification(
+                                                                notification.id
+                                                            )
+                                                        }
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
                                                 </div>
                                             </div>
-
-                                            <div className="notif-actions">
-                                                {!notif.is_read && (
-                                                    <button className="action-btn check-btn" title="Đánh dấu đã đọc" onClick={() => markAsRead(notif.id)}>
-                                                        <FaCheck />
-                                                    </button>
-                                                )}
-                                                <button className="action-btn delete-btn" title="Xóa" onClick={() => deleteNotification(notif.id)}>
-                                                    <FaTrash />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    )}
                                 </div>
-                                
-                                {/* Thanh nút bấm điều khiển tải thêm trang */}
+
                                 {hasMore && (
-                                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                                        <button className="btn-secondary btn-sm" onClick={handleLoadMore} disabled={loadingMore}>
-                                            {loadingMore ? "Đang tải thêm dữ liệu..." : "Xem các thông báo cũ hơn"}
+                                    <div
+                                        style={{
+                                            textAlign:
+                                                "center",
+                                            padding:
+                                                "16px 0"
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="btn-secondary btn-sm"
+                                            onClick={
+                                                handleLoadMore
+                                            }
+                                            disabled={
+                                                loadingMore
+                                            }
+                                        >
+                                            {loadingMore
+                                                ? "Đang tải thêm dữ liệu..."
+                                                : "Xem các thông báo cũ hơn"}
                                         </button>
                                     </div>
                                 )}
@@ -289,11 +930,85 @@ function Notification() {
                         ) : (
                             <div className="notif-empty-state">
                                 <FaBell className="empty-bell-icon" />
-                                <p>Không có thông báo nào ở đây.</p>
+
+                                <p>
+                                    Không có thông báo nào ở đây.
+                                </p>
                             </div>
                         )}
                     </div>
                 </div>
+
+                {showClearModal && (
+                    <div
+                        className="modal-overlay"
+                        onClick={() => {
+                            if (
+                                !clearingAll
+                            ) {
+                                setShowClearModal(
+                                    false
+                                );
+                            }
+                        }}
+                    >
+                        <div
+                            className="confirm-modal"
+                            onClick={(
+                                event
+                            ) =>
+                                event.stopPropagation()
+                            }
+                        >
+                            <h3>
+                                Xóa tất cả thông báo
+                            </h3>
+
+                            <p>
+                                Bạn có chắc chắn muốn
+                                xóa toàn bộ thông báo
+                                không?
+                            </p>
+
+                            <small>
+                                Hành động này không thể
+                                hoàn tác.
+                            </small>
+
+                            <div className="modal-buttons">
+                                <button
+                                    type="button"
+                                    className="cancel-btn"
+                                    onClick={() =>
+                                        setShowClearModal(
+                                            false
+                                        )
+                                    }
+                                    disabled={
+                                        clearingAll
+                                    }
+                                >
+                                    Hủy
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="delete-btn"
+                                    onClick={
+                                        clearAllNotifications
+                                    }
+                                    disabled={
+                                        clearingAll
+                                    }
+                                >
+                                    {clearingAll
+                                        ? "Đang xóa..."
+                                        : "Xóa"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

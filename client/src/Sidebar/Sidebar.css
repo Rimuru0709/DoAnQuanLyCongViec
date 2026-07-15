@@ -212,3 +212,32 @@
     background: rgba(239, 68, 68, 0.25);
     border-color: rgba(239, 68, 68, 0.5);
 }
+
+.menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-text {
+    flex: 1;
+}
+
+.sidebar-notification-dot {
+    width: 10px;
+    height: 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+    border: 2px solid #0b1c31;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow:
+        0 0 0 2px
+        rgba(239, 68, 68, 0.18);
+}

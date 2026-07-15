@@ -288,9 +288,6 @@ CREATE TABLE system_settings (
     max_upload_size INT DEFAULT 10
 );
 
--- Khởi tạo sẵn dữ liệu cấu hình mặc định cho hệ thống
-INSERT INTO system_settings (id, theme_color) VALUES (1, '#2563EB');
-
 -- 16. Cài đặt từng dự án
 CREATE TABLE project_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -315,7 +312,7 @@ INSERT INTO users
     role,
     avatar
 )
->>>>>>> bd37043e46899a537dcf7014fb8d06be4ae21578
+
 VALUES
 (
     'Nguyễn Văn A',
@@ -560,6 +557,12 @@ VALUES
 INSERT INTO notifications
 (user_id, title, content, type)
 VALUES
+(
+    1,
+    'Thông báo hệ thống',
+    'Hệ thống ProjectMaster đã sẵn sàng hoạt động',
+    'system'
+),
 (
     2,
     'Dự án mới',
