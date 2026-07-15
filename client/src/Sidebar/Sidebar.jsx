@@ -1,5 +1,14 @@
+import {
+    useEffect,
+    useState
+} from "react";
+
 import "./Sidebar.css";
-import { NavLink, useNavigate } from "react-router-dom";
+
+import {
+    NavLink,
+    useNavigate
+} from "react-router-dom";
 
 import {
     FaHome,
@@ -14,109 +23,320 @@ import {
     FaCog
 } from "react-icons/fa";
 
+const NOTIFICATION_API =
+    "http://localhost:5000/api/notifications";
+
 function Sidebar() {
     const navigate = useNavigate();
 
-    const userJson = localStorage.getItem("user");
-    const user = userJson ? JSON.parse(userJson) : null;
+    const [
+        unreadCount,
+        setUnreadCount
+    ] = useState(0);
 
-    const role = user?.role || "GUEST";
-    const name = user?.full_name || "Khách";
-    const initial = name.charAt(0).toUpperCase();
+    const userJson =
+        localStorage.getItem("user");
+
+    let user = null;
+
+    try {
+        user = userJson
+            ? JSON.parse(userJson)
+            : null;
+    } catch (error) {
+        console.error(
+            "Lỗi đọc thông tin người dùng:",
+            error
+        );
+
+        user = null;
+    }
+
+    const role =
+        user?.role || "GUEST";
+
+    const name =
+        user?.full_name || "Khách";
+
+    const initial =
+        name.charAt(0).toUpperCase();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy số thông báo chưa đọc
+    |--------------------------------------------------------------------------
+    */
+
+    const loadUnreadNotifications =
+        async () => {
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+            if (!token) {
+                setUnreadCount(0);
+                return;
+            }
+
+            try {
+                const response =
+                    await fetch(
+                        `${NOTIFICATION_API}?page=1&limit=50&filter=unread`,
+                        {
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            }
+                        }
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Không thể tải thông báo chưa đọc"
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                const results =
+                    Array.isArray(
+                        data.results
+                    )
+                        ? data.results
+                        : [];
+
+                setUnreadCount(
+                    results.length
+                );
+            } catch (error) {
+                console.error(
+                    "Lỗi tải số thông báo chưa đọc:",
+                    error
+                );
+
+                setUnreadCount(0);
+            }
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tải thông báo và cập nhật mỗi 30 giây
+    |--------------------------------------------------------------------------
+    */
+
+    useEffect(() => {
+        loadUnreadNotifications();
+
+        const interval =
+            setInterval(
+                loadUnreadNotifications,
+                30000
+            );
+
+        const handleNotificationUpdated =
+            () => {
+                loadUnreadNotifications();
+            };
+
+        window.addEventListener(
+            "notification-updated",
+            handleNotificationUpdated
+        );
+
+        return () => {
+            clearInterval(interval);
+
+            window.removeEventListener(
+                "notification-updated",
+                handleNotificationUpdated
+            );
+        };
+    }, []);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Đăng xuất
+    |--------------------------------------------------------------------------
+    */
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.removeItem(
+            "token"
+        );
+
+        localStorage.removeItem(
+            "user"
+        );
+
         navigate("/");
     };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Danh sách menu
+    |--------------------------------------------------------------------------
+    */
 
     const menus = [
         {
             path: "/",
             text: "Tổng quan",
             icon: <FaHome />,
-            roles: ["GUEST", "ADMIN", "MANAGER", "MEMBER"]
+            roles: [
+                "GUEST",
+                "ADMIN",
+                "MANAGER",
+                "MEMBER"
+            ]
         },
         {
             path: "/project",
             text: "Dự án",
             icon: <FaFolderOpen />,
-            roles: ["ADMIN", "MANAGER"]
+            roles: [
+                "ADMIN",
+                "MANAGER"
+            ]
         },
         {
             path: "/task",
             text: "Công việc",
             icon: <FaTasks />,
-            roles: ["ADMIN", "MANAGER", "MEMBER"]
+            roles: [
+                "ADMIN",
+                "MANAGER",
+                "MEMBER"
+            ]
         },
         {
             path: "/kanban",
             text: "Kanban",
             icon: <FaColumns />,
-            roles: ["ADMIN", "MANAGER"]
+            roles: [
+                "ADMIN",
+                "MANAGER"
+            ]
         },
         {
             path: "/calendar",
             text: "Lịch",
             icon: <FaCalendarAlt />,
-            roles: ["ADMIN", "MANAGER", "MEMBER"]
+            roles: [
+                "ADMIN",
+                "MANAGER",
+                "MEMBER"
+            ]
         },
         {
             path: "/member",
             text: "Thành viên",
             icon: <FaUsers />,
-            roles: ["ADMIN"]
+            roles: [
+                "ADMIN"
+            ]
         },
         {
             path: "/report",
             text: "Báo cáo",
             icon: <FaChartBar />,
-            roles: ["ADMIN"]
+            roles: [
+                "ADMIN"
+            ]
         },
         {
             path: "/document",
             text: "Tài liệu",
             icon: <FaFileAlt />,
-            roles: ["ADMIN", "MANAGER"]
+            roles: [
+                "ADMIN",
+                "MANAGER"
+            ]
         },
         {
             path: "/notification",
             text: "Thông báo",
             icon: <FaBell />,
-            roles: ["ADMIN", "MANAGER", "MEMBER"]
+            roles: [
+                "ADMIN",
+                "MANAGER",
+                "MEMBER"
+            ]
         },
         {
             path: "/setting",
             text: "Cài đặt",
             icon: <FaCog />,
-            roles: ["ADMIN", "MANAGER", "MEMBER"]
+            roles: [
+                "ADMIN",
+                "MANAGER",
+                "MEMBER"
+            ]
         }
     ];
 
     return (
         <aside className="sidebar">
             <div className="logo">
-                <h2>ProjectMaster</h2>
+                <h2>
+                    ProjectMaster
+                </h2>
             </div>
 
             <nav>
                 {menus
-                    .filter(menu => menu.roles.includes(role))
-                    .map(menu => (
-                        <NavLink
-                            key={menu.path}
-                            to={menu.path}
-                            end={menu.path === "/"}
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "menu active"
-                                    : "menu"
-                            }
-                        >
-                            {menu.icon}
-                            <span>{menu.text}</span>
-                        </NavLink>
-                    ))}
+                    .filter(
+                        (menu) =>
+                            menu.roles.includes(
+                                role
+                            )
+                    )
+                    .map(
+                        (menu) => (
+                            <NavLink
+                                key={
+                                    menu.path
+                                }
+                                to={
+                                    menu.path
+                                }
+                                end={
+                                    menu.path ===
+                                    "/"
+                                }
+                                className={({
+                                    isActive
+                                }) =>
+                                    isActive
+                                        ? "menu active"
+                                        : "menu"
+                                }
+                            >
+                                <span className="menu-icon">
+                                    {
+                                        menu.icon
+                                    }
+                                </span>
+
+                                <span className="menu-text">
+                                    {
+                                        menu.text
+                                    }
+                                </span>
+
+                                {menu.path ===
+                                    "/notification" &&
+                                    unreadCount >
+                                        0 && (
+                                        <span
+                                            className="sidebar-notification-dot"
+                                            title={`${unreadCount} thông báo chưa đọc`}
+                                        />
+                                    )}
+                            </NavLink>
+                        )
+                    )}
             </nav>
 
             <div className="user-box">
@@ -124,18 +344,32 @@ function Sidebar() {
                     <>
                         <div className="user-info">
                             <div className="avatar">
-                                {initial}
+                                {
+                                    initial
+                                }
                             </div>
 
                             <div>
-                                <h4>{name}</h4>
-                                <p>{role}</p>
+                                <h4>
+                                    {
+                                        name
+                                    }
+                                </h4>
+
+                                <p>
+                                    {
+                                        role
+                                    }
+                                </p>
                             </div>
                         </div>
 
                         <button
+                            type="button"
                             className="btn-logout"
-                            onClick={handleLogout}
+                            onClick={
+                                handleLogout
+                            }
                         >
                             Đăng xuất
                         </button>
@@ -148,15 +382,23 @@ function Sidebar() {
                             </div>
 
                             <div>
-                                <h4>Khách</h4>
-                                <p>Chưa đăng nhập</p>
+                                <h4>
+                                    Khách
+                                </h4>
+
+                                <p>
+                                    Chưa đăng nhập
+                                </p>
                             </div>
                         </div>
 
                         <button
+                            type="button"
                             className="btn-login"
                             onClick={() =>
-                                navigate("/login")
+                                navigate(
+                                    "/login"
+                                )
                             }
                         >
                             Đăng nhập

@@ -1,21 +1,74 @@
 const express = require("express");
 const router = express.Router();
-const notifController = require("../controllers/notificationController");
-const auth = require("../middlewares/authMiddleware");
 
-// Lấy danh sách thông báo (Phân trang + Bộ lọc)
-router.get("/", notifController.getUserNotifications);
+const notifController = require(
+    "../controllers/notificationController"
+);
 
-// Đánh dấu đọc tất cả thông báo
-router.put("/read-all", notifController.readAllNotifications);
+const {
+    verifyToken
+} = require(
+    "../middlewares/authMiddleware"
+);
 
-// Xóa sạch toàn bộ hòm thư thông báo
-router.delete("/clear-all", notifController.cleanAllNotifications);
+/*
+|--------------------------------------------------------------------------
+| Lấy danh sách thông báo
+|--------------------------------------------------------------------------
+*/
 
-// Đánh dấu đã đọc một thông báo cụ thể
-router.put("/:id/read", notifController.readNotification);
+router.get(
+    "/",
+    verifyToken,
+    notifController.getUserNotifications
+);
 
-// Xóa một thông báo cụ thể
-router.delete("/:id", notifController.removeNotification);
+/*
+|--------------------------------------------------------------------------
+| Đánh dấu tất cả đã đọc
+|--------------------------------------------------------------------------
+*/
+
+router.put(
+    "/read-all",
+    verifyToken,
+    notifController.readAllNotifications
+);
+
+/*
+|--------------------------------------------------------------------------
+| Xóa toàn bộ thông báo
+|--------------------------------------------------------------------------
+*/
+
+router.delete(
+    "/clear-all",
+    verifyToken,
+    notifController.cleanAllNotifications
+);
+
+/*
+|--------------------------------------------------------------------------
+| Đánh dấu một thông báo đã đọc
+|--------------------------------------------------------------------------
+*/
+
+router.put(
+    "/:id/read",
+    verifyToken,
+    notifController.readNotification
+);
+
+/*
+|--------------------------------------------------------------------------
+| Xóa một thông báo
+|--------------------------------------------------------------------------
+*/
+
+router.delete(
+    "/:id",
+    verifyToken,
+    notifController.removeNotification
+);
 
 module.exports = router;
