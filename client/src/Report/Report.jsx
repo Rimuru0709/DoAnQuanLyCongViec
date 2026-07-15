@@ -21,17 +21,7 @@ function Report() {
     const [projectNameInput, setProjectNameInput] = useState(""); // Ô nhập tên dự án thực tế
     const [debouncedProjectName, setDebouncedProjectName] = useState(""); // Giá trị tên dự án sau khi delay
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Mặc định tháng hiện tại
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Mặc định năm hiện tại
-
-    // Danh sách năm cho bộ lọc (Ví dụ lấy từ 2020 đến năm hiện tại + 1)
-    const currentYear = new Date().getFullYear();
-    const yearsList = useMemo(() => {
-        const years = [];
-        for (let y = currentYear + 1; y >= 2020; y--) {
-            years.push(y);
-        }
-        return years;
-    }, [currentYear]);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Mặc định năm hiện tại    
 
     // 2. CƠ CHẾ DEBOUNCE: Đợi người dùng gõ xong 500ms mới kích hoạt gọi API
     useEffect(() => {
@@ -185,7 +175,8 @@ function Report() {
                             onChange={(e) => setSelectedYear(Number(e.target.value))}
                         >
                             <option value="">Chọn tất cả năm</option>
-                            {yearsList.map(y => (
+                            {/* Sử dụng trực tiếp danh sách năm từ API trả về */}
+                            {reportData?.availableYears?.map(y => (
                                 <option key={y} value={y}>Năm {y}</option>
                             ))}
                         </select>
