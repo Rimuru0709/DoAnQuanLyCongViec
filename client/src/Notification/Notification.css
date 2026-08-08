@@ -1,25 +1,41 @@
-/* --- Banner thông báo lỗi hệ thống --- */
+/* =========================================================
+   BANNER LỖI HỆ THỐNG
+========================================================= */
+
 .status-banner.error-banner {
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.25);
+
     color: #f87171;
+
     padding: 12px 16px;
+
     border-radius: 8px;
+
     margin-bottom: 20px;
+
     font-size: 13px;
     font-weight: 500;
+
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* --- Badge đếm số lượng tin nhắn chưa đọc trên Topbar --- */
+
+/* =========================================================
+   BADGE SỐ THÔNG BÁO CHƯA ĐỌC
+========================================================= */
+
 .unread-badge-count {
     background: #ef4444;
     color: white;
+
     font-size: 12px;
     font-weight: 700;
+
     padding: 2px 8px;
+
     border-radius: 20px;
 }
 
@@ -28,24 +44,39 @@
     font-size: 13px !important;
 }
 
-/* --- Thanh Tabs điều hướng lọc dữ liệu --- */
+
+/* =========================================================
+   TABS LỌC THÔNG BÁO
+========================================================= */
+
 .notif-tabs {
     display: flex;
+
     gap: 8px;
+
     border-bottom: 1px solid rgba(24, 48, 74, 0.5);
-    padding-bottom: 0px; /* Chuyển về 0 để khớp khít với đường line sau */
+
+    padding-bottom: 0;
+
     margin-bottom: 20px;
 }
 
 .tab-item {
+    position: relative;
+
     background: none;
+
     border: none;
+
     color: #64748b;
+
     font-size: 14px;
     font-weight: 600;
+
     padding: 10px 16px;
+
     cursor: pointer;
-    position: relative;
+
     transition: color 0.2s ease;
 }
 
@@ -59,16 +90,25 @@
 
 .tab-item.active::after {
     content: "";
+
     position: absolute;
-    bottom: -1px; /* Đặt khít lên trên viền bottom của .notif-tabs */
+
+    bottom: -1px;
     left: 0;
+
     width: 100%;
     height: 2px;
-    background: #60a5fa; /* Đổi thành màu xanh sáng để đồng bộ với chữ active */
+
+    background: #60a5fa;
+
     border-radius: 2px;
 }
 
-/* --- Container bọc danh sách --- */
+
+/* =========================================================
+   DANH SÁCH THÔNG BÁO
+========================================================= */
+
 .notif-card-container {
     padding: 8px 0 !important;
 }
@@ -78,13 +118,20 @@
     flex-direction: column;
 }
 
-/* --- Từng hàng thông báo --- */
+
+/* =========================================================
+   TỪNG THÔNG BÁO
+========================================================= */
+
 .notif-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     padding: 16px 20px;
+
     border-bottom: 1px solid rgba(24, 48, 74, 0.4);
+
     transition: background-color 0.2s ease;
 }
 
@@ -92,7 +139,6 @@
     border-bottom: none;
 }
 
-/* Highlight màu nền khi thông báo CHƯA đọc */
 .notif-item.unread {
     background: rgba(13, 110, 253, 0.03);
 }
@@ -101,19 +147,36 @@
     background: rgba(24, 48, 74, 0.15);
 }
 
+
+/* =========================================================
+   BÊN TRÁI THÔNG BÁO
+========================================================= */
+
 .notif-left {
     display: flex;
+
     gap: 16px;
+
     align-items: flex-start;
+
+    min-width: 0;
 }
 
-/* Định hình Icon */
+
+/* =========================================================
+   ICON THÔNG BÁO
+========================================================= */
+
 .notif-icon {
-    font-size: 16px;
-    padding: 10px;
-    border-radius: 10px;
     flex-shrink: 0;
+
     margin-top: 2px;
+
+    padding: 10px;
+
+    border-radius: 10px;
+
+    font-size: 16px;
 }
 
 .notif-icon.icon-warning {
@@ -131,49 +194,81 @@
     color: #60a5fa;
 }
 
-/* --- Khối text nội dung thông báo --- */
+
+/* =========================================================
+   NỘI DUNG THÔNG BÁO
+========================================================= */
+
 .notif-main-content {
+    min-width: 0;
+
     display: flex;
     flex-direction: column;
+
     gap: 4px;
 }
 
 .notif-title {
-    color: white;
-    font-size: 15px;
     margin: 0;
-    font-weight: 600;
+
     display: flex;
     align-items: center;
+
     gap: 8px;
+
+    color: white;
+
+    font-size: 15px;
+    font-weight: 600;
 }
 
-/* Chấm tròn xanh nhỏ biểu thị chưa đọc */
+
+/* =========================================================
+   CHẤM CHƯA ĐỌC
+========================================================= */
+
 .unread-dot {
     width: 7px;
     height: 7px;
-    background: #60a5fa; /* Thay màu xanh đậm #2563eb sang màu xanh sáng để nổi bật trên nền tối */
-    border-radius: 50%;
+
+    flex-shrink: 0;
+
     display: inline-block;
+
+    border-radius: 50%;
+
+    background: #60a5fa;
 }
 
 .notif-desc {
-    color: #9fb1c8;
-    font-size: 14px;
     margin: 0;
+
+    color: #9fb1c8;
+
+    font-size: 14px;
     line-height: 1.4;
 }
 
 .notif-time {
     color: #52657d;
+
     font-size: 11px;
 }
 
-/* --- Nút tương tác nhanh ở đuôi dòng --- */
+
+/* =========================================================
+   NÚT TƯƠNG TÁC NHANH
+========================================================= */
+
 .notif-actions {
     display: flex;
+
     gap: 8px;
-    opacity: 0; /* Ẩn đi mặc định, chỉ hiện khi hover dòng */
+
+    flex-shrink: 0;
+
+    opacity: 0;
+
     transition: opacity 0.2s ease;
 }
 
@@ -182,120 +277,176 @@
 }
 
 .action-btn {
-    border: none;
-    background: rgba(16, 35, 58, 0.8);
-    border: 1px solid #18304a;
-    color: #9fb1c8;
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+
     display: grid;
     place-items: center;
-    cursor: pointer;
+
+    border: 1px solid #18304a;
+    border-radius: 8px;
+
+    background: rgba(16, 35, 58, 0.8);
+
+    color: #9fb1c8;
+
     font-size: 12px;
+
+    cursor: pointer;
+
     transition: all 0.15s ease;
 }
 
 .check-btn:hover {
     color: #22c55e;
+
     background: rgba(34, 197, 94, 0.1);
+
     border-color: rgba(34, 197, 94, 0.3);
 }
 
 .delete-btn:hover {
     color: #ef4444;
+
     background: rgba(239, 68, 68, 0.1);
+
     border-color: rgba(239, 68, 68, 0.3);
 }
 
-/* --- Giao diện rỗng khi không có thông báo --- */
+
+/* =========================================================
+   TRẠNG THÁI RỖNG
+========================================================= */
+
 .notif-empty-state {
     display: flex;
     flex-direction: column;
+
     align-items: center;
     justify-content: center;
+
     padding: 60px 0;
+
     color: #52657d;
+
     gap: 12px;
 }
 
 .empty-bell-icon {
-    font-size: 40px;
     color: #1e293b;
+
+    font-size: 40px;
 }
 
 .notif-empty-state p {
     margin: 0;
+
     font-size: 14px;
 }
 
 .btn-danger-hover:hover {
     background: rgba(239, 68, 68, 0.1) !important;
     color: #ef4444 !important;
-    border-color: rgba(239, 68, 68, 0.3) !important;
+
+    border-color:
+        rgba(239, 68, 68, 0.3) !important;
 }
 
-.modal-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.65);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:9999;
+
+/* =========================================================
+   MODAL XÁC NHẬN
+========================================================= */
+
+.modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.65);
 }
 
-.confirm-modal{
-    width:420px;
-    background:#13233b;
-    border:1px solid #28496d;
-    border-radius:12px;
-    padding:24px;
-    color:#fff;
+.confirm-modal {
+    width: 420px;
+    max-width: 92vw;
+
+    padding: 24px;
+
+    border: 1px solid #28496d;
+    border-radius: 12px;
+
+    background: #13233b;
+    color: #ffffff;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.45);
 }
 
-.confirm-modal h3{
-    margin-bottom:15px;
+.confirm-modal h3 {
+    margin: 0 0 15px;
 }
 
-.confirm-modal p{
-    color:#d8e4ef;
-    margin-bottom:8px;
+.confirm-modal p {
+    margin: 0 0 8px;
+
+    color: #d8e4ef;
 }
 
-.confirm-modal small{
-    color:#9fb4ca;
+.confirm-modal small {
+    color: #9fb4ca;
 }
 
-.modal-buttons{
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-    margin-top:24px;
+
+/* =========================================================
+   NÚT MODAL
+========================================================= */
+
+.modal-buttons {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 24px;
 }
 
-.cancel-btn{
-    padding:10px 22px;
-    border:none;
-    border-radius:8px;
-    background:#3b5169;
-    color:white;
-    cursor:pointer;
+.cancel-btn,
+.delete-btn {
+    padding: 10px 22px;
+
+    border: none;
+    border-radius: 8px;
+
+    color: white;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
 }
 
-.cancel-btn:hover{
-    background:#50667d;
+.cancel-btn {
+    background: #3b5169;
 }
 
-.delete-btn{
-    padding:10px 22px;
-    border:none;
-    border-radius:8px;
-    background:#dc3545;
-    color:white;
-    cursor:pointer;
+.cancel-btn:hover {
+    background: #4b6078;
 }
 
-.delete-btn:hover{
-    background:#c82333;
+.delete-btn {
+    background: #dc3545;
+}
+
+.delete-btn:hover {
+    background: #c82333;
 }

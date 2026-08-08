@@ -7,7 +7,6 @@ import "./Sidebar.css";
 
 import {
     NavLink,
-    useNavigate
 } from "react-router-dom";
 
 import {
@@ -27,7 +26,6 @@ const NOTIFICATION_API =
     "http://localhost:5000/api/notifications";
 
 function Sidebar() {
-    const navigate = useNavigate();
 
     const [
         unreadCount,
@@ -54,12 +52,6 @@ function Sidebar() {
 
     const role =
         user?.role || "GUEST";
-
-    const name =
-        user?.full_name || "Khách";
-
-    const initial =
-        name.charAt(0).toUpperCase();
 
     /*
     |--------------------------------------------------------------------------
@@ -154,24 +146,6 @@ function Sidebar() {
             );
         };
     }, []);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Đăng xuất
-    |--------------------------------------------------------------------------
-    */
-
-    const handleLogout = () => {
-        localStorage.removeItem(
-            "token"
-        );
-
-        localStorage.removeItem(
-            "user"
-        );
-
-        navigate("/");
-    };
 
     /*
     |--------------------------------------------------------------------------
@@ -339,73 +313,6 @@ function Sidebar() {
                     )}
             </nav>
 
-            <div className="user-box">
-                {user ? (
-                    <>
-                        <div className="user-info">
-                            <div className="avatar">
-                                {
-                                    initial
-                                }
-                            </div>
-
-                            <div>
-                                <h4>
-                                    {
-                                        name
-                                    }
-                                </h4>
-
-                                <p>
-                                    {
-                                        role
-                                    }
-                                </p>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="btn-logout"
-                            onClick={
-                                handleLogout
-                            }
-                        >
-                            Đăng xuất
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <div className="user-info">
-                            <div className="avatar guest-avatar">
-                                ?
-                            </div>
-
-                            <div>
-                                <h4>
-                                    Khách
-                                </h4>
-
-                                <p>
-                                    Chưa đăng nhập
-                                </p>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="btn-login"
-                            onClick={() =>
-                                navigate(
-                                    "/login"
-                                )
-                            }
-                        >
-                            Đăng nhập
-                        </button>
-                    </>
-                )}
-            </div>
         </aside>
     );
 }

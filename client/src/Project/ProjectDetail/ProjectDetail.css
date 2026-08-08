@@ -1,285 +1,1113 @@
+/* =========================================================
+   PROJECT DETAIL LAYOUT
+========================================================= */
+
 .detail-layout {
-    display: flex;
+    width: 100%;
     min-height: 100vh;
+
     background: #071527;
-    color: white;
+    color: #ffffff;
 }
 
+
+/* =========================================================
+   MAIN CONTENT
+   Sidebar cố định rộng 260px
+========================================================= */
+
 .detail-page {
-    flex: 1;
+    width: calc(100% - 260px);
+    min-width: 0;
+    min-height: 100vh;
+
+    margin-left: 260px;
+
     padding: 26px;
+
+    box-sizing: border-box;
+
+    background: #071527;
+    color: #ffffff;
+
+    overflow-x: hidden;
 }
+
+
+/* =========================================================
+   HEADER
+========================================================= */
 
 .detail-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+
+    gap: 24px;
 }
 
-.breadcrumb {
-    color: #8fb1d8;
-    margin-bottom: 14px;
+.detail-header > div:first-child {
+    min-width: 0;
 }
+
+
+/* =========================================================
+   BREADCRUMB
+========================================================= */
+
+.breadcrumb {
+    margin-bottom: 14px;
+
+    color: #8fb1d8;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   PROJECT TITLE
+========================================================= */
 
 .detail-header h1 {
     margin: 0;
+
+    color: #ffffff;
+
     font-size: 30px;
+    font-weight: 800;
+
+    line-height: 1.25;
 }
+
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
 
 .status-badge {
+    display: inline-block;
+
     margin-left: 14px;
-    font-size: 13px;
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+
     padding: 6px 10px;
+
     border-radius: 7px;
+
+    background:
+        rgba(34, 197, 94, 0.2);
+
+    color: #22c55e;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    vertical-align: middle;
 }
 
+
+/* =========================================================
+   PROJECT DESCRIPTION
+========================================================= */
+
 .detail-header p {
-    color: #9fb1c8;
     margin: 8px 0;
+
+    color: #9fb1c8;
+
+    font-size: 14px;
+    line-height: 1.5;
 }
+
+
+/* =========================================================
+   PROJECT META
+========================================================= */
 
 .project-meta {
     display: flex;
+    align-items: center;
+
     gap: 22px;
+
     color: #cbd5e1;
+
     font-size: 14px;
+
+    flex-wrap: wrap;
 }
 
 .project-meta span {
     display: flex;
     align-items: center;
+
     gap: 8px;
 }
+
+.project-meta svg {
+    flex-shrink: 0;
+
+    color: #b9c9dc;
+}
+
+
+/* =========================================================
+   HEADER ACTIONS
+========================================================= */
 
 .header-actions {
     display: flex;
+    align-items: center;
+
     gap: 12px;
+
+    flex-shrink: 0;
 }
 
 .header-actions button {
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
-    color: white;
-    border: none;
-    padding: 13px 18px;
-    border-radius: 9px;
     display: flex;
-    gap: 8px;
     align-items: center;
-    cursor: pointer;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 13px 18px;
+
+    border: none;
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
+
+    color: #ffffff;
+
+    font-size: 14px;
     font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.header-actions button:hover {
+    transform: translateY(-1px);
 }
 
 .header-actions .more-btn {
     background: #0c1d32;
+
     border: 1px solid #243b5a;
 }
 
-.detail-tabs {
-    margin-top: 22px;
+.header-actions .more-btn:hover {
+    background: #122743;
+}
+
+
+/* =========================================================
+   EXPORT MENU
+========================================================= */
+
+.detail-menu-wrapper {
+    position: relative;
+}
+
+.detail-dropdown-menu {
+    position: absolute;
+
+    top: calc(100% + 8px);
+    right: 0;
+
+    width: 180px;
+
+    z-index: 100;
+
+    overflow: hidden;
+
+    border: 1px solid #243b5a;
+    border-radius: 10px;
+
+    background: #0c1d32;
+
+    box-shadow:
+        0 14px 35px
+        rgba(0, 0, 0, 0.4);
+}
+
+.detail-dropdown-menu div {
     display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px 14px;
+
+    color: #dce8f7;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease;
+}
+
+.detail-dropdown-menu div:hover {
+    background: #1d4ed8;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.detail-tabs {
+    width: 100%;
+
+    margin-top: 22px;
+
+    display: flex;
+    align-items: center;
+
     gap: 28px;
+
     border-bottom: 1px solid #1e3a5f;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.detail-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.detail-tabs::-webkit-scrollbar-thumb {
+    background: #35516f;
+
+    border-radius: 999px;
 }
 
 .detail-tabs button {
-    background: none;
-    border: none;
-    color: #cbd5e1;
+    position: relative;
+
+    flex-shrink: 0;
+
     padding: 14px 0;
-    cursor: pointer;
+
+    border: none;
+    border-bottom: 3px solid transparent;
+
+    background: none;
+
+    color: #cbd5e1;
+
+    font-size: 14px;
     font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.detail-tabs button:hover {
+    color: #60a5fa;
 }
 
 .detail-tabs button.active {
     color: #3b82f6;
-    border-bottom: 3px solid #3b82f6;
+
+    border-bottom-color: #3b82f6;
 }
 
+
+/* =========================================================
+   TAB CONTENT
+   Giữ tất cả tab full chiều ngang
+========================================================= */
+
+.detail-tab-content {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+
+    margin: 0;
+    padding: 0;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   OVERVIEW GRID
+========================================================= */
+
 .detail-grid {
+    width: 100%;
+
     display: grid;
-    grid-template-columns: 1.1fr 2fr 1.4fr;
+
+    grid-template-columns:
+        1.1fr
+        2fr
+        1.4fr;
+
     gap: 18px;
+
     margin-top: 18px;
 }
 
+
+/* =========================================================
+   CARD
+========================================================= */
+
 .detail-card {
-    background: #0c1d32;
+    min-width: 0;
+
+    padding: 18px;
+
     border: 1px solid #243b5a;
     border-radius: 12px;
-    padding: 18px;
+
+    background: #0c1d32;
 }
 
 .detail-card h3 {
-    margin-top: 0;
-    margin-bottom: 18px;
+    margin: 0 0 18px;
+
+    color: #ffffff;
+
+    font-size: 17px;
+    font-weight: 700;
 }
+
+
+/* =========================================================
+   PROJECT PROGRESS
+========================================================= */
 
 .circle-progress {
     width: 160px;
     height: 160px;
+
     margin: 12px auto;
-    border-radius: 50%;
-    background: conic-gradient(#22c55e 0% 75%, #35516f 75% 100%);
+
     display: flex;
     align-items: center;
     justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        conic-gradient(
+            #22c55e 0% 75%,
+            #35516f 75% 100%
+        );
 }
 
 .circle-inner {
     width: 105px;
     height: 105px;
-    background: #0c1d32;
-    border-radius: 50%;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
+
+    border-radius: 50%;
+
+    background: #0c1d32;
+
+    color: #ffffff;
+
     font-size: 32px;
+    font-weight: 800;
 }
 
 .center-text {
     text-align: center;
+
     color: #cbd5e1;
+
+    font-size: 14px;
 }
 
+
+/* =========================================================
+   PROGRESS LIST
+========================================================= */
+
 .progress-list {
+    margin: 18px 0 0;
     padding: 0;
+
     list-style: none;
 }
 
 .progress-list li {
     display: flex;
     align-items: center;
+
     gap: 8px;
-    color: #cbd5e1;
+
     margin: 9px 0;
+
+    color: #cbd5e1;
+
+    font-size: 14px;
 }
 
 .progress-list b {
     margin-left: auto;
-    color: white;
+
+    color: #ffffff;
 }
 
 .dot {
     width: 10px;
     height: 10px;
+
+    flex-shrink: 0;
+
     border-radius: 50%;
 }
 
-.gray { background: #64748b; }
-.green { background: #22c55e; }
-.blue { background: #3b82f6; }
-.orange { background: #f59e0b; }
-.red { background: #ef4444; }
+.gray {
+    background: #64748b;
+}
+
+.green {
+    background: #22c55e;
+}
+
+.blue {
+    background: #3b82f6;
+}
+
+.orange {
+    background: #f59e0b;
+}
+
+.red {
+    background: #ef4444;
+}
+
+
+/* =========================================================
+   PROJECT INFO
+========================================================= */
 
 .info-row {
     display: grid;
-    grid-template-columns: 150px 1fr;
+
+    grid-template-columns:
+        150px
+        minmax(0, 1fr);
+
+    gap: 14px;
+
     margin-bottom: 16px;
+
     color: #cbd5e1;
+
+    font-size: 14px;
 }
 
 .info-row b {
-    color: white;
+    min-width: 0;
+
+    color: #ffffff;
+
     font-weight: 600;
+
+    overflow-wrap: anywhere;
 }
 
 .info-row.desc {
     align-items: start;
 }
 
+
+/* =========================================================
+   PRIORITY
+========================================================= */
+
 .priority-dot {
-    color: #ef4444;
-    font-size: 11px;
     margin-right: 6px;
+
+    color: #ef4444;
+
+    font-size: 11px;
 }
+
+
+/* =========================================================
+   SMALL MEMBER CARD
+========================================================= */
 
 .member-item {
     display: flex;
-    gap: 12px;
     align-items: center;
+
+    gap: 12px;
+
     margin-bottom: 14px;
 }
 
 .member-item img {
     width: 38px;
     height: 38px;
+
+    flex-shrink: 0;
+
     border-radius: 50%;
+
+    object-fit: cover;
 }
 
 .member-item h4 {
     margin: 0;
+
+    color: #ffffff;
+
     font-size: 14px;
 }
 
 .member-item p {
     margin: 3px 0 0;
+
     color: #94a3b8;
+
     font-size: 13px;
 }
 
+
+/* =========================================================
+   RECENT TASK / TASK TABLE
+========================================================= */
+
 .recent-task {
+    width: 100%;
+
     margin-top: 18px;
+
+    overflow-x: auto;
 }
 
 .recent-task table {
     width: 100%;
+    min-width: 760px;
+
     border-collapse: collapse;
+}
+
+.recent-task thead {
+    background: #122743;
 }
 
 .recent-task th,
 .recent-task td {
     padding: 14px;
+
     border-bottom: 1px solid #1e3a5f;
+
     text-align: left;
+    vertical-align: middle;
+
+    white-space: nowrap;
 }
 
 .recent-task th {
     color: #cbd5e1;
+
+    font-size: 13px;
+    font-weight: 700;
 }
 
+.recent-task td {
+    color: #e5e7eb;
+
+    font-size: 14px;
+}
+
+.recent-task tbody tr {
+    transition:
+        background 0.2s ease;
+}
+
+.recent-task tbody tr:hover {
+    background:
+        rgba(37, 99, 235, 0.07);
+}
+
+
+/* =========================================================
+   TASK STATUS
+========================================================= */
+
+.task-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.task-status.todo {
+    background:
+        rgba(100, 116, 139, 0.18);
+
+    color: #cbd5e1;
+}
+
+.task-status.doing {
+    background:
+        rgba(59, 130, 246, 0.18);
+
+    color: #60a5fa;
+}
+
+.task-status.review {
+    background:
+        rgba(245, 158, 11, 0.18);
+
+    color: #fbbf24;
+}
+
+.task-status.done {
+    background:
+        rgba(34, 197, 94, 0.18);
+
+    color: #4ade80;
+}
+
+.task-status.overdue {
+    background:
+        rgba(239, 68, 68, 0.18);
+
+    color: #f87171;
+}
+
+
+/* =========================================================
+   TASK TOOLBAR
+========================================================= */
+
 .task-toolbar {
+    width: 100%;
+
     margin-bottom: 16px;
 }
 
 .task-toolbar input {
     width: 100%;
-    background: #071527;
-    border: 1px solid #243b5a;
-    color: white;
+
+    box-sizing: border-box;
+
     padding: 12px 14px;
+
+    border: 1px solid #243b5a;
     border-radius: 10px;
+
     outline: none;
+
+    background: #071527;
+    color: #ffffff;
+
+    font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
+
+.task-toolbar input::placeholder {
+    color: #64748b;
+}
+
+.task-toolbar input:focus {
+    border-color: #3b82f6;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(59, 130, 246, 0.12);
+}
+
+
+/* =========================================================
+   EDIT TASK BUTTON
+========================================================= */
+
+.btn-edit-task {
+    padding: 7px 13px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease;
+}
+
+.btn-edit-task:hover {
+    background: #1d4ed8;
+}
+
+
+/* =========================================================
+   TASK PAGINATION
+========================================================= */
 
 .task-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    gap: 16px;
+
     margin-top: 18px;
+
     color: #cbd5e1;
+
+    font-size: 14px;
 }
 
-.task-pagination div {
+.task-pagination > div {
     display: flex;
     align-items: center;
+
     gap: 10px;
 }
 
 .task-pagination button {
-    background: #2563eb;
-    color: white;
-    border: none;
     padding: 8px 14px;
+
+    border: none;
     border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
     cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.task-pagination button:hover:not(:disabled) {
+    background: #1d4ed8;
 }
 
 .task-pagination button:disabled {
     opacity: 0.45;
+
     cursor: not-allowed;
 }
 
 
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast-success {
+    position: fixed;
+
+    top: 20px;
+    right: 24px;
+
+    z-index: 10000;
+
+    max-width: 360px;
+
+    padding: 12px 18px;
+
+    border: 1px solid
+        rgba(34, 197, 94, 0.35);
+
+    border-radius: 9px;
+
+    background: #0f2f2a;
+
+    color: #4ade80;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    box-shadow:
+        0 15px 40px
+        rgba(0, 0, 0, 0.35);
+}
+
+
+/* =========================================================
+   TASK DELETE MODAL
+========================================================= */
+
+.task-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background:
+        rgba(0, 0, 0, 0.65);
+
+    backdrop-filter: blur(2px);
+}
+
+.task-modal {
+    width: 480px;
+    max-width: 92vw;
+
+    padding: 22px;
+
+    border: 1px solid #243b5a;
+    border-radius: 14px;
+
+    background: #0c1d32;
+    color: #ffffff;
+
+    box-shadow:
+        0 24px 70px
+        rgba(0, 0, 0, 0.5);
+}
+
+.task-modal h2 {
+    margin: 0;
+
+    color: #ffffff;
+}
+
+.task-modal p {
+    color: #cbd5e1;
+}
+
+.task-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+.btn-cancel,
+.btn-delete {
+    padding: 10px 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    color: #ffffff;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background: #64748b;
+}
+
+.btn-cancel:hover {
+    background: #475569;
+}
+
+.btn-delete {
+    background: #ef4444;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.recent-task::-webkit-scrollbar,
+.detail-tabs::-webkit-scrollbar {
+    height: 7px;
+}
+
+.recent-task::-webkit-scrollbar-track,
+.detail-tabs::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.recent-task::-webkit-scrollbar-thumb,
+.detail-tabs::-webkit-scrollbar-thumb {
+    background: #35516f;
+
+    border-radius: 999px;
+}
+
+.recent-task::-webkit-scrollbar-thumb:hover,
+.detail-tabs::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+
+/* =========================================================
+   RESPONSIVE - SIDEBAR 220px
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .detail-page {
+        width: calc(100% - 220px);
+
+        margin-left: 220px;
+
+        padding: 22px;
+    }
+
+    .detail-header {
+        flex-direction: column;
+
+        gap: 18px;
+    }
+
+    .header-actions {
+        width: 100%;
+
+        flex-wrap: wrap;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-tabs {
+        gap: 20px;
+    }
+
+    .recent-task {
+        overflow-x: auto;
+    }
+
+    .recent-task table {
+        min-width: 800px;
+    }
+
+    .info-row {
+        grid-template-columns:
+            130px
+            minmax(0, 1fr);
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE - SMALL SCREEN
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .detail-page {
+        width: calc(100% - 220px);
+
+        margin-left: 220px;
+
+        padding: 16px;
+    }
+
+    .detail-header h1 {
+        font-size: 25px;
+    }
+
+    .status-badge {
+        display: block;
+
+        width: fit-content;
+
+        margin:
+            10px
+            0
+            0;
+    }
+
+    .project-meta {
+        flex-direction: column;
+        align-items: flex-start;
+
+        gap: 10px;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions button {
+        width: 100%;
+    }
+
+    .detail-tabs {
+        gap: 18px;
+    }
+
+    .info-row {
+        grid-template-columns: 1fr;
+
+        gap: 6px;
+    }
+
+    .task-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+
+        gap: 12px;
+    }
+
+    .task-modal {
+        width: 100%;
+    }
+
+    .task-modal-actions {
+        flex-direction: column;
+    }
+
+    .btn-cancel,
+    .btn-delete {
+        width: 100%;
+    }
+}
+
+.detail-tab-content > * {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}

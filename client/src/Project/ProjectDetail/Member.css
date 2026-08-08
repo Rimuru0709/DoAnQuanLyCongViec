@@ -1,278 +1,636 @@
-.member-page {
-    margin-top: 20px;
-}
+/* =========================================================
+   PROJECT MEMBER PAGE
+========================================================= */
 
-.member-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.member-header h2 {
-    margin: 0;
-    color: #ffffff;
-}
-
-.member-header p {
-    margin-top: 6px;
-    color: #94a3b8;
-}
-
-.member-header button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 11px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: .2s;
-}
-
-.member-header button:hover {
-    background: #1d4ed8;
-}
-
-.member-toolbar {
-    margin-bottom: 18px;
-}
-
-.member-toolbar input {
+.project-member-page {
     width: 100%;
-    background: #071527;
-    border: 1px solid #243b5a;
-    color: white;
-    padding: 12px 14px;
-    border-radius: 10px;
-    outline: none;
+    max-width: 100%;
+    min-width: 0;
+
+    margin: 20px 0 0;
+    padding: 0;
+
     box-sizing: border-box;
 }
 
-.member-table {
-    background: #0c1d32;
+.project-member-page *,
+.project-member-page *::before,
+.project-member-page *::after {
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.project-member-page .member-header {
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+}
+
+.project-member-page .member-header > div {
+    min-width: 0;
+}
+
+.project-member-page .member-header h2 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.project-member-page .member-header p {
+    margin: 6px 0 0;
+
+    color: #94a3b8;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.project-member-page .member-header button {
+    flex-shrink: 0;
+
+    padding: 12px 20px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.project-member-page .member-header button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   SEARCH TOOLBAR
+========================================================= */
+
+.project-member-page .member-toolbar {
+    width: 100%;
+
+    margin-bottom: 22px;
+}
+
+.project-member-page .member-toolbar input {
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    padding: 13px 16px;
+
+    border: 1px solid #243b5a;
+    border-radius: 10px;
+
+    outline: none;
+
+    background: #071527;
+    color: #ffffff;
+
+    font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.project-member-page .member-toolbar input::placeholder {
+    color: #64748b;
+}
+
+.project-member-page .member-toolbar input:focus {
+    border-color: #3b82f6;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(59, 130, 246, 0.12);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.project-member-page .member-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    overflow-x: hidden;
+    overflow-y: hidden;
+
     border: 1px solid #243b5a;
     border-radius: 12px;
-    overflow: hidden;
+
+    background: #0c1d32;
 }
 
-.member-table table {
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.project-member-page .member-table table {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
     border-collapse: collapse;
+
+    table-layout: fixed;
 }
 
-.member-table thead {
-    background: #122743;
+.project-member-page .member-table thead {
+    background: #163252;
 }
 
-.member-table th {
-    padding: 14px;
-    color: white;
+.project-member-page .member-table th,
+.project-member-page .member-table td {
+    padding: 12px 10px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-member-page .member-table th {
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+
     text-align: left;
-    font-weight: 600;
 }
 
-.member-table td {
-    padding: 14px;
+.project-member-page .member-table td {
     border-top: 1px solid #1f3654;
+
     color: #e5e7eb;
+
+    font-size: 14px;
+
     vertical-align: middle;
 }
 
-.member-table tbody tr:hover {
+.project-member-page .member-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.project-member-page .member-table tbody tr:hover {
     background: rgba(37, 99, 235, 0.08);
 }
 
-.member-user {
+
+/* =========================================================
+   COLUMN WIDTHS
+   Tổng đúng 100%
+========================================================= */
+
+/* Thành viên */
+.project-member-page .member-table th:nth-child(1),
+.project-member-page .member-table td:nth-child(1) {
+    width: 23%;
+}
+
+/* Email */
+.project-member-page .member-table th:nth-child(2),
+.project-member-page .member-table td:nth-child(2) {
+    width: 20%;
+}
+
+/* Chức vụ */
+.project-member-page .member-table th:nth-child(3),
+.project-member-page .member-table td:nth-child(3) {
+    width: 19%;
+}
+
+/* Vai trò */
+.project-member-page .member-table th:nth-child(4),
+.project-member-page .member-table td:nth-child(4) {
+    width: 14%;
+}
+
+/* Ngày tham gia */
+.project-member-page .member-table th:nth-child(5),
+.project-member-page .member-table td:nth-child(5) {
+    width: 13%;
+}
+
+/* Hành động */
+.project-member-page .member-table th:nth-child(6),
+.project-member-page .member-table td:nth-child(6) {
+    width: 11%;
+}
+
+
+/* =========================================================
+   MEMBER INFO
+========================================================= */
+
+.project-member-page .member-user {
     display: flex;
     align-items: center;
+
     gap: 12px;
+
+    min-width: 0;
 }
 
-.member-user img {
+.project-member-page .member-user img {
     width: 46px;
     height: 46px;
+
+    flex-shrink: 0;
+
     border-radius: 50%;
+
     object-fit: cover;
+
+    border: 1px solid #315274;
 }
 
-.member-avatar {
+.project-member-page .member-avatar {
     width: 46px;
     height: 46px;
-    border-radius: 50%;
-    background: #2563eb;
-    color: white;
+
+    flex-shrink: 0;
+
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #2563eb;
+    color: #ffffff;
+
     font-size: 18px;
     font-weight: 700;
 }
 
-.member-user h4 {
+.project-member-page .member-user > div:last-child {
+    min-width: 0;
+}
+
+.project-member-page .member-user h4 {
     margin: 0;
-    color: white;
+
+    max-width: 180px;
+
+    overflow: hidden;
+
+    color: #ffffff;
+
     font-size: 15px;
+    font-weight: 700;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.member-user p {
-    margin-top: 4px;
+.project-member-page .member-user p {
+    margin: 4px 0 0;
+
+    max-width: 190px;
+
+    overflow: hidden;
+
     color: #94a3b8;
+
     font-size: 13px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.member-role {
+
+/* =========================================================
+   ROLE BADGE
+========================================================= */
+
+.project-member-page .member-role {
     display: inline-block;
+
     padding: 6px 12px;
+
     border-radius: 999px;
+
     font-size: 13px;
     font-weight: 600;
+
+    white-space: nowrap;
 }
 
-.member-role.OWNER {
-    background: rgba(239,68,68,.2);
+.project-member-page .member-role.OWNER {
+    background: rgba(239, 68, 68, 0.2);
     color: #ef4444;
 }
 
-.member-role.MANAGER {
-    background: rgba(59,130,246,.2);
+.project-member-page .member-role.MANAGER {
+    background: rgba(59, 130, 246, 0.2);
     color: #38bdf8;
 }
 
-.member-role.MEMBER {
-    background: rgba(34,197,94,.2);
+.project-member-page .member-role.MEMBER {
+    background: rgba(34, 197, 94, 0.2);
     color: #22c55e;
 }
 
-.member-actions {
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.project-member-page .member-table td:nth-child(6),
+.project-member-page .member-table th:nth-child(6) {
+    overflow: visible;
+}
+
+.project-member-page .member-actions {
     display: flex;
-    gap: 8px;
+    align-items: center;
+
+    gap: 6px;
+
+    min-width: 0;
+
+    white-space: nowrap;
 }
 
-.btn-member-edit {
+.project-member-page .btn-member-edit,
+.project-member-page .btn-member-delete {
+    flex: 0 0 auto;
+
+    padding: 7px 10px;
+
+    border: none;
+    border-radius: 8px;
+
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.project-member-page .btn-member-edit {
     background: #2563eb;
-    color: white;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: .2s;
 }
 
-.btn-member-edit:hover {
+.project-member-page .btn-member-edit:hover {
     background: #1d4ed8;
+    transform: translateY(-1px);
 }
 
-.btn-member-delete {
+.project-member-page .btn-member-delete {
     background: #ef4444;
-    color: white;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: .2s;
 }
 
-.btn-member-delete:hover {
+.project-member-page .btn-member-delete:hover {
     background: #dc2626;
+    transform: translateY(-1px);
 }
 
-.member-pagination {
-    margin-top: 18px;
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.project-member-page .member-pagination {
+    width: 100%;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    gap: 16px;
+
+    margin-top: 18px;
+
     color: #cbd5e1;
+
+    font-size: 14px;
 }
 
-.member-pagination div {
+.project-member-page .member-pagination > div {
     display: flex;
     align-items: center;
+
     gap: 10px;
 }
 
-.member-pagination button {
-    background: #2563eb;
-    color: white;
+.project-member-page .member-pagination button {
+    padding: 9px 14px;
+
     border: none;
-    padding: 8px 14px;
     border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
     cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease;
 }
 
-.member-pagination button:hover:not(:disabled) {
+.project-member-page
+.member-pagination
+button:hover:not(:disabled) {
     background: #1d4ed8;
 }
 
-.member-pagination button:disabled {
-    opacity: .5;
+.project-member-page
+.member-pagination
+button:disabled {
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
-.empty-member {
-    text-align: center;
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.project-member-page .empty-member {
     padding: 45px;
+
     color: #94a3b8;
+
+    text-align: center;
+
+    font-size: 14px;
 }
+
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
 
 .member-modal-overlay {
     position: fixed;
+
     inset: 0;
-    background: rgba(0,0,0,.65);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
     z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.65);
+
+    backdrop-filter: blur(2px);
 }
+
+
+/* =========================================================
+   MODAL
+========================================================= */
 
 .member-modal {
     width: 470px;
-    max-width: 92%;
-    background: #0c1d32;
+    max-width: 92vw;
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    padding: 22px;
+
     border: 1px solid #243b5a;
     border-radius: 14px;
-    padding: 22px;
-    color: white;
+
+    background: #0c1d32;
+    color: #ffffff;
+
+    box-shadow:
+        0 24px 70px
+        rgba(0, 0, 0, 0.5);
 }
 
 .member-modal h2 {
-    margin-top: 0;
-    margin-bottom: 16px;
+    margin: 0 0 16px;
+
+    color: #ffffff;
+
+    font-size: 22px;
+    font-weight: 700;
 }
 
 .member-modal label {
     display: block;
+
     margin-top: 10px;
     margin-bottom: 5px;
+
     color: #cbd5e1;
+
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .member-modal input,
 .member-modal select {
     width: 100%;
-    background: #071527;
-    color: white;
+
+    padding: 10px 12px;
+
     border: 1px solid #243b5a;
     border-radius: 8px;
-    padding: 10px 12px;
+
     outline: none;
-    box-sizing: border-box;
+
+    background: #071527;
+    color: #ffffff;
+
+    font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
+
+.member-modal input::placeholder {
+    color: #64748b;
+}
+
+.member-modal input:focus,
+.member-modal select:focus {
+    border-color: #3b82f6;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(59, 130, 246, 0.12);
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
 
 .member-modal-actions {
     display: flex;
     justify-content: flex-end;
+
     gap: 10px;
+
     margin-top: 22px;
+}
+
+.btn-member-cancel,
+.btn-member-save {
+    padding: 10px 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
 }
 
 .btn-member-cancel {
     background: #64748b;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    cursor: pointer;
 }
 
 .btn-member-cancel:hover {
@@ -281,34 +639,127 @@
 
 .btn-member-save {
     background: #2563eb;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    cursor: pointer;
 }
 
 .btn-member-save:hover {
     background: #1d4ed8;
 }
 
+
+/* =========================================================
+   MODAL SCROLLBAR
+========================================================= */
+
+.member-modal::-webkit-scrollbar {
+    width: 7px;
+}
+
+.member-modal::-webkit-scrollbar-track {
+    background: #071527;
+}
+
+.member-modal::-webkit-scrollbar-thumb {
+    background: #35516f;
+    border-radius: 999px;
+}
+
+.member-modal::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+
+/* =========================================================
+   TABLE SCROLLBAR
+========================================================= */
+
+.project-member-page .member-table::-webkit-scrollbar {
+    height: 8px;
+}
+
+.project-member-page .member-table::-webkit-scrollbar-track {
+    background: #071527;
+}
+
+.project-member-page .member-table::-webkit-scrollbar-thumb {
+    background: #35516f;
+    border-radius: 999px;
+}
+
+
+/* =========================================================
+   RESPONSIVE <= 992px
+   Chỉ lúc này mới cần cuộn ngang
+========================================================= */
+
 @media (max-width: 992px) {
-    .member-table {
-        overflow-x: auto;
-    }
 
-    .member-table table {
-        min-width: 950px;
-    }
-
-    .member-header {
+    .project-member-page .member-header {
         flex-direction: column;
         align-items: flex-start;
+
         gap: 15px;
     }
 
-    .member-pagination {
+    .project-member-page .member-header button {
+        width: 100%;
+    }
+
+    .project-member-page .member-table {
+        overflow-x: auto;
+    }
+
+    .project-member-page .member-table table {
+        width: 900px;
+        min-width: 900px;
+        max-width: none;
+    }
+
+    .project-member-page .member-pagination {
         flex-direction: column;
+        align-items: flex-start;
+
         gap: 12px;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE <= 650px
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .project-member-page {
+        margin-top: 16px;
+    }
+
+    .project-member-page .member-header h2 {
+        font-size: 21px;
+    }
+
+    .project-member-page .member-table {
+        overflow-x: auto;
+    }
+
+    .project-member-page .member-table table {
+        width: 900px;
+        min-width: 900px;
+        max-width: none;
+    }
+
+    .member-modal {
+        width: 100%;
+        max-width: 100%;
+
+        padding: 18px;
+    }
+
+    .member-modal-actions {
+        flex-direction: column;
+    }
+
+    .btn-member-cancel,
+    .btn-member-save {
+        width: 100%;
     }
 }

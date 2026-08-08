@@ -413,7 +413,7 @@ function Member({ projectId }) {
         );
 
     return (
-        <div className="member-page">
+        <div className="project-member-page">
             {message && (
                 <div className="toast-success">
                     {message}

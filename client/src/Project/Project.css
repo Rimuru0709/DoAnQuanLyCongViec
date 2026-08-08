@@ -5,11 +5,21 @@
 }
 
 .project-page {
-    flex: 1;
-    padding: 28px;
-    color: white;
-}
+    width: calc(100% - 260px);
+    min-width: 0;
+    min-height: 100vh;
 
+    margin-left: 260px;
+
+    padding: 28px;
+
+    box-sizing: border-box;
+
+    background: #071527;
+    color: white;
+
+    overflow-x: hidden;
+}
 .project-header {
     display: flex;
     justify-content: space-between;
@@ -341,15 +351,6 @@ tr:hover {
     z-index: 999;
 }
 
-.modal-box {
-    width: 520px;
-    background: #0c1d32;
-    border: 1px solid #243b5a;
-    border-radius: 16px;
-    padding: 26px;
-    color: white;
-}
-
 .modal-box h2 {
     margin-top: 0;
     margin-bottom: 20px;
@@ -466,4 +467,84 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .color-circle.active {
     border-color: #fff;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .35);
+}
+
+@media (max-width: 900px) {
+
+    .project-page {
+        width: calc(100% - 220px);
+        margin-left: 220px;
+
+        padding: 22px;
+    }
+
+    .project-header {
+        flex-direction: column;
+
+        gap: 16px;
+    }
+
+    .project-actions {
+        width: 100%;
+
+        flex-wrap: wrap;
+    }
+
+    .project-actions input {
+        flex: 1;
+
+        width: auto;
+        min-width: 220px;
+    }
+
+    .project-tabs {
+        overflow-x: auto;
+
+        padding-bottom: 5px;
+    }
+
+    .project-tabs button {
+        flex-shrink: 0;
+    }
+
+    .project-table {
+        overflow-x: auto;
+    }
+
+    .project-table table {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .project-page {
+        margin-left: 220px;
+
+        width: calc(100% - 220px);
+
+        padding: 16px;
+    }
+
+    .project-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .project-actions input {
+        width: 100%;
+        min-width: 0;
+
+        box-sizing: border-box;
+    }
+
+    .project-actions button {
+        width: 100%;
+
+        justify-content: center;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }

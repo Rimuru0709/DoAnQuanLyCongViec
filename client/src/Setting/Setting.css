@@ -2,18 +2,26 @@
    BỐ CỤC CHÍNH & NỀN
    ========================================== */
 .project-settings-layout {
-    display: flex;
     width: 100%;
     min-height: 100vh;
+
     background-color: #071527;
 }
 
 .project-settings-container {
-    flex: 1;
+    width: calc(100% - 260px);
+    min-height: 100vh;
+
+    margin-left: 260px;
+
     padding: 40px;
+
     box-sizing: border-box;
+
     display: flex;
     justify-content: flex-start;
+
+    overflow-x: hidden;
 }
 
 /* Khung chứa Form */
@@ -291,4 +299,26 @@ input:checked + .slider:before {
     padding: 24px;
     color: #f87171;
     max-width: 500px;
+}
+
+@media (max-width: 900px) {
+
+    .project-settings-container {
+        width: calc(100% - 220px);
+
+        margin-left: 220px;
+
+        padding: 28px;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .project-settings-container {
+        padding: 20px;
+    }
+
+    .settings-form {
+        max-width: 100%;
+    }
 }

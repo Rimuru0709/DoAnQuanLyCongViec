@@ -1,9 +1,16 @@
 .calendar-page {
     flex: 1;
+
+    margin-left: 260px;
+
     padding: 30px;
+
     background: #071527;
     color: #ffffff;
+
     min-height: 100vh;
+
+    overflow-x: hidden;
 }
 
 .calendar-header {
@@ -445,8 +452,40 @@
     }
 }
 
+@media (max-width: 900px) {
+    .calendar-page {
+        margin-left: 220px;
+    }
+
+    .calendar-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-custom-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .calendar-left-actions,
+    .calendar-title-select,
+    .calendar-view-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .calendar-title-select select {
+        width: 170px;
+    }
+
+    .calendar-title-select select:last-child {
+        width: 220px;
+    }
+}
+
 @media (max-width: 768px) {
     .calendar-page {
+        margin-left: 220px;
         padding: 20px;
     }
 
