@@ -1,46 +1,367 @@
 .app {
     display: flex;
     min-height: 100vh;
+    background: #061426;
+    color: #ffffff;
 }
 
 .main {
     flex: 1;
     min-width: 0;
+
+    margin-left: 260px;
+
     padding: 22px;
+
+    min-height: 100vh;
+
+    overflow-x: hidden;
 }
+
+/* =========================================================
+   HEADER
+========================================================= */
 
 .topbar {
+    min-height: 76px;
+    margin-bottom: 22px;
+    padding: 14px 18px;
+
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 20px;
-    margin-bottom: 25px;
+
+    border-bottom: 1px solid #1d3855;
+    background: #0b172a;
 }
 
-.topbar h1 {
-    margin: 0;
-    font-size: 28px;
+.topbar-account-wrapper {
+    position: relative;
+    flex-shrink: 0;
 }
 
-.topbar p {
-    margin-top: 6px;
+.topbar-account {
+    min-width: 200px;
+    padding: 8px 10px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    background: transparent;
+    color: #ffffff;
+
+    cursor: pointer;
+    text-align: left;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.topbar-account:hover {
+    border-color: #29415f;
+    background: #102039;
+}
+
+.topbar-avatar {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.topbar-account-info {
+    min-width: 0;
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.topbar-account-info strong {
+    overflow: hidden;
+
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-account-info span {
     color: #9fb1c8;
+    font-size: 12px;
 }
 
-.topbar input {
+.account-arrow {
+    color: #8ea2ba;
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+
+.account-arrow.open {
+    transform: rotate(180deg);
+}
+
+.account-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 2000;
+
+    width: 200px;
+    padding: 6px;
+
+    border: 1px solid #29415f;
+    border-radius: 9px;
+
+    background: #102039;
+
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.38);
+}
+
+.account-dropdown button {
+    width: 100%;
+    padding: 11px 12px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #dbe8f6;
+
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.account-dropdown button:hover {
+    background: #1a3150;
+}
+
+.account-dropdown .account-logout {
+    color: #ff7b7b;
+}
+
+.account-dropdown .account-logout:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.topbar-search {
     width: 430px;
     max-width: 100%;
-    padding: 14px 16px;
-    border: 1px solid #1d3855;
+}
+
+.topbar-search input {
+    width: 100%;
+    padding: 13px 16px;
+
+    border: 1px solid #24415f;
     border-radius: 10px;
     outline: none;
-    background: #0b1c31;
+
+    background: #091a2e;
+    color: #ffffff;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.topbar-search input::placeholder {
+    color: #71859d;
+}
+
+.topbar-search input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* =========================================================
+   CARD CHUNG
+========================================================= */
+
+.card,
+.stat-card {
+    padding: 20px;
+
+    border: 1px solid #1d3855;
+    border-radius: 14px;
+
+    background: #0d1f35;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.card h3 {
+    margin: 0;
+}
+
+/* =========================================================
+   TIMELINE
+========================================================= */
+
+.timeline-card {
+    margin-bottom: 18px;
+    padding: 24px 26px;
+    overflow: visible;
+}
+
+.timeline-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 20px;
+
+    margin-bottom: 31px;
+}
+
+.timeline-header>div:last-child {
+    text-align: right;
+}
+
+.timeline-header span {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #8fa8c4;
+    font-size: 12px;
+}
+
+.timeline-header b {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.timeline-title {
+    color: #dbeafe;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.timeline-track {
+    position: relative;
+    width: 100%;
+    height: 12px;
+
+    border-radius: 999px;
+    background: #1c3859;
+}
+
+.timeline-completed {
+    height: 100%;
+    border-radius: inherit;
+
+    background: linear-gradient(90deg,
+            #2563eb,
+            #60a5fa);
+}
+
+.timeline-today {
+    position: absolute;
+    top: -10px;
+
+    width: 3px;
+    height: 32px;
+
+    transform: translateX(-50%);
+    background: #22c55e;
+}
+
+.timeline-today::after {
+    content: "";
+
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+
+    width: 9px;
+    height: 9px;
+
+    transform: translateX(-50%);
+    border-radius: 50%;
+
+    background: #22c55e;
+}
+
+.timeline-today span {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+
+    padding: 4px 8px;
+
+    transform: translateX(-50%);
+    border-radius: 6px;
+
+    background: #16a34a;
+    color: #ffffff;
+
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.timeline-projects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    margin-top: 25px;
+}
+
+.timeline-projects p {
+    margin: 0;
+    color: #8fa8c4;
+    font-size: 13px;
+}
+
+.timeline-projects button {
+    padding: 7px 12px;
+
+    border: 1px solid #28496e;
+    border-radius: 999px;
+
+    background: #102842;
+    color: #bcd1e8;
+
+    font-size: 12px;
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.timeline-projects button:hover {
+    transform: translateY(-1px);
+    border-color: #3b82f6;
+    background: #163455;
     color: #ffffff;
 }
 
-.topbar input:focus {
-    border-color: #2563eb;
-}
+/* =========================================================
+   STATS
+========================================================= */
 
 .stats {
     display: grid;
@@ -49,22 +370,58 @@
     margin-bottom: 18px;
 }
 
-.stat-card,
-.card {
-    padding: 20px;
-    border: 1px solid #1d3855;
-    border-radius: 14px;
-    background: #0d1f35;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+.stat-card {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.stat-card::before {
+    content: "";
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 3px;
+
+    background: #2563eb;
+}
+
+.stat-card:nth-child(2)::before {
+    background: #0ea5e9;
+}
+
+.stat-card:nth-child(3)::before {
+    background: #f59e0b;
+}
+
+.stat-card:nth-child(4)::before {
+    background: #22c55e;
+}
+
+.stat-card:nth-child(5)::before {
+    background: #ef4444;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    border-color: #315274;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
 }
 
 .stat-card p {
-    margin-bottom: 12px;
+    margin: 0 0 12px;
     color: #b7c7d9;
 }
 
 .stat-card h2 {
-    margin-bottom: 10px;
+    margin: 0 0 10px;
     font-size: 32px;
 }
 
@@ -77,208 +434,1834 @@
     color: #ff5b5b;
 }
 
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: 1.1fr 1.3fr 1.2fr;
-    gap: 18px;
+/* =========================================================
+   TASK BURNDOWN
+========================================================= */
+
+.task-burndown-card {
     margin-bottom: 18px;
+    padding: 22px 24px;
+    overflow: hidden;
 }
 
-.card h3 {
-    margin-bottom: 18px;
+.task-burndown-card .ms-section-title {
+    margin-bottom: 24px;
 }
 
-/* Vòng tròn tiến độ động */
-.circle {
-    width: 220px;
-    height: 220px;
-    margin: 24px auto 16px;
-    border: none;
-    border-radius: 50%;
+.task-burndown-card .ms-section-title>span {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #60a5fa;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.task-burndown-card .ms-section-title h3 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.task-burndown-card .ms-section-title p {
+    margin: 7px 0 0;
+
+    color: #8fa8c4;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Toàn bộ vùng biểu đồ */
+.burndown-chart {
+    position: relative;
+
+    min-height: 320px;
+    margin-top: 10px;
+
+    padding-left: 58px;
+    padding-right: 14px;
+}
+
+/* =========================
+   TRỤC Y
+========================= */
+
+.burndown-chart {
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%;
+    height: 330px;
+    margin-top: 20px;
 }
 
-.circle-inner {
-    width: 155px;
-    height: 155px;
-    border-radius: 50%;
-    background: #07182d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
-    font-weight: 700;
-}
+.burndown-y-axis {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 
-.progress-card p {
-    text-align: center;
-    color: #a9bdd3;
-}
-
-/* Biểu đồ cột */
-.bars {
-    display: flex;
-    height: 230px;
-    align-items: flex-end;
-    justify-content: space-around;
-    gap: 15px;
-}
-
-.bars > div {
-    width: 70px;
-    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: space-between;
+
+    width: 100%;
+    height: 260px;
+
+    pointer-events: none;
+}
+
+.burndown-y-row {
+    position: relative;
+
+    display: flex;
     align-items: center;
+
+    width: 100%;
+    height: 0;
 }
 
-.bars b {
-    margin-bottom: 8px;
-    font-size: 14px;
+.burndown-y-row>span {
+    width: 55px;
+    padding-right: 12px;
+
+    color: #dce8f7;
+
+    font-size: 13px;
+    text-align: right;
+
+    flex-shrink: 0;
 }
 
-.bars span {
-    width: 45px;
-    min-height: 5px;
-    border-radius: 8px 8px 0 0;
-    background: linear-gradient(
-        to bottom,
-        #2ee57c,
-        #0d6efd
-    );
+.burndown-grid-line {
+    height: 1px;
+    flex: 1;
+
+    background: #314967;
 }
 
-.bars p {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 12px;
-    color: #c8d6e5;
+.burndown-svg-wrapper {
+    position: absolute;
+
+    top: 0;
+    left: 55px;
+    right: 0;
+
+    height: 260px;
 }
 
-/* Hoạt động gần đây */
-.activity-card ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+.burndown-svg {
+    display: block;
+
+    width: 100%;
+    height: 260px;
+
+    overflow: visible;
 }
 
-.activity-card li {
-    padding: 12px 0;
-    border-bottom: 1px solid #1d3855;
-    color: #dce7f3;
+/* =========================
+   SVG
+========================= */
+
+.burndown-svg-wrapper {
+    position: relative;
+
+    z-index: 2;
+
+    width: 100%;
+    height: 260px;
+
+    overflow: hidden;
+}
+
+.burndown-svg {
+    width: 100%;
+    height: 260px;
+
+    overflow: visible;
+}
+
+/* Đường baseline */
+.burndown-baseline-line {
+    fill: none;
+
+    stroke: #94a3b8;
+    stroke-width: 4;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect: non-scaling-stroke;
+}
+
+/* Đường công việc còn lại */
+.burndown-remaining-line {
+    fill: none;
+
+    stroke: #f97316;
+    stroke-width: 4;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect: non-scaling-stroke;
+}
+
+/* Điểm baseline */
+.burndown-baseline-dot {
+    fill: #94a3b8;
+
+    stroke: #0d1f35;
+    stroke-width: 3;
+
+    vector-effect: non-scaling-stroke;
+}
+
+/* Điểm remaining */
+.burndown-remaining-dot {
+    fill: #f97316;
+
+    stroke: #0d1f35;
+    stroke-width: 3;
+
+    vector-effect: non-scaling-stroke;
+
     cursor: pointer;
 }
 
-.activity-card li:last-child {
-    border-bottom: none;
+/* =========================
+   TRỤC X
+========================= */
+
+.burndown-x-axis {
+    margin-top: 8px;
+    margin-left: 58px;
+    padding-right: 14px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-.activity-card li:hover {
-    color: #60a5fa;
+.burndown-x-axis span {
+    flex: 1;
+
+    color: #9fb1c8;
+
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: center;
+
+    white-space: nowrap;
 }
 
-/* Khu vực nội dung dưới */
-.content-grid {
+/* =========================
+   CHÚ THÍCH
+========================= */
+
+.burndown-legend {
+    margin-top: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    gap: 24px;
+}
+
+.burndown-legend>div {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    color: #cddbea;
+
+    font-size: 12px;
+}
+
+.legend-line {
+    width: 34px;
+    height: 4px;
+
+    display: inline-block;
+
+    border-radius: 999px;
+}
+
+.legend-line.baseline {
+    background: #94a3b8;
+}
+
+.legend-line.remaining {
+    background: #f97316;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+    .task-burndown-card {
+        padding: 20px;
+    }
+
+    .burndown-chart {
+        min-height: 300px;
+        padding-left: 50px;
+    }
+
+    .burndown-x-axis {
+        margin-left: 50px;
+    }
+
+    .burndown-y-row>span {
+        width: 38px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 600px) {
+    .task-burndown-card {
+        padding: 18px 14px;
+    }
+
+    .burndown-chart {
+        min-width: 700px;
+        min-height: 300px;
+
+        padding-left: 48px;
+    }
+
+    .burndown-x-axis {
+        min-width: 700px;
+
+        margin-left: 48px;
+    }
+
+    .task-burndown-card {
+        overflow-x: auto;
+    }
+
+    .burndown-legend {
+        min-width: 700px;
+        justify-content: flex-start;
+    }
+}
+
+.burndown-actual-line {
+    fill: none;
+    stroke: #94a3b8;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.burndown-actual-dot {
+    fill: #94a3b8;
+    stroke: #0d1f35;
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+}
+
+.legend-line.actual {
+    background: #94a3b8;
+}
+
+/* =========================================================
+   BỐ CỤC GIỐNG MICROSOFT PROJECT
+========================================================= */
+
+.ms-project-overview {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+    grid-template-columns:
+        minmax(340px, 0.82fr) minmax(650px, 1.58fr);
+    gap: 18px;
+
+    margin-bottom: 18px;
+}
+
+.ms-left-column,
+.ms-right-column {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
     gap: 18px;
 }
 
-.kanban-board {
+.ms-progress-card {
+    min-height: 355px;
+}
+
+.ms-progress-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.ms-progress-header>div {
+    min-width: 0;
+}
+
+.ms-progress-header span,
+.ms-section-title>span,
+.section-heading span {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #60a5fa;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.ms-progress-header h3,
+.ms-section-title h3,
+.section-heading h3 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.ms-progress-header small {
+    color: #8fa8c4;
+
+    font-size: 12px;
+    text-align: right;
+}
+
+.ms-progress-box {
+    width: 100%;
+    max-width: 520px;
+    min-height: 320px;
+    /* tăng chiều cao */
+    margin-top: 50px;
+
+    padding: 40px 36px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background: linear-gradient(135deg,
+            #f97316,
+            #ea580c);
+
+    box-shadow: 0 16px 35px rgba(234, 88, 12, 0.24);
+}
+
+.ms-progress-box>span {
+    color: #fff7ed;
+
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+}
+
+.ms-progress-box strong {
+    display: block;
+    margin: 24px 0 18px;
+
+    color: #ffffff;
+
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.ms-progress-box p {
+    margin: 0;
+
+    color: #ffedd5;
+
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.ms-section-title p {
+    margin: 7px 0 0;
+
+    color: #8fa8c4;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* =========================================================
+   BIỂU ĐỒ TIẾN ĐỘ DỰ ÁN
+========================================================= */
+
+.ms-chart-card {
+    min-height: 390px;
+}
+
+.ms-project-chart {
+    position: relative;
+
+    min-height: 310px;
+    margin-top: 22px;
+    padding: 18px 12px 52px 80px;
+
+    border-left: 1px solid #315274;
+    border-bottom: 1px solid #315274;
+
+    overflow: hidden;
+}
+
+/* Trục phần trăm và các đường ngang */
+
+.chart-y-axis {
+    position: absolute;
+    top: 18px;
+    left: 0;
+    right: 12px;
+
+    height: 220px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    pointer-events: none;
+    z-index: 1;
+}
+
+.chart-y-row {
+    display: flex;
+    align-items: center;
+    height: 0;
+}
+
+.chart-y-row span {
+    width: 68px;
+    padding-right: 12px;
+
+    color: #ffffff;
+
+    font-size: 13px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.chart-line {
+    flex: 1;
+    height: 1px;
+
+    background: rgba(82, 117, 153, 0.55);
+}
+
+/* Khu vực chứa các cột */
+
+.chart-bars {
+    position: relative;
+    z-index: 2;
+
+    width: 100%;
+    height: 260px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    gap: 18px;
+}
+
+.ms-project-bar-item {
+    width: min(150px, 25%);
+    min-width: 100px;
+    height: 260px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    cursor: pointer;
+}
+
+.ms-bar-area {
+    position: relative;
+
+    width: 100%;
+    height: 220px;
+    flex-shrink: 0;
+}
+
+.ms-bar-area b {
+    position: absolute;
+
+    left: 50%;
+    z-index: 4;
+
+    transform: translateX(-50%);
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    white-space: nowrap;
+
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.ms-bar-area span {
+    position: absolute;
+
+    bottom: 0;
+    left: 50%;
+    z-index: 3;
+
+    width: 88px;
+    max-width: 80%;
+    min-height: 5px;
+
+    transform: translateX(-50%);
+
+    border-radius: 5px 5px 0 0;
+
+    background: #5b9bd5;
+
+    transition:
+        filter 0.2s ease;
+}
+
+.ms-project-bar-item:hover .ms-bar-area span {
+    filter: brightness(1.12);
+}
+
+.ms-project-bar-item p {
+    position: static;
+
+    width: 170px;
+    min-height: 25px;
+
+    margin: 8px 0 0;
+
+    color: #ffffff;
+
+    font-size: 13px;
+    line-height: 1.3;
+    text-align: center;
+
+    overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   MILESTONES
+========================================================= */
+
+.ms-milestone-card {
+    min-height: 380px;
+    max-height: 620px;
+    overflow: hidden;
+}
+
+.empty-text {
+    margin: 28px 0 10px;
+    color: #8fa8c4;
+    font-size: 14px;
+}
+
+.overview-table {
+    margin-top: 20px;
+    max-height: 285px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Header bảng */
+.overview-table-head,
+.overview-table-row {
     display: grid;
-    grid-template-columns: repeat(4, minmax(240px, 1fr));
-    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) 140px;
+    align-items: center;
+    gap: 15px;
+}
+
+.overview-table-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+
+    padding: 11px 13px;
+
+    border-radius: 8px 8px 0 0;
+
+    background: #5b6472;
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Các dòng dữ liệu */
+.overview-table-row {
+    padding: 14px 13px;
+
+    border-right: 1px solid #2a4667;
+    border-bottom: 1px solid #2a4667;
+    border-left: 1px solid #2a4667;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.overview-table-row:hover {
+    background: #112844;
+}
+
+.overview-table-row>span {
+    min-width: 0;
+
+    color: #dce8f7;
+
+    overflow-wrap: anywhere;
+}
+
+.overview-table-row b {
+    color: #a9bdd3;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Thanh cuộn */
+.overview-table::-webkit-scrollbar {
+    width: 7px;
+}
+
+.overview-table::-webkit-scrollbar-track {
+    background: #0b1c31;
+    border-radius: 10px;
+}
+
+.overview-table::-webkit-scrollbar-thumb {
+    background: #315274;
+    border-radius: 10px;
+}
+
+.overview-table::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+/* =========================================================
+   LATE TASKS
+========================================================= */
+
+.ms-late-task-card {
+    min-height: 270px;
+    overflow: hidden;
+}
+
+.late-task-table {
+    margin-top: 20px;
+
+    max-height: 225px;
+
     overflow-x: auto;
+    overflow-y: auto;
+}
+
+/* Header + dòng dữ liệu */
+.ms-late-head,
+.ms-late-row {
+    min-width: 930px;
+
+    display: grid;
+    grid-template-columns:
+        minmax(200px, 1.45fr) 115px 115px 90px 80px minmax(150px, 1fr);
+
+    align-items: center;
+    gap: 12px;
+}
+
+/* Header bảng */
+.ms-late-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+
+    padding: 12px 14px;
+
+    background: #5b6472;
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Mỗi dòng công việc */
+.ms-late-row {
+    min-height: 58px;
+
+    padding: 14px;
+
+    border-right: 1px solid #2a4667;
+    border-bottom: 1px solid #2a4667;
+    border-left: 1px solid #2a4667;
+
+    color: #cddbea;
+
+    font-size: 13px;
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.ms-late-row:hover {
+    background: #112844;
+}
+
+.ms-late-row>span {
+    overflow-wrap: anywhere;
+}
+
+.ms-late-row b {
+    color: #f87171;
+    font-weight: 800;
+}
+
+/* Thanh cuộn */
+.late-task-table::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.late-task-table::-webkit-scrollbar-track {
+    background: #0b1c31;
+    border-radius: 10px;
+}
+
+.late-task-table::-webkit-scrollbar-thumb {
+    background: #315274;
+    border-radius: 10px;
+}
+
+.late-task-table::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+/* =========================================================
+   GANTT TOOLBAR
+========================================================= */
+
+.gantt-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+
+    margin-top: 20px;
+    margin-bottom: 22px;
+}
+
+
+/* =========================================================
+   NHÓM CHỌN DỰ ÁN + TÌM KIẾM
+========================================================= */
+
+.gantt-filter-group,
+.gantt-search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.gantt-filter-group label,
+.gantt-search-group label {
+    color: #8fa8c4;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   Ô CHỌN DỰ ÁN
+========================================================= */
+
+.gantt-filter-group select {
+    width: 270px;
+    height: 42px;
+
+    padding: 0 38px 0 13px;
+
+    border: 1px solid #315274;
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #0b1c31;
+    color: #ffffff;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.gantt-filter-group select:hover {
+    border-color: #3b82f6;
+    background: #10243c;
+}
+
+
+/* =========================================================
+   Ô TÌM KIẾM
+========================================================= */
+
+.gantt-search-group {
+    flex: 1;
+}
+
+.gantt-search-group input {
+    width: 100%;
+    max-width: 450px;
+    height: 42px;
+
+    padding: 0 14px;
+
+    border: 1px solid #315274;
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #0b1c31;
+    color: #ffffff;
+
+    font-size: 13px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.gantt-search-group input::placeholder {
+    color: #71859d;
+}
+
+.gantt-search-group input:hover {
+    border-color: #3b82f6;
+    background: #10243c;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
+
+.gantt-filter-group select:focus,
+.gantt-search-group input:focus {
+    border-color: #3b82f6;
+
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+
+/* =========================================================
+   OPTION
+========================================================= */
+
+.gantt-filter-group option {
+    background: #0b1c31;
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   RESPONSIVE TOOLBAR
+========================================================= */
+
+@media (max-width: 760px) {
+
+    .gantt-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gantt-filter-group,
+    .gantt-search-group {
+        width: 100%;
+    }
+
+    .gantt-filter-group select,
+    .gantt-search-group input {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* =========================================================
+   MINI GANTT - TIẾN ĐỘ CÔNG VIỆC GẦN ĐÂY
+========================================================= */
+
+.recent-gantt-card {
+    min-height: 430px;
+    margin-bottom: 18px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   KHUNG GANTT
+========================================================= */
+
+.recent-gantt {
+    margin-top: 24px;
+}
+
+
+/* =========================================================
+   HEADER NGÀY
+========================================================= */
+
+.gantt-date-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-left: 30px;
+    margin-bottom: 8px;
+
+    padding: 0 8px;
+
+    color: #8fa8c4;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   VÙNG BIỂU ĐỒ
+========================================================= */
+
+.gantt-chart-area {
+    position: relative;
+
+    min-width: 760px;
+    min-height: 300px;
+
+    padding:
+        12px 45px 50px 30px;
+
+    border-top: 1px solid #36516f;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   GRID NỀN
+========================================================= */
+
+.gantt-grid {
+    position: absolute;
+
+    top: 0;
+    right: 45px;
+    bottom: 50px;
+    left: 30px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(6, 1fr);
+
+    pointer-events: none;
+
+    z-index: 1;
+}
+
+.gantt-grid span {
+    border-left:
+        1px solid rgba(91,
+            155,
+            213,
+            0.14);
+}
+
+.gantt-grid span:last-child {
+    border-right:
+        1px solid rgba(91,
+            155,
+            213,
+            0.14);
+}
+
+
+/* =========================================================
+   MỖI DÒNG TASK
+========================================================= */
+
+.gantt-task-row {
+    position: relative;
+
+    height: 82px;
+
+    z-index: 3;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   THANH CÔNG VIỆC
+========================================================= */
+
+.gantt-task-bar {
+    position: absolute;
+
+    top: 48px;
+
+    height: 12px;
+    min-width: 22px;
+
+    border-radius: 2px;
+
+    background: #8bb7e8;
+
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+
+    transition:
+        filter 0.2s ease,
+        transform 0.2s ease;
+}
+
+.gantt-task-bar:hover {
+    transform: translateY(-1px);
+
+    filter: brightness(1.12);
+}
+
+
+/* =========================================================
+   TIẾN ĐỘ BÊN TRONG THANH
+========================================================= */
+
+.gantt-progress-line {
+    position: absolute;
+
+    top: 4px;
+    left: 0;
+
+    height: 4px;
+
+    border-radius: 2px;
+
+    background: #2f80d4;
+}
+
+
+/* =========================================================
+   TÊN NGƯỜI + CÔNG VIỆC
+========================================================= */
+
+.gantt-assignee {
+    position: absolute;
+
+    top: 5px;
+
+    width: 190px;
+
+    z-index: 6;
+
+    pointer-events: none;
+}
+
+.gantt-assignee b {
+    display: block;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.gantt-assignee small {
+    display: block;
+
+    margin-top: 4px;
+
+    max-width: 185px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    color: #8fa8c4;
+
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+
+/* =========================================================
+   ĐƯỜNG NỐI TASK
+========================================================= */
+
+.gantt-connector {
+    position: absolute;
+
+    top: 60px;
+
+    width: 1px;
+    height: 22px;
+
+    z-index: 5;
+
+    background: #3b82f6;
+}
+
+.gantt-connector::after {
+    content: "";
+
+    position: absolute;
+
+    left: -4px;
+    bottom: -1px;
+
+    width: 7px;
+    height: 7px;
+
+    border-right: 2px solid #3b82f6;
+    border-bottom: 2px solid #3b82f6;
+
+    transform: rotate(45deg);
+}
+
+
+/* =========================================================
+   MỐC CUỐI
+========================================================= */
+
+.gantt-final-date {
+    position: absolute;
+
+    right: 12px;
+    bottom: 2px;
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    z-index: 5;
+}
+
+.gantt-diamond {
+    color: #94a3b8;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   HOVER DÒNG TASK
+========================================================= */
+
+.gantt-task-row:hover .gantt-assignee b {
+    color: #60a5fa;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .recent-gantt-card {
+        overflow-x: auto;
+    }
+
+    .recent-gantt {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .recent-gantt-card {
+        padding: 18px 14px;
+    }
+
+    .recent-gantt {
+        min-width: 760px;
+    }
+}
+
+/* =========================================================
+   KHU VỰC DƯỚI - KANBAN
+========================================================= */
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+
+    gap: 18px;
+}
+
+
+/* =========================================================
+   CARD KANBAN
+========================================================= */
+
+.kanban {
+    width: 100%;
+
+    overflow: hidden;
+}
+
+.kanban>h3 {
+    margin: 0 0 22px;
+
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   4 CỘT KANBAN
+========================================================= */
+
+.kanban-board {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(220px, 1fr));
+
+    align-items: stretch;
+
+    gap: 16px;
+
+    overflow-x: auto;
+
     padding-bottom: 10px;
 }
 
+
+/* =========================================================
+   MỖI CỘT
+========================================================= */
+
 .column {
-    min-width: 0;
-    padding: 14px;
+    min-width: 220px;
+    min-height: 520px;
+
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+
     border: 1px solid #24415f;
     border-radius: 12px;
+
     background: #10243c;
 }
 
 .column h4 {
-    margin-bottom: 12px;
+    min-height: 24px;
+
+    margin: 0 0 15px;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 800;
 }
 
-.column > p {
-    color: #91a7bf;
-    font-size: 14px;
+
+/* =========================================================
+   DANH SÁCH TASK TRONG CỘT
+========================================================= */
+
+.column-task-list {
+    flex: 1;
+
+    min-height: 0;
 }
+
+.column-task-list>p {
+    margin: 5px 0 0;
+
+    color: #91a7bf;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   TASK CARD
+========================================================= */
 
 .task {
     margin-bottom: 12px;
+
     padding: 14px;
+
     border: 1px solid #2b4a6d;
     border-radius: 10px;
+
     background: #162c48;
     color: #dce8f7;
+
     font-size: 14px;
+
     cursor: pointer;
+
     transition:
         transform 0.2s ease,
-        border-color 0.2s ease;
+        border-color 0.2s ease,
+        background 0.2s ease;
 }
 
 .task:hover {
     transform: translateY(-2px);
+
     border-color: #3b82f6;
+
+    background: #193552;
 }
 
 .task b {
     display: block;
+
     overflow: hidden;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .task small {
     display: block;
+
     margin-top: 8px;
+
+    overflow: hidden;
+
     color: #9fb1c8;
+
+    font-size: 12px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .task span {
     display: block;
+
     margin-top: 8px;
+
     color: #31d67b;
-    font-weight: 700;
+
+    font-size: 13px;
+    font-weight: 800;
 }
 
-.column button {
+
+/* =========================================================
+   NÚT XEM CÔNG VIỆC
+   TẤT CẢ NẰM SONG SONG Ở ĐÁY
+========================================================= */
+
+.column>button {
     width: 100%;
-    padding: 12px;
+    min-height: 46px;
+
+    margin-top: 16px;
+    padding: 11px 14px;
+
+    flex-shrink: 0;
+
     border: none;
-    border-radius: 10px;
-    background: #0d6efd;
-    color: white;
-    cursor: pointer;
-}
+    border-radius: 9px;
 
-.column button:hover {
     background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
 }
 
-/* Cột bên phải */
-.right-panel {
+.column>button:hover {
+    transform: translateY(-1px);
+
+    background: #3b82f6;
+}
+
+
+/* =========================================================
+   MODAL DANH SÁCH CÔNG VIỆC KANBAN
+========================================================= */
+
+.kanban-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
     display: flex;
-    flex-direction: column;
-    gap: 18px;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(2, 8, 23, 0.78);
+
+    backdrop-filter: blur(3px);
+}
+
+
+/* =========================================================
+   HỘP MODAL
+========================================================= */
+
+.kanban-modal {
+    width: min(1200px, 96vw);
+    max-height: 86vh;
+
+    padding: 22px;
+
+    overflow: hidden;
+
+    border: 1px solid #315274;
+    border-radius: 14px;
+
+    background: #0d1f35;
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.55);
+}
+
+
+/* =========================================================
+   HEADER MODAL
+========================================================= */
+
+.kanban-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 18px;
+}
+
+.kanban-modal-header>div {
+    min-width: 0;
+}
+
+.kanban-modal-header span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #60a5fa;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1.1px;
+}
+
+.kanban-modal-header h3 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   NÚT ĐÓNG MODAL
+========================================================= */
+
+.kanban-modal-close {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    border: 1px solid #315274;
+    border-radius: 8px;
+
+    background: #10243c;
+    color: #ffffff;
+
+    font-size: 16px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.kanban-modal-close:hover {
+    border-color: #ef4444;
+
+    background:
+        rgba(239, 68, 68, 0.15);
+
+    color: #f87171;
+}
+
+
+/* =========================================================
+   Ô TÌM KIẾM TRONG MODAL
+========================================================= */
+
+.kanban-modal-search {
+    margin-bottom: 18px;
+}
+
+.kanban-modal-search input {
+    width: 100%;
+
+    height: 42px;
+
+    padding: 0 14px;
+
+    border: 1px solid #315274;
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #091a2e;
+    color: #ffffff;
+
+    font-size: 13px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.kanban-modal-search input::placeholder {
+    color: #71859d;
+}
+
+.kanban-modal-search input:focus {
+    border-color: #3b82f6;
+
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+
+/* =========================================================
+   KHUNG BẢNG
+========================================================= */
+
+.kanban-modal-table {
+    width: 100%;
+
+    overflow-x: auto;
+
+    border: 1px solid #284664;
+    border-radius: 10px;
+
+    background: #0d1f35;
+}
+
+
+/* =========================================================
+   HEADER + ROW
+========================================================= */
+
+.kanban-modal-table-head,
+.kanban-modal-table-row {
+    min-width: 1050px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(220px, 1.5fr) minmax(180px, 1.1fr) 120px 120px 90px minmax(170px, 1fr);
+
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+/* =========================================================
+   HEADER BẢNG
+========================================================= */
+
+.kanban-modal-table-head {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+
+    padding: 13px 15px;
+
+    background: #5b6472;
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* =========================================================
+   BODY BẢNG
+========================================================= */
+
+.kanban-modal-table-body {
+    max-height: 232px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   DÒNG DỮ LIỆU
+========================================================= */
+
+.kanban-modal-table-row {
+    min-height: 58px;
+
+    padding: 13px 15px;
+
+    border-top: 1px solid #284664;
+
+    color: #dce8f7;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease;
+}
+
+.kanban-modal-table-row:hover {
+    background: #112844;
+}
+
+.kanban-modal-table-row>span {
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kanban-modal-table-row b {
+    color: #31d67b;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.kanban-modal-table-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.kanban-modal-table-body::-webkit-scrollbar-track {
+    background: #0b1c31;
+    border-radius: 10px;
+}
+
+.kanban-modal-table-body::-webkit-scrollbar-thumb {
+    background: #315274;
+    border-radius: 10px;
+}
+
+.kanban-modal-table-body::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+
+/* =========================================================
+   RESPONSIVE MODAL
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .kanban-modal-overlay {
+        padding: 12px;
+    }
+
+    .kanban-modal {
+        width: 100%;
+        max-height: 92vh;
+
+        padding: 16px;
+    }
+
+    .kanban-modal-header h3 {
+        font-size: 17px;
+    }
 }
 
 .upcoming-project {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
     margin-top: 16px;
     padding-bottom: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
     border-bottom: 1px solid #1d3855;
     cursor: pointer;
 }
@@ -297,18 +2280,17 @@
     color: #9fb1c8;
 }
 
-.upcoming-project > span {
+.upcoming-project>span {
     color: #31d67b;
     font-weight: 700;
 }
 
-/* Tiến độ từng dự án */
 .project-progress-item {
     margin-top: 18px;
     cursor: pointer;
 }
 
-.project-progress-item > div:first-child {
+.project-progress-item>div:first-child {
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -321,7 +2303,9 @@
 .project-progress-line {
     height: 7px;
     margin-top: 8px;
+
     overflow: hidden;
+
     border-radius: 20px;
     background: #203d60;
 }
@@ -329,55 +2313,117 @@
 .project-progress-line span {
     display: block;
     height: 100%;
+
     border-radius: inherit;
     background: #22c55e;
 }
 
-/* Thông báo */
+/* =========================================================
+   THÔNG BÁO
+========================================================= */
+
 .toast-success {
     position: fixed;
     top: 24px;
     right: 24px;
     z-index: 9999;
+
     padding: 14px 20px;
+
     border-radius: 10px;
+
     background: #16a34a;
     color: #ffffff;
+
     font-weight: 600;
+
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* Responsive */
-@media (max-width: 1400px) {
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.activity-card::-webkit-scrollbar,
+.right-panel .card::-webkit-scrollbar,
+.late-task-table::-webkit-scrollbar {
+    width: 7px;
+    height: 8px;
+}
+
+.activity-card::-webkit-scrollbar-track,
+.right-panel .card::-webkit-scrollbar-track,
+.late-task-table::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: #0b1c31;
+}
+
+.activity-card::-webkit-scrollbar-thumb,
+.right-panel .card::-webkit-scrollbar-thumb,
+.late-task-table::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #315274;
+}
+
+.activity-card::-webkit-scrollbar-thumb:hover,
+.right-panel .card::-webkit-scrollbar-thumb:hover,
+.late-task-table::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+.kanban-board::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: #0b1c31;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #315274;
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1450px) {
     .stats {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr;
     }
 
-    .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .activity-card {
-        grid-column: 1 / -1;
+    .ms-project-overview {
+        grid-template-columns:
+            minmax(320px, 0.9fr) minmax(560px, 1.4fr);
     }
 
     .kanban-board {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1180px) {
+    .ms-project-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .ms-progress-card {
+        min-height: auto;
+    }
+
+    .ms-progress-box {
+        margin-top: 35px;
     }
 }
 
 @media (max-width: 1000px) {
-    .stats,
-    .dashboard-grid,
     .content-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .activity-card {
-        grid-column: auto;
-    }
-
-    .kanban-board {
         grid-template-columns: 1fr;
     }
 
@@ -386,8 +2432,61 @@
         align-items: stretch;
     }
 
-    .topbar input {
+    .topbar-search {
         width: 100%;
+    }
+
+    .timeline-header {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .timeline-title {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .timeline-header>div:first-child {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .timeline-header>div:last-child {
+        grid-column: 2;
+        grid-row: 2;
+    }
+}
+
+@media (max-width: 760px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ms-project-chart {
+        position: relative;
+
+        min-height: 290px;
+        margin-top: 22px;
+        padding: 18px 12px 38px 80px;
+
+        border-left: 1px solid #315274;
+        border-bottom: 1px solid #315274;
+
+        overflow: hidden;
+    }
+
+    .ms-project-bar-item {
+        width: 105px;
+        min-width: 105px;
+    }
+
+    .section-heading,
+    .ms-progress-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ms-progress-header small {
+        text-align: left;
     }
 }
 
@@ -400,76 +2499,84 @@
         grid-template-columns: 1fr;
     }
 
-    .circle {
-        width: 185px;
-        height: 185px;
+    .topbar-account-wrapper,
+    .topbar-account,
+    .account-dropdown {
+        width: 100%;
     }
 
-    .circle-inner {
-        width: 130px;
-        height: 130px;
-        font-size: 34px;
+    .timeline-card {
+        padding: 20px 17px;
     }
 
-    .bars > div {
-        width: 55px;
+    .timeline-header {
+        gap: 15px;
     }
 
-    .bars span {
-        width: 35px;
+    .timeline-header b {
+        font-size: 13px;
+    }
+
+    .timeline-today span {
+        font-size: 10px;
+    }
+
+    .ms-progress-box {
+        padding: 23px;
+    }
+
+    .ms-progress-box strong {
+        font-size: 44px;
+    }
+
+    .overview-table-head,
+    .overview-table-row {
+        grid-template-columns:
+            minmax(0, 1fr) 100px;
+    }
+
+    .kanban-board {
+        grid-template-columns: 1fr;
     }
 }
 
-/* Các khối danh sách dài */
-.activity-card,
-.right-panel .card {
-    max-height: 360px;
-    overflow-y: auto;
+.chart-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+
+    margin-top: 16px;
 }
 
-/* Thanh cuộn */
-.activity-card::-webkit-scrollbar,
-.right-panel .card::-webkit-scrollbar {
-    width: 7px;
+.chart-pagination button {
+    padding: 8px 14px;
+
+    border: 1px solid #315274;
+    border-radius: 6px;
+
+    background: #10243c;
+    color: #ffffff;
+
+    font-size: 13px;
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
 }
 
-.activity-card::-webkit-scrollbar-track,
-.right-panel .card::-webkit-scrollbar-track {
-    background: #0b1c31;
-    border-radius: 10px;
+.chart-pagination button:hover:not(:disabled) {
+    border-color: #3b82f6;
+    background: #2563eb;
 }
 
-.activity-card::-webkit-scrollbar-thumb,
-.right-panel .card::-webkit-scrollbar-thumb {
-    background: #315274;
-    border-radius: 10px;
+.chart-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
-.activity-card::-webkit-scrollbar-thumb:hover,
-.right-panel .card::-webkit-scrollbar-thumb:hover {
-    background: #3b82f6;
+.chart-pagination span {
+    color: #a9bdd3;
+    font-size: 13px;
 }
-
-.kanban {
-    overflow: hidden;
-}
-
-.kanban-board {
-    overflow-x: auto;
-    padding-bottom: 10px;
-}
-
-.kanban-board::-webkit-scrollbar {
-    height: 8px;
-}
-
-.kanban-board::-webkit-scrollbar-track {
-    background: #0b1c31;
-    border-radius: 10px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb {
-    background: #315274;
-    border-radius: 10px;
-}
-

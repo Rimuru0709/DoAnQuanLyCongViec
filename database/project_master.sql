@@ -81,11 +81,19 @@ CREATE TABLE tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     column_id INT,
+
     title VARCHAR(150) NOT NULL,
     description TEXT,
+
     assigned_to INT,
+
     start_date DATE,
     end_date DATE,
+
+    -- Deadline gốc khi lập kế hoạch.
+    -- Sau này dù end_date thay đổi thì baseline vẫn giữ nguyên.
+    baseline_end_date DATE,
+
     status ENUM(
         'CHUA_LAM',
         'DANG_LAM',
@@ -93,20 +101,30 @@ CREATE TABLE tasks (
         'HOAN_THANH',
         'QUA_HAN'
     ) DEFAULT 'CHUA_LAM',
+
     priority ENUM(
         'THAP',
         'TRUNG_BINH',
         'CAO'
     ) DEFAULT 'TRUNG_BINH',
+
     progress INT DEFAULT 0,
+
+    -- Thời điểm công việc thực sự được hoàn thành.
+    completed_at DATETIME NULL,
+
     task_order INT DEFAULT 0,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (project_id)
         REFERENCES projects(id)
         ON DELETE CASCADE,
+
     FOREIGN KEY (column_id)
         REFERENCES kanban_columns(id)
         ON DELETE SET NULL,
+
     FOREIGN KEY (assigned_to)
         REFERENCES users(id)
         ON DELETE SET NULL
@@ -453,9 +471,11 @@ INSERT INTO tasks
     assigned_to,
     start_date,
     end_date,
+    baseline_end_date,
     status,
     priority,
     progress,
+    completed_at,
     task_order
 )
 VALUES
@@ -467,9 +487,17 @@ VALUES
     1,
     '2026-07-01',
     '2026-07-03',
+
+    -- Deadline gốc
+    '2026-07-03',
+
     'HOAN_THANH',
     'CAO',
     100,
+
+    -- Ngày hoàn thành thực tế
+    '2026-07-03 17:00:00',
+
     1
 ),
 (
@@ -480,9 +508,15 @@ VALUES
     2,
     '2026-07-04',
     '2026-07-10',
+
+    '2026-07-10',
+
     'DANG_LAM',
     'CAO',
     80,
+
+    NULL,
+
     2
 ),
 (
@@ -493,9 +527,15 @@ VALUES
     3,
     '2026-07-08',
     '2026-07-18',
+
+    '2026-07-18',
+
     'DANG_LAM',
     'CAO',
     70,
+
+    NULL,
+
     3
 ),
 (
@@ -506,9 +546,15 @@ VALUES
     4,
     '2026-07-19',
     '2026-07-23',
+
+    '2026-07-23',
+
     'DANG_REVIEW',
     'TRUNG_BINH',
     90,
+
+    NULL,
+
     4
 );
 

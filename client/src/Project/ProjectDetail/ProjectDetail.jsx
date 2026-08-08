@@ -678,6 +678,10 @@ function ProjectDetail() {
                     </div>
                 </div>
 
+                {/* =====================================================
+    TABS
+===================================================== */}
+
                 <div className="detail-tabs">
                     {[
                         ["overview", "Tổng quan"],
@@ -704,155 +708,346 @@ function ProjectDetail() {
                     ))}
                 </div>
 
-                {activeTab === "overview" && (
-                    <>
-                        <div className="detail-grid">
-                            <div className="detail-card progress-card">
-                                <h3>
-                                    Tiến độ dự án
-                                </h3>
 
-                                <div
-                                    className="circle-progress"
-                                    style={{
-                                        background:
-                                            `conic-gradient(
-                                                #22c55e 0% ${calculatedProgress}%,
-                                                #35516f ${calculatedProgress}% 100%
-                                            )`
-                                    }}
-                                >
-                                    <div className="circle-inner">
-                                        {calculatedProgress}%
+                {/* =====================================================
+    NỘI DUNG CÁC TAB
+===================================================== */}
+
+                <div className="detail-tab-content">
+
+                    {/* =================================================
+        TAB TỔNG QUAN
+    ================================================= */}
+
+                    {activeTab === "overview" && (
+                        <>
+                            <div className="detail-grid">
+
+                                {/* ===============================
+                    TIẾN ĐỘ DỰ ÁN
+                =============================== */}
+
+                                <div className="detail-card progress-card">
+                                    <h3>
+                                        Tiến độ dự án
+                                    </h3>
+
+                                    <div
+                                        className="circle-progress"
+                                        style={{
+                                            background:
+                                                `conic-gradient(
+                                    #22c55e 0% ${calculatedProgress}%,
+                                    #35516f ${calculatedProgress}% 100%
+                                )`
+                                        }}
+                                    >
+                                        <div className="circle-inner">
+                                            {calculatedProgress}%
+                                        </div>
                                     </div>
+
+                                    <p className="center-text">
+                                        {statusText[
+                                            project.status
+                                        ] || project.status}
+                                    </p>
+
+                                    <ul className="progress-list">
+
+                                        <li>
+                                            <span className="dot gray" />
+
+                                            Tổng công việc
+
+                                            <b>
+                                                {totalTasks}
+                                            </b>
+                                        </li>
+
+                                        <li>
+                                            <span className="dot green" />
+
+                                            Hoàn thành
+
+                                            <b>
+                                                {doneTasks}
+                                            </b>
+                                        </li>
+
+                                        <li>
+                                            <span className="dot blue" />
+
+                                            Đang thực hiện
+
+                                            <b>
+                                                {doingTasks}
+                                            </b>
+                                        </li>
+
+                                        <li>
+                                            <span className="dot orange" />
+
+                                            Chưa làm
+
+                                            <b>
+                                                {todoTasks}
+                                            </b>
+                                        </li>
+
+                                        <li>
+                                            <span className="dot red" />
+
+                                            Quá hạn
+
+                                            <b>
+                                                {overdueTasks}
+                                            </b>
+                                        </li>
+
+                                    </ul>
                                 </div>
 
-                                <p className="center-text">
-                                    {statusText[
-                                        project.status
-                                    ] || project.status}
-                                </p>
 
-                                <ul className="progress-list">
-                                    <li>
-                                        <span className="dot gray" />
-                                        Tổng công việc
-                                        <b>{totalTasks}</b>
-                                    </li>
+                                {/* ===============================
+                    THÔNG TIN DỰ ÁN
+                =============================== */}
 
-                                    <li>
-                                        <span className="dot green" />
-                                        Hoàn thành
-                                        <b>{doneTasks}</b>
-                                    </li>
+                                <div className="detail-card info-card">
 
-                                    <li>
-                                        <span className="dot blue" />
-                                        Đang thực hiện
-                                        <b>{doingTasks}</b>
-                                    </li>
+                                    <h3>
+                                        Thông tin dự án
+                                    </h3>
 
-                                    <li>
-                                        <span className="dot orange" />
-                                        Chưa làm
-                                        <b>{todoTasks}</b>
-                                    </li>
+                                    <div className="info-row">
+                                        <span>
+                                            Quản lý dự án
+                                        </span>
 
-                                    <li>
-                                        <span className="dot red" />
-                                        Quá hạn
-                                        <b>{overdueTasks}</b>
-                                    </li>
-                                </ul>
+                                        <b>
+                                            {project.manager_name ||
+                                                "Chưa có quản lý"}
+                                        </b>
+                                    </div>
+
+                                    <div className="info-row">
+                                        <span>
+                                            Khách hàng
+                                        </span>
+
+                                        <b>
+                                            {project.customer ||
+                                                "Chưa có"}
+                                        </b>
+                                    </div>
+
+                                    <div className="info-row">
+                                        <span>
+                                            Ngày bắt đầu
+                                        </span>
+
+                                        <b>
+                                            {formatDate(
+                                                project.start_date
+                                            )}
+                                        </b>
+                                    </div>
+
+                                    <div className="info-row">
+                                        <span>
+                                            Deadline
+                                        </span>
+
+                                        <b>
+                                            {formatDate(
+                                                project.end_date
+                                            )}
+                                        </b>
+                                    </div>
+
+                                    <div className="info-row">
+                                        <span>
+                                            Tiến độ
+                                        </span>
+
+                                        <b>
+                                            {calculatedProgress}%
+                                        </b>
+                                    </div>
+
+                                    <div className="info-row desc">
+                                        <span>
+                                            Mô tả
+                                        </span>
+
+                                        <b>
+                                            {project.description ||
+                                                "Không có mô tả"}
+                                        </b>
+                                    </div>
+
+                                </div>
+
+
+                                {/* ===============================
+                    THÀNH VIÊN TÓM TẮT
+                =============================== */}
+
+                                <div className="detail-card member-card">
+
+                                    <h3>
+                                        Thành viên
+                                    </h3>
+
+                                    <p>
+                                        Mở tab Thành viên để xem
+                                        danh sách thành viên thực tế.
+                                    </p>
+
+                                </div>
+
                             </div>
 
-                            <div className="detail-card info-card">
-                                <h3>
-                                    Thông tin dự án
-                                </h3>
 
-                                <div className="info-row">
-                                    <span>
-                                        Quản lý dự án
-                                    </span>
+                            {/* ===============================
+                CÔNG VIỆC GẦN ĐÂY
+            =============================== */}
 
-                                    <b>
-                                        {project.manager_name ||
-                                            "Chưa có quản lý"}
-                                    </b>
-                                </div>
+                            <div className="detail-card recent-task">
 
-                                <div className="info-row">
-                                    <span>
-                                        Khách hàng
-                                    </span>
+                                <table>
 
-                                    <b>
-                                        {project.customer ||
-                                            "Chưa có"}
-                                    </b>
-                                </div>
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Công việc gần đây
+                                            </th>
 
-                                <div className="info-row">
-                                    <span>
-                                        Ngày bắt đầu
-                                    </span>
+                                            <th>
+                                                Người phụ trách
+                                            </th>
 
-                                    <b>
-                                        {formatDate(
-                                            project.start_date
+                                            <th>
+                                                Trạng thái
+                                            </th>
+
+                                            <th>
+                                                Tiến độ
+                                            </th>
+
+                                            <th>
+                                                Deadline
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        {tasks.length === 0 ? (
+
+                                            <tr>
+                                                <td colSpan="5">
+                                                    Chưa có công việc
+                                                </td>
+                                            </tr>
+
+                                        ) : (
+
+                                            tasks
+                                                .slice(0, 3)
+                                                .map((task) => (
+
+                                                    <tr
+                                                        key={task.id}
+                                                    >
+
+                                                        <td>
+                                                            ›{" "}
+                                                            {task.title}
+                                                        </td>
+
+                                                        <td>
+                                                            {task.assignee_name ||
+                                                                "Chưa phân công"}
+                                                        </td>
+
+                                                        <td>
+                                                            <span
+                                                                className={`task-status ${getTaskStatusClass(
+                                                                    task.status
+                                                                )}`}
+                                                            >
+                                                                {taskStatusText[
+                                                                    task.status
+                                                                ] ||
+                                                                    task.status}
+                                                            </span>
+                                                        </td>
+
+                                                        <td>
+                                                            {Number(
+                                                                task.progress
+                                                            ) || 0}
+                                                            %
+                                                        </td>
+
+                                                        <td>
+                                                            {formatDate(
+                                                                task.end_date
+                                                            )}
+                                                        </td>
+
+                                                    </tr>
+
+                                                ))
+
                                         )}
-                                    </b>
-                                </div>
 
-                                <div className="info-row">
-                                    <span>
-                                        Deadline
-                                    </span>
+                                    </tbody>
 
-                                    <b>
-                                        {formatDate(
-                                            project.end_date
-                                        )}
-                                    </b>
-                                </div>
+                                </table>
 
-                                <div className="info-row">
-                                    <span>
-                                        Tiến độ
-                                    </span>
-
-                                    <b>
-                                        {calculatedProgress}%
-                                    </b>
-                                </div>
-
-                                <div className="info-row desc">
-                                    <span>Mô tả</span>
-
-                                    <b>
-                                        {project.description ||
-                                            "Không có mô tả"}
-                                    </b>
-                                </div>
                             </div>
+                        </>
+                    )}
 
-                            <div className="detail-card member-card">
-                                <h3>Thành viên</h3>
 
-                                <p>
-                                    Mở tab Thành viên để xem
-                                    danh sách thành viên thực tế.
-                                </p>
-                            </div>
-                        </div>
+                    {/* =================================================
+        TAB CÔNG VIỆC
+    ================================================= */}
+
+                    {activeTab === "tasks" && (
 
                         <div className="detail-card recent-task">
+
+                            <div className="task-toolbar">
+
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm công việc, người phụ trách, trạng thái..."
+                                    value={taskSearch}
+                                    onChange={(event) => {
+
+                                        setTaskSearch(
+                                            event.target.value
+                                        );
+
+                                        setCurrentPage(1);
+
+                                    }}
+                                />
+
+                            </div>
+
+
                             <table>
+
                                 <thead>
+
                                     <tr>
+
                                         <th>
-                                            Công việc gần đây
+                                            Công việc
                                         </th>
 
                                         <th>
@@ -870,30 +1065,47 @@ function ProjectDetail() {
                                         <th>
                                             Deadline
                                         </th>
+
+                                        {canManageTasks && (
+                                            <th>
+                                                Hành động
+                                            </th>
+                                        )}
+
                                     </tr>
+
                                 </thead>
 
+
                                 <tbody>
-                                    {tasks.length === 0 ? (
+
+                                    {paginatedTasks.length === 0 ? (
+
                                         <tr>
-                                            <td colSpan="5">
+
+                                            <td
+                                                colSpan={
+                                                    canManageTasks
+                                                        ? 6
+                                                        : 5
+                                                }
+                                            >
                                                 Chưa có công việc
                                             </td>
+
                                         </tr>
+
                                     ) : (
-                                        tasks
-                                            .slice(0, 3)
-                                            .map((task) => (
+
+                                        paginatedTasks.map(
+                                            (task) => (
+
                                                 <tr
-                                                    key={
-                                                        task.id
-                                                    }
+                                                    key={task.id}
                                                 >
+
                                                     <td>
-                                                        ›{" "}
-                                                        {
-                                                            task.title
-                                                        }
+                                                        {task.title}
                                                     </td>
 
                                                     <td>
@@ -902,6 +1114,7 @@ function ProjectDetail() {
                                                     </td>
 
                                                     <td>
+
                                                         <span
                                                             className={`task-status ${getTaskStatusClass(
                                                                 task.status
@@ -912,6 +1125,7 @@ function ProjectDetail() {
                                                             ] ||
                                                                 task.status}
                                                         </span>
+
                                                     </td>
 
                                                     <td>
@@ -926,221 +1140,182 @@ function ProjectDetail() {
                                                             task.end_date
                                                         )}
                                                     </td>
-                                                </tr>
-                                            ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </>
-                )}
 
-                {activeTab === "tasks" && (
-                    <div className="detail-card recent-task">
-                        <div className="task-toolbar">
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm công việc, người phụ trách, trạng thái..."
-                                value={taskSearch}
-                                onChange={(event) => {
-                                    setTaskSearch(
-                                        event.target.value
-                                    );
 
-                                    setCurrentPage(1);
-                                }}
-                            />
-                        </div>
+                                                    {canManageTasks && (
 
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Công việc</th>
-                                    <th>
-                                        Người phụ trách
-                                    </th>
-                                    <th>Trạng thái</th>
-                                    <th>Tiến độ</th>
-                                    <th>Deadline</th>
+                                                        <td>
 
-                                    {canManageTasks && (
-                                        <th>
-                                            Hành động
-                                        </th>
-                                    )}
-                                </tr>
-                            </thead>
+                                                            <button
+                                                                className="btn-edit-task"
+                                                                onClick={() =>
+                                                                    openEditTaskModal(
+                                                                        task
+                                                                    )
+                                                                }
+                                                            >
+                                                                Sửa
+                                                            </button>
 
-                            <tbody>
-                                {paginatedTasks.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={
-                                                canManageTasks
-                                                    ? 6
-                                                    : 5
-                                            }
-                                        >
-                                            Chưa có công việc
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    paginatedTasks.map(
-                                        (task) => (
-                                            <tr
-                                                key={
-                                                    task.id
-                                                }
-                                            >
-                                                <td>
-                                                    {
-                                                        task.title
-                                                    }
-                                                </td>
+                                                        </td>
 
-                                                <td>
-                                                    {task.assignee_name ||
-                                                        "Chưa phân công"}
-                                                </td>
-
-                                                <td>
-                                                    <span
-                                                        className={`task-status ${getTaskStatusClass(
-                                                            task.status
-                                                        )}`}
-                                                    >
-                                                        {taskStatusText[
-                                                            task.status
-                                                        ] ||
-                                                            task.status}
-                                                    </span>
-                                                </td>
-
-                                                <td>
-                                                    {Number(
-                                                        task.progress
-                                                    ) || 0}
-                                                    %
-                                                </td>
-
-                                                <td>
-                                                    {formatDate(
-                                                        task.end_date
                                                     )}
-                                                </td>
 
-                                                {canManageTasks && (
-                                                    <td>
-                                                        <button
-                                                            className="btn-edit-task"
-                                                            onClick={() =>
-                                                                openEditTaskModal(
-                                                                    task
-                                                                )
-                                                            }
-                                                        >
-                                                            Sửa
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
+                                                </tr>
+
+                                            )
                                         )
-                                    )
-                                )}
-                            </tbody>
-                        </table>
 
-                        <div className="task-pagination">
-                            <span>
-                                Hiển thị{" "}
-                                {paginatedTasks.length} /{" "}
-                                {filteredTasks.length}{" "}
-                                công việc
-                            </span>
+                                    )}
 
-                            <div>
-                                <button
-                                    disabled={
-                                        currentPage === 1
-                                    }
-                                    onClick={() =>
-                                        setCurrentPage(
-                                            currentPage - 1
-                                        )
-                                    }
-                                >
-                                    Trước
-                                </button>
+                                </tbody>
+
+                            </table>
+
+
+                            {/* ===============================
+                PHÂN TRANG
+            =============================== */}
+
+                            <div className="task-pagination">
 
                                 <span>
-                                    Trang {currentPage} /{" "}
-                                    {totalPages || 1}
+                                    Hiển thị{" "}
+                                    {paginatedTasks.length} /{" "}
+                                    {filteredTasks.length}{" "}
+                                    công việc
                                 </span>
 
-                                <button
-                                    disabled={
-                                        currentPage ===
-                                        totalPages ||
-                                        totalPages === 0
-                                    }
-                                    onClick={() =>
-                                        setCurrentPage(
-                                            currentPage + 1
-                                        )
-                                    }
-                                >
-                                    Sau
-                                </button>
+
+                                <div>
+
+                                    <button
+                                        disabled={
+                                            currentPage === 1
+                                        }
+                                        onClick={() =>
+                                            setCurrentPage(
+                                                currentPage - 1
+                                            )
+                                        }
+                                    >
+                                        Trước
+                                    </button>
+
+
+                                    <span>
+                                        Trang {currentPage} /{" "}
+                                        {totalPages || 1}
+                                    </span>
+
+
+                                    <button
+                                        disabled={
+                                            currentPage ===
+                                            totalPages ||
+                                            totalPages === 0
+                                        }
+                                        onClick={() =>
+                                            setCurrentPage(
+                                                currentPage + 1
+                                            )
+                                        }
+                                    >
+                                        Sau
+                                    </button>
+
+                                </div>
+
                             </div>
+
                         </div>
-                    </div>
-                )}
 
-                {activeTab === "kanban" && (
-                    <Kanban
-                        tasks={tasks}
-                        onTaskClick={openEditTaskModal}
-                        onStatusChange={
-                            handleChangeTaskStatus
-                        }
-                    />
-                )}
+                    )}
 
-                {activeTab === "gantt" && (
-                    <Gantt
-                        tasks={tasks}
-                        onTaskClick={
-                            canManageTasks
-                                ? openEditTaskModal
-                                : undefined
-                        }
-                    />
-                )}
 
-                {activeTab === "documents" && (
-                    <Document
-                        projectId={project.id}
-                    />
-                )}
+                    {/* =================================================
+        TAB KANBAN
+    ================================================= */}
 
-                {activeTab === "members" && (
-                    <Member
-                        key={memberRefreshKey}
-                        projectId={project.id}
-                    />
-                )}
+                    {activeTab === "kanban" && (
 
-                {activeTab === "settings" && (
-                    <Setting
-                        project={project}
-                        onProjectUpdated={
-                            loadProject
-                        }
-                        onProjectDeleted={() =>
-                            navigate("/project")
-                        }
-                    />
-                )}
+                        <Kanban
+                            tasks={tasks}
+                            onTaskClick={
+                                openEditTaskModal
+                            }
+                            onStatusChange={
+                                handleChangeTaskStatus
+                            }
+                        />
+
+                    )}
+
+
+                    {/* =================================================
+        TAB GANTT
+    ================================================= */}
+
+                    {activeTab === "gantt" && (
+
+                        <Gantt
+                            tasks={tasks}
+                            onTaskClick={
+                                canManageTasks
+                                    ? openEditTaskModal
+                                    : undefined
+                            }
+                        />
+
+                    )}
+
+
+                    {/* =================================================
+        TAB TÀI LIỆU
+    ================================================= */}
+
+                    {activeTab === "documents" && (
+
+                        <Document
+                            projectId={project.id}
+                        />
+
+                    )}
+
+
+                    {/* =================================================
+        TAB THÀNH VIÊN
+    ================================================= */}
+
+                    {activeTab === "members" && (
+
+                        <Member
+                            key={memberRefreshKey}
+                            projectId={project.id}
+                        />
+
+                    )}
+
+
+                    {/* =================================================
+        TAB CÀI ĐẶT
+    ================================================= */}
+
+                    {activeTab === "settings" && (
+
+                        <Setting
+                            project={project}
+                            onProjectUpdated={
+                                loadProject
+                            }
+                            onProjectDeleted={() =>
+                                navigate("/project")
+                            }
+                        />
+
+                    )}
+
+                </div>
             </div>
 
             {showTaskModal && (

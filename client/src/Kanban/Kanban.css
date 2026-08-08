@@ -1,9 +1,16 @@
 .global-kanban-page {
     flex: 1;
+
+    margin-left: 260px;
+
     padding: 30px;
+
     background: #071527;
-    min-height: 100vh;
     color: #ffffff;
+
+    min-height: 100vh;
+
+    overflow-x: hidden;
 }
 
 .global-kanban-header h1 {
@@ -356,4 +363,22 @@
 
 .Toastify__close-button {
     transform: scale(0.7);
+}
+
+@media (max-width: 900px) {
+    .global-kanban-page {
+        margin-left: 220px;
+    }
+
+    .global-kanban-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .global-kanban-board {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .global-kanban-filters {
+        flex-wrap: wrap;
+    }
 }
