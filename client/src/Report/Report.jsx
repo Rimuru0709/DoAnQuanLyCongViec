@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaChartLine, FaFileAlt, FaFolderOpen, FaDownload, FaTasks, FaFilter, FaSearch } from "react-icons/fa";
+import { FaChartLine, FaFileAlt, FaFolderOpen, FaDownload, FaTasks, FaFilter, FaSearch, FaExclamationTriangle } from "react-icons/fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
-import Sidebar from "../Sidebar/Sidebar";
 import "./Report.css";
 
 const getAuthHeaders = () => {
@@ -21,6 +20,11 @@ function Report() {
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // Workload & time tracking state
+    const [workloadData,   setWorkloadData]   = useState([]);
+    const [timeTrackData,  setTimeTrackData]  = useState([]);
+    const [bottleneckData, setBottleneckData] = useState([]);
 
     // 1. STATE BỘ LỌC MỚI
     const [projectNameInput, setProjectNameInput] = useState(""); // Ô nhập tên dự án thực tế
@@ -97,6 +101,20 @@ function Report() {
         fetchReport();
     }, [debouncedProjectName, selectedMonth, selectedQuarter, selectedYear]);
 
+    // Fetch workload, time-tracking, bottleneck once on mount
+    useEffect(() => {
+        const hdrs = getAuthHeaders();
+        Promise.all([
+            fetch('http://localhost:5000/api/reports/workload',      { headers: hdrs }).then(r => r.ok ? r.json() : null),
+            fetch('http://localhost:5000/api/reports/time-tracking', { headers: hdrs }).then(r => r.ok ? r.json() : null),
+            fetch('http://localhost:5000/api/reports/bottleneck',    { headers: hdrs }).then(r => r.ok ? r.json() : null)
+        ]).then(([wl, tt, bt]) => {
+            if (wl?.success) setWorkloadData(wl.members || []);
+            if (tt?.success) setTimeTrackData(tt.tasks   || []);
+            if (bt?.success) setBottleneckData(bt.tasks  || []);
+        }).catch(console.error);
+    }, []);
+
     // 4. Format dữ liệu Biểu đồ cột (Dung lượng)
     const chartData = useMemo(() => {
         if (!reportData || !reportData.projects) return [];
@@ -163,8 +181,7 @@ function Report() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
             <main className="main">
                 <header className="topbar">
                     <h1>Báo cáo Tiến độ & Tài nguyên Hệ thống</h1>
@@ -433,6 +450,124 @@ function Report() {
                             </table>
                         </div>
                     </section>
+
+                    {/* ══ WORKLOAD PER MEMBER ══ */}
+                    <section className="card">
+                        <div className="card-header">
+                            <h3>👥 Khối lượng công việc theo thành viên</h3>
+                        </div>
+                        {workloadData.length === 0 ? (
+                            <p style={{ color:'#475569', fontSize:13, padding:'16px' }}>Không có dữ liệu</p>
+                        ) : (
+                            <div style={{ display:'flex', flexDirection:'column', gap:10, padding:'0 8px 16px' }}>
+                                {workloadData.map(m => (
+                                    <div key={m.userId} style={{
+                                        display:'flex', alignItems:'center', gap:12,
+                                        padding:'10px 12px', borderRadius:8,
+                                        background: m.isOverloaded ? 'rgba(220,38,38,0.08)' : 'rgba(255,255,255,0.03)',
+                                        border: `1px solid ${m.isOverloaded ? 'rgba(220,38,38,0.3)' : 'rgba(255,255,255,0.06)'}`
+                                    }}>
+                                        <div style={{
+                                            width:36, height:36, borderRadius:'50%', flexShrink:0,
+                                            background: m.isOverloaded ? 'rgba(220,38,38,0.2)' : 'rgba(37,99,235,0.15)',
+                                            display:'flex', alignItems:'center', justifyContent:'center',
+                                            fontWeight:700, color: m.isOverloaded ? '#ef4444' : '#3b82f6', fontSize:14
+                                        }}>
+                                            {m.fullName.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div style={{ flex:1, minWidth:0 }}>
+                                            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                                                <span style={{ fontWeight:600, color:'#cbd5e1', fontSize:13 }}>{m.fullName}</span>
+                                                {m.isOverloaded && (
+                                                    <span style={{
+                                                        fontSize:10, fontWeight:700, color:'#ef4444',
+                                                        background:'rgba(220,38,38,0.15)', padding:'1px 6px', borderRadius:4
+                                                    }}>QUÁ TẢI</span>
+                                                )}
+                                            </div>
+                                            <div style={{ display:'flex', gap:12, marginTop:4 }}>
+                                                <span style={{ fontSize:11, color:'#64748b' }}>Đang làm: <b style={{color:'#3b82f6'}}>{m.activeTasks}</b></span>
+                                                <span style={{ fontSize:11, color:'#64748b' }}>Hoàn thành: <b style={{color:'#16a34a'}}>{m.doneTasks}</b></span>
+                                                {m.overdueTasks > 0 && (
+                                                    <span style={{ fontSize:11, color:'#ef4444' }}>Quá hạn: <b>{m.overdueTasks}</b></span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            fontSize:20, fontWeight:800,
+                                            color: m.isOverloaded ? '#ef4444' : '#475569'
+                                        }}>
+                                            {m.activeTasks}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+
+                    {/* ══ TIME TRACKING ══ */}
+                    {timeTrackData.length > 0 && (
+                        <section className="card">
+                            <div className="card-header">
+                                <h3>⏱️ Estimated vs Actual Hours</h3>
+                            </div>
+                            <ResponsiveContainer width="100%" height={260}>
+                                <BarChart
+                                    data={timeTrackData.slice(0, 10).map(t => ({
+                                        name: t.taskTitle.length > 18 ? t.taskTitle.slice(0,15)+'...' : t.taskTitle,
+                                        estimated: t.estimatedHours,
+                                        actual:    t.actualHours
+                                    }))}
+                                    margin={{ top:10, right:20, left:0, bottom:20 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                    <XAxis dataKey="name" tick={{ fill:'#64748b', fontSize:10 }} angle={-25} textAnchor="end" interval={0} />
+                                    <YAxis tick={{ fill:'#64748b', fontSize:11 }} unit="h" />
+                                    <Tooltip contentStyle={{ background:'#1e293b', border:'none', borderRadius:8, color:'#e2e8f0' }} formatter={(v, n) => [`${v}h`, n === 'estimated' ? 'Ước tính' : 'Thực tế']} />
+                                    <Legend formatter={(v) => v === 'estimated' ? 'Ước tính' : 'Thực tế'} wrapperStyle={{ color:'#64748b', fontSize:12 }} />
+                                    <Bar dataKey="estimated" fill="rgba(37,99,235,0.5)" radius={[4,4,0,0]} />
+                                    <Bar dataKey="actual"    fill="rgba(22,163,74,0.7)"  radius={[4,4,0,0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </section>
+                    )}
+
+                    {/* ══ BOTTLENECK TASKS ══ */}
+                    {bottleneckData.length > 0 && (
+                        <section className="card">
+                            <div className="card-header">
+                                <h3 style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                    <FaExclamationTriangle style={{ color:'#ef4444' }} />
+                                    Bottleneck — Công việc tắc nghẽ
+                                </h3>
+                            </div>
+                            <div className="table-responsive">
+                                <table className="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Công việc</th>
+                                            <th>Dự án</th>
+                                            <th>Phụ trách</th>
+                                            <th>Ngày khóa hạn</th>
+                                            <th style={{ color:'#ef4444' }}>Quá hạn</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {bottleneckData.slice(0, 10).map(t => (
+                                            <tr key={t.id}>
+                                                <td><strong>{t.title}</strong></td>
+                                                <td>{t.projectName}</td>
+                                                <td>{t.assigneeName || '—'}</td>
+                                                <td>{new Date(t.endDate).toLocaleDateString('vi-VN')}</td>
+                                                <td style={{ color:'#ef4444', fontWeight:700 }}>{t.daysOverdue} ngày</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    )}
+
                 </div>
             </main>
         </div>

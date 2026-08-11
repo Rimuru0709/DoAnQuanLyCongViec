@@ -1,4 +1,34 @@
-const TaskModel = require("../models/taskModel");
+const TaskModel      = require("../models/taskModel");
+const ActivityModel  = require("../models/activityModel");
+const NotifModel     = require("../models/notificationModel");
+const db             = require("../config/db");
+
+/* ── Helper: ghi activity log (fire-and-forget) ── */
+const logActivity = (params) => ActivityModel.log(params, null);
+
+/* ── Helper: emit socket task:updated ── */
+const emitTaskUpdate = (req, taskId, payload) => {
+    try {
+        const io = req.app?.get?.("io");
+        if (io) {
+            io.to("global").emit("task:updated", { taskId, ...payload });
+        }
+    } catch (e) { /* ignore */ }
+};
+
+/* ── Helper: automation rules ── */
+const runAutomation = (task, newStatus, userId) => {
+    if (!task || !newStatus) return;
+
+    // Rule 1: Khi chuyển sang HOAN_THANH → ghi completed_at
+    if (newStatus === "HOAN_THANH" && !task.completed_at) {
+        db.query(
+            "UPDATE tasks SET completed_at = NOW() WHERE id = ? AND completed_at IS NULL",
+            [task.id],
+            (err) => { if (err) console.error("Automation completed_at:", err.message); }
+        );
+    }
+};
 
 const getAllTasks = (req, res) => {
     TaskModel.getAllByUser(
@@ -375,6 +405,7 @@ const updateTask = (req, res) => {
                                     });
                                 }
 
+                                emitTaskUpdate(req, taskId, { status, progress, projectId });
                                 return res.status(200).json({
                                     success: true,
                                     message:
@@ -633,6 +664,7 @@ const updateTask = (req, res) => {
                                                             );
                                                         }
 
+                                                        emitTaskUpdate(req, taskId, { projectId: newProjectId });
                                                         return res
                                                             .status(200)
                                                             .json({
@@ -645,6 +677,7 @@ const updateTask = (req, res) => {
                                                 );
                                             }
 
+                                            emitTaskUpdate(req, taskId, { projectId: newProjectId });
                                             return res
                                                 .status(200)
                                                 .json({
@@ -921,6 +954,8 @@ const updateTaskStatus = (req, res) => {
                                             });
                                     }
 
+                                    runAutomation(result[0], status, req.user.id);
+                                    emitTaskUpdate(req, id, { status, projectId });
                                     return res.json({
                                         success: true,
                                         message:
@@ -936,9 +971,41 @@ const updateTaskStatus = (req, res) => {
     );
 };
 
+/*
+|--------------------------------------------------------------------------
+| GET /api/tasks/project/:projectId/gantt
+| Lấy tasks + dependencies cho Gantt Chart
+|--------------------------------------------------------------------------
+*/
+
+const getTasksGantt = (req, res) => {
+    const { projectId } = req.params;
+
+    TaskModel.getTasksWithDependencies(
+        projectId,
+        (err, data) => {
+            if (err) {
+                console.error("Lỗi lấy dữ liệu Gantt:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Không thể tải dữ liệu Gantt",
+                    error: err.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                tasks: data.tasks || [],
+                dependencies: data.dependencies || []
+            });
+        }
+    );
+};
+
 module.exports = {
     getAllTasks,
     getTasksByProject,
+    getTasksGantt,
     addTask,
     updateTask,
     deleteTask,

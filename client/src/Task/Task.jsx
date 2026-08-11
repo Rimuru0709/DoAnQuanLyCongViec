@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../Sidebar/Sidebar";
 import "./Task.css";
 
 const API_URL = "http://localhost:5000/api/tasks";
@@ -100,6 +99,7 @@ function Task() {
         };
 
         loadTasks();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate]);
 
     const statusText = {
@@ -171,8 +171,7 @@ function Task() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
 
             {message && (
                 <div className="toast-success">

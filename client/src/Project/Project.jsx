@@ -1,6 +1,6 @@
 import "./Project.css";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
     FaEdit,
     FaEllipsisH,
@@ -10,12 +10,12 @@ import {
     FaArchive,
     FaUndo
 } from "react-icons/fa";
-import Sidebar from "../Sidebar/Sidebar";
 
 const API_URL = "http://localhost:5000/api/projects";
 
 function Project() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [projects, setProjects] = useState([]);
     const [filterStatus, setFilterStatus] = useState("ALL");
@@ -33,7 +33,7 @@ function Project() {
 
     const token = localStorage.getItem("token");
 
-    let currentUser = null;
+    let currentUser;
 
     try {
         currentUser = JSON.parse(
@@ -200,6 +200,30 @@ function Project() {
         resetProjectForm();
         setShowForm(true);
     };
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get("create") === "true") {
+            // Wait slightly for the component to mount/render
+            setTimeout(() => {
+                if (canManageProject) {
+                    setEditProject(null);
+                    resetProjectForm();
+                    setShowForm(true);
+                } else {
+                    showToast("Bạn không có quyền thêm dự án");
+                }
+            }, 100);
+            
+            // Clean up the URL without refreshing
+            navigate("/project", { replace: true });
+        } else if (params.get("action") === "create-task") {
+            setTimeout(() => {
+                showToast("Vui lòng chọn một dự án để tạo công việc!");
+            }, 100);
+            navigate("/project", { replace: true });
+        }
+    }, [location.search, navigate, canManageProject]);
 
     const handleOpenEdit = (project) => {
         if (!canManageProject) {
@@ -571,7 +595,6 @@ function Project() {
 
     return (
         <div className="layout">
-            <Sidebar />
 
             {message && (
                 <div className="toast-success">

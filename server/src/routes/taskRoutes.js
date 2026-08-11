@@ -4,6 +4,7 @@ const router = express.Router();
 const {
     getAllTasks,
     getTasksByProject,
+    getTasksGantt,
     addTask,
     updateTask,
     deleteTask,
@@ -28,6 +29,13 @@ router.get(
     getTasksByProject
 );
 
+// Gantt data (tasks + dependencies + checklist counts)
+router.get(
+    "/project/:projectId/gantt",
+    verifyToken,
+    getTasksGantt
+);
+
 // Chỉ ADMIN và MANAGER
 router.post(
     "/",
@@ -39,7 +47,6 @@ router.post(
 router.put(
     "/:id",
     verifyToken,
-    allowRoles("ADMIN", "MANAGER"),
     updateTask
 );
 

@@ -902,6 +902,176 @@ const TaskModel = {
                 );
             }
         );
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy tasks kèm dependencies (dùng cho Gantt Chart)
+    |--------------------------------------------------------------------------
+    */
+
+    getTasksWithDependencies: (projectId, callback) => {
+        const numericProjectId = Number(projectId);
+
+        if (!Number.isInteger(numericProjectId) || numericProjectId <= 0) {
+            return callback(new Error("Mã dự án không hợp lệ"));
+        }
+
+        // Lấy tasks với checklist count
+        const taskSql = `
+            SELECT
+                t.id,
+                t.title,
+                t.description,
+                t.status,
+                t.priority,
+                t.progress,
+                t.start_date,
+                t.end_date,
+                t.completed_at,
+                t.estimated_hours,
+                t.logged_hours,
+                t.assigned_to,
+                t.column_id,
+                t.task_order,
+                u.full_name  AS assignee_name,
+                p.name       AS project_name,
+                p.color      AS project_color,
+                COUNT(DISTINCT tc.id) AS checklist_total,
+                SUM(CASE WHEN tc.is_done = 1 THEN 1 ELSE 0 END) AS checklist_done
+            FROM tasks t
+            LEFT JOIN users    u  ON u.id = t.assigned_to
+            LEFT JOIN projects p  ON p.id = t.project_id
+            LEFT JOIN task_checklists tc ON tc.task_id = t.id
+            WHERE t.project_id = ?
+            GROUP BY t.id, t.title, t.description, t.status, t.priority,
+                     t.progress, t.start_date, t.end_date, t.completed_at,
+                     t.estimated_hours, t.logged_hours, t.assigned_to,
+                     t.column_id, t.task_order, u.full_name, p.name, p.color
+            ORDER BY t.task_order ASC, t.id ASC
+        `;
+
+        // Lấy dependencies
+        const depSql = `
+            SELECT
+                td.task_id,
+                td.depends_on_task_id,
+                td.dependency_type
+            FROM task_dependencies td
+            INNER JOIN tasks t1 ON t1.id = td.task_id        AND t1.project_id = ?
+            INNER JOIN tasks t2 ON t2.id = td.depends_on_task_id AND t2.project_id = ?
+        `;
+
+        db.query(taskSql, [numericProjectId], (err, tasks) => {
+            if (err) return callback(err);
+
+            db.query(depSql, [numericProjectId, numericProjectId], (err2, deps) => {
+                if (err2) return callback(err2);
+
+                callback(null, {
+                    tasks: tasks || [],
+                    dependencies: deps || []
+                });
+            });
+        });
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy tasks kèm checklist count (dùng cho Kanban card)
+    |--------------------------------------------------------------------------
+    */
+
+    getByProjectWithChecklistCount: (projectId, userId, role, callback) => {
+        const numericProjectId = Number(projectId);
+
+        if (!Number.isInteger(numericProjectId) || numericProjectId <= 0) {
+            return callback(new Error("Mã dự án không hợp lệ"));
+        }
+
+        const sql = `
+            SELECT
+                t.*,
+                u.full_name AS assignee_name,
+                p.color     AS project_color,
+                COUNT(DISTINCT tc.id) AS checklist_total,
+                SUM(CASE WHEN tc.is_done = 1 THEN 1 ELSE 0 END) AS checklist_done
+            FROM tasks t
+            LEFT JOIN users    u  ON u.id = t.assigned_to
+            LEFT JOIN projects p  ON p.id = t.project_id
+            LEFT JOIN task_checklists tc ON tc.task_id = t.id
+            WHERE t.project_id = ?
+            GROUP BY t.id
+            ORDER BY t.task_order ASC, t.id ASC
+        `;
+
+        db.query(sql, [numericProjectId], callback);
+    },
+
+    /* ─────────────────────────────────────────────────────────
+       TASK DEPENDENCIES
+    ───────────────────────────────────────────────────────── */
+
+    /** Lấy danh sách tasks mà task này PHẢI đợi (depends_on) */
+    getDependenciesOfTask: (taskId, callback) => {
+        const sql = `
+            SELECT
+                t.id, t.title, t.status, t.priority, t.end_date,
+                u.full_name AS assignee_name
+            FROM task_dependencies td
+            JOIN tasks t ON t.id = td.depends_on_task_id
+            LEFT JOIN users u ON u.id = t.assigned_to
+            WHERE td.task_id = ?
+            ORDER BY t.id ASC
+        `;
+        db.query(sql, [Number(taskId)], callback);
+    },
+
+    /** Lấy danh sách tasks đang ĐỢI task này (blocked_by) */
+    getBlockedByTask: (taskId, callback) => {
+        const sql = `
+            SELECT
+                t.id, t.title, t.status, t.priority,
+                u.full_name AS assignee_name
+            FROM task_dependencies td
+            JOIN tasks t ON t.id = td.task_id
+            LEFT JOIN users u ON u.id = t.assigned_to
+            WHERE td.depends_on_task_id = ?
+            ORDER BY t.id ASC
+        `;
+        db.query(sql, [Number(taskId)], callback);
+    },
+
+    /** Thêm dependency: task_id phải đợi depends_on_task_id */
+    addDependency: (taskId, dependsOnId, callback) => {
+        if (Number(taskId) === Number(dependsOnId)) {
+            return callback(new Error("Công việc không thể phụ thuộc vào chính nó"));
+        }
+        const sql = `
+            INSERT IGNORE INTO task_dependencies (task_id, depends_on_task_id)
+            VALUES (?, ?)
+        `;
+        db.query(sql, [Number(taskId), Number(dependsOnId)], callback);
+    },
+
+    /** Xóa dependency */
+    removeDependency: (taskId, dependsOnId, callback) => {
+        const sql = `
+            DELETE FROM task_dependencies
+            WHERE task_id = ? AND depends_on_task_id = ?
+        `;
+        db.query(sql, [Number(taskId), Number(dependsOnId)], callback);
+    },
+
+    /** Lấy tất cả tasks cùng project (cho dropdown chọn dependency) */
+    getTasksForProject: (projectId, excludeTaskId, callback) => {
+        const sql = `
+            SELECT id, title, status, priority
+            FROM tasks
+            WHERE project_id = ? AND id != ?
+            ORDER BY title ASC
+        `;
+        db.query(sql, [Number(projectId), Number(excludeTaskId)], callback);
     }
 };
 

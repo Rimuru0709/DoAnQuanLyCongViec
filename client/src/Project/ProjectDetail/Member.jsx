@@ -19,7 +19,7 @@ function Member({ projectId }) {
     const itemsPerPage = 5;
     const token = localStorage.getItem("token");
 
-    let currentUser = null;
+    let currentUser;
 
     try {
         currentUser = JSON.parse(
@@ -167,6 +167,7 @@ function Member({ projectId }) {
             loadMembers();
             loadUsers();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId]);
 
     const formatDate = (date) => {

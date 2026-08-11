@@ -1,9 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const reportController = require("../controllers/reportController");
-const { verifyToken } = require("../middlewares/authMiddleware"); 
+const { verifyToken } = require("../middlewares/authMiddleware");
 
-// API: Lấy toàn bộ dữ liệu báo cáo (Đã được bảo vệ bằng Token)
-router.get("/dashboard", verifyToken, reportController.getDashboardReport);
+// Dashboard tổng quan
+router.get("/dashboard",      verifyToken, reportController.getDashboardReport);
+
+// Khối lượng công việc theo thành viên
+router.get("/workload",       verifyToken, reportController.getWorkloadReport);
+
+// Thống kê Estimated vs Actual Hours
+router.get("/time-tracking",  verifyToken, reportController.getTimeTrackingReport);
+
+// Bottleneck — task quá hạn lâu nhất
+router.get("/bottleneck",     verifyToken, reportController.getBottleneckReport);
 
 module.exports = router;

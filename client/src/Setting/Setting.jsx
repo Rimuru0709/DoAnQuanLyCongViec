@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import Sidebar from "../Sidebar/Sidebar";
+﻿import { useState, useEffect } from "react";
 import "./Setting.css";
 
 // Danh sách các ngày trong tuần cố định để hiển thị checkbox
@@ -126,7 +125,6 @@ function Setting() {
     if (!isAuthorized) {
         return (
             <div className="project-settings-layout">
-                <Sidebar />
                 <div className="project-settings-container" style={{ padding: "20px", color: "red" }}>
                     <h3>Bạn không có quyền truy cập vào khu vực thiết lập hệ thống.</h3>
                 </div>
@@ -136,7 +134,6 @@ function Setting() {
 
     return (
         <div className="project-settings-layout">
-            <Sidebar />
             <div className="project-settings-container">
                 <form className="settings-form" onSubmit={handleSaveSettings}>
                     <h2 className="form-section-title">Thiết lập Hệ thống Dự án (Chung)</h2>

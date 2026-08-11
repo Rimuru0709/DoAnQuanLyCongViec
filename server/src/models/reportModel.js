@@ -348,6 +348,104 @@ const ReportModel = {
 
     /*
     |--------------------------------------------------------------------------
+    | Thống kê khối lượng công việc theo thành viên
+    |--------------------------------------------------------------------------
+    |
+    | Trả về: user_id, full_name, total_tasks, active_tasks, done_tasks
+    | active_tasks > 5 → cảnh báo quá tải
+    |
+    */
+
+    getWorkloadStats: (callback) => {
+        const sql = `
+            SELECT
+                u.id            AS user_id,
+                u.full_name,
+                u.role          AS user_role,
+                COUNT(t.id)     AS total_tasks,
+                SUM(CASE WHEN t.status IN ('CHUA_LAM','DANG_LAM','DANG_REVIEW') THEN 1 ELSE 0 END) AS active_tasks,
+                SUM(CASE WHEN t.status = 'HOAN_THANH' THEN 1 ELSE 0 END) AS done_tasks,
+                SUM(CASE WHEN t.status = 'QUA_HAN'
+                          OR (t.status <> 'HOAN_THANH' AND t.end_date IS NOT NULL AND t.end_date < CURDATE())
+                    THEN 1 ELSE 0 END) AS overdue_tasks
+            FROM users u
+            INNER JOIN tasks t ON t.assigned_to = u.id
+            GROUP BY u.id, u.full_name, u.role
+            ORDER BY active_tasks DESC
+        `;
+
+        db.query(sql, [], callback);
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Thống kê thời gian (Estimated vs Actual Hours)
+    |--------------------------------------------------------------------------
+    */
+
+    getTimeTrackingStats: (filters, callback) => {
+        const taskFilter = buildTaskFilter(filters, "t", "p");
+
+        const sql = `
+            SELECT
+                t.id              AS task_id,
+                t.title           AS task_title,
+                t.status,
+                t.priority,
+                t.estimated_hours,
+                COALESCE(SUM(tl.hours), 0) AS actual_hours,
+                t.estimated_hours - COALESCE(SUM(tl.hours), 0) AS remaining_hours,
+                p.id              AS project_id,
+                p.name            AS project_name,
+                u.full_name       AS assignee_name
+            FROM tasks t
+            INNER JOIN projects p ON p.id = t.project_id
+            LEFT JOIN  users    u ON u.id = t.assigned_to
+            LEFT JOIN  time_logs tl ON tl.task_id = t.id
+            WHERE t.estimated_hours IS NOT NULL
+            ${taskFilter.whereSql}
+            GROUP BY t.id, t.title, t.status, t.priority, t.estimated_hours,
+                     p.id, p.name, u.full_name
+            ORDER BY actual_hours DESC
+            LIMIT 50
+        `;
+
+        db.query(sql, taskFilter.params, callback);
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Thống kê bottleneck — task quá hạn lâu nhất
+    |--------------------------------------------------------------------------
+    */
+
+    getBottleneckStats: (callback) => {
+        const sql = `
+            SELECT
+                t.id,
+                t.title,
+                t.status,
+                t.priority,
+                t.end_date,
+                DATEDIFF(CURDATE(), t.end_date) AS days_overdue,
+                p.name       AS project_name,
+                u.full_name  AS assignee_name
+            FROM tasks t
+            INNER JOIN projects p ON p.id = t.project_id
+            LEFT JOIN  users    u ON u.id = t.assigned_to
+            WHERE
+                t.status <> 'HOAN_THANH'
+                AND t.end_date IS NOT NULL
+                AND t.end_date < CURDATE()
+            ORDER BY days_overdue DESC
+            LIMIT 20
+        `;
+
+        db.query(sql, [], callback);
+    },
+
+    /*
+    |--------------------------------------------------------------------------
     | Thống kê theo loại file
     |--------------------------------------------------------------------------
     */

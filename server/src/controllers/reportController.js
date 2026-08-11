@@ -468,6 +468,121 @@ const getDashboardReport =
         }
     };
 
+/*
+|--------------------------------------------------------------------------
+| GET /api/reports/workload
+| Khối lượng công việc theo từng thành viên
+|--------------------------------------------------------------------------
+*/
+
+const getWorkloadReport = async (req, res) => {
+    try {
+        const rows = await new Promise((resolve, reject) => {
+            ReportModel.getWorkloadStats((err, data) => {
+                if (err) return reject(err);
+                resolve(data || []);
+            });
+        });
+
+        const members = rows.map(row => ({
+            userId:      row.user_id,
+            fullName:    row.full_name,
+            role:        row.user_role,
+            totalTasks:  Number(row.total_tasks)  || 0,
+            activeTasks: Number(row.active_tasks) || 0,
+            doneTasks:   Number(row.done_tasks)   || 0,
+            overdueTasks:Number(row.overdue_tasks)|| 0,
+            isOverloaded: (Number(row.active_tasks) || 0) > 5
+        }));
+
+        return res.status(200).json({ success: true, members });
+    } catch (error) {
+        console.error("Lỗi workload report:", error);
+        return res.status(500).json({ success: false, message: "Không thể tải dữ liệu khối lượng", error: error.message });
+    }
+};
+
+/*
+|--------------------------------------------------------------------------
+| GET /api/reports/time-tracking
+| Estimated vs Actual Hours
+|--------------------------------------------------------------------------
+*/
+
+const getTimeTrackingReport = async (req, res) => {
+    try {
+        const projectName = String(req.query.projectName || "").trim();
+        const month   = parseOptionalInteger(req.query.month);
+        const year    = parseOptionalInteger(req.query.year);
+        const filters = { projectName, month, year, quarter: null };
+
+        const rows = await new Promise((resolve, reject) => {
+            ReportModel.getTimeTrackingStats(filters, (err, data) => {
+                if (err) return reject(err);
+                resolve(data || []);
+            });
+        });
+
+        const tasks = rows.map(row => ({
+            taskId:         row.task_id,
+            taskTitle:      row.task_title,
+            status:         row.status,
+            priority:       row.priority,
+            projectId:      row.project_id,
+            projectName:    row.project_name,
+            assigneeName:   row.assignee_name,
+            estimatedHours: Number(row.estimated_hours) || 0,
+            actualHours:    Number(row.actual_hours)    || 0,
+            remainingHours: Number(row.remaining_hours) || 0,
+            efficiency: row.estimated_hours
+                ? Math.round((Number(row.actual_hours) / Number(row.estimated_hours)) * 100)
+                : null
+        }));
+
+        return res.status(200).json({ success: true, tasks });
+    } catch (error) {
+        console.error("Lỗi time tracking report:", error);
+        return res.status(500).json({ success: false, message: "Không thể tải dữ liệu thời gian", error: error.message });
+    }
+};
+
+/*
+|--------------------------------------------------------------------------
+| GET /api/reports/bottleneck
+| Task quá hạn lâu nhất (bottleneck)
+|--------------------------------------------------------------------------
+*/
+
+const getBottleneckReport = async (req, res) => {
+    try {
+        const rows = await new Promise((resolve, reject) => {
+            ReportModel.getBottleneckStats((err, data) => {
+                if (err) return reject(err);
+                resolve(data || []);
+            });
+        });
+
+        const tasks = rows.map(row => ({
+            id:           row.id,
+            title:        row.title,
+            status:       row.status,
+            priority:     row.priority,
+            endDate:      row.end_date,
+            daysOverdue:  Number(row.days_overdue) || 0,
+            projectName:  row.project_name,
+            assigneeName: row.assignee_name
+        }));
+
+        return res.status(200).json({ success: true, tasks });
+    } catch (error) {
+        console.error("Lỗi bottleneck report:", error);
+        return res.status(500).json({ success: false, message: "Không thể tải dữ liệu bottleneck", error: error.message });
+    }
+};
+
 module.exports = {
-    getDashboardReport
+    getDashboardReport,
+    getWorkloadReport,
+    getTimeTrackingReport,
+    getBottleneckReport
 };

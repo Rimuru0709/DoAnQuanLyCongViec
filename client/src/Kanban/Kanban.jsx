@@ -4,7 +4,8 @@ import {
     useState
 } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../Sidebar/Sidebar";
+import GanttChart from "./GanttChart";
+import { getSocket } from "../services/socket";
 import "./Kanban.css";
 
 const API_URL =
@@ -108,10 +109,20 @@ function Kanban() {
     const [isSubmitting, setIsSubmitting] =
         useState(false);
 
+    // View mode: "kanban" | "gantt"
+    const [viewMode, setViewMode] = useState("kanban");
+
+    // Active project for Gantt (uses first matched project or filter)
+    const activeGanttProject = useMemo(() => {
+        if (projectFilter !== "ALL") return projectFilter;
+        const projs = [...new Set(tasks.map(t => t.project_id).filter(Boolean))];
+        return projs[0] || null;
+    }, [projectFilter, tasks]);
+
     const token =
         localStorage.getItem("token");
 
-    let currentUser = null;
+    let currentUser;
 
     try {
         currentUser = JSON.parse(
@@ -259,6 +270,18 @@ function Kanban() {
 
     useEffect(() => {
         loadTasks();
+
+        // Socket.io — cập nhật real-time khi task thay đổi
+        const socket = getSocket();
+        if (socket) {
+            socket.on("task:updated", () => {
+                loadTasks(false); // silent refresh
+            });
+        }
+
+        return () => {
+            socket?.off("task:updated");
+        };
     }, []);
 
     const projects = useMemo(() => {
@@ -722,8 +745,7 @@ function Kanban() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
 
             {message && (
                 <div className="toast-success">
@@ -733,7 +755,36 @@ function Kanban() {
 
             <main className="global-kanban-page">
                 <div className="global-kanban-header">
-                    <h1>Kanban tổng</h1>
+                    <div style={{display:'flex', alignItems:'center', gap:12}}>
+                        <h1>Kanban tổng</h1>
+                        {/* View mode toggle */}
+                        <div style={{display:'flex', gap:4, marginLeft:8}}>
+                            <button
+                                onClick={() => setViewMode("kanban")}
+                                style={{
+                                    padding: '5px 14px', borderRadius: 8, border: '1px solid',
+                                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                                    background: viewMode === 'kanban' ? '#2563eb' : 'rgba(255,255,255,0.05)',
+                                    color: viewMode === 'kanban' ? '#fff' : '#94a3b8',
+                                    borderColor: viewMode === 'kanban' ? '#2563eb' : 'rgba(255,255,255,0.1)'
+                                }}
+                            >
+                                📋 Kanban
+                            </button>
+                            <button
+                                onClick={() => setViewMode("gantt")}
+                                style={{
+                                    padding: '5px 14px', borderRadius: 8, border: '1px solid',
+                                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                                    background: viewMode === 'gantt' ? '#2563eb' : 'rgba(255,255,255,0.05)',
+                                    color: viewMode === 'gantt' ? '#fff' : '#94a3b8',
+                                    borderColor: viewMode === 'gantt' ? '#2563eb' : 'rgba(255,255,255,0.1)'
+                                }}
+                            >
+                                📊 Gantt
+                            </button>
+                        </div>
+                    </div>
 
                     <p>
                         Quản lý công việc của các dự án
@@ -832,11 +883,31 @@ function Kanban() {
                     </select>
                 </div>
 
+                {/* ── GANTT VIEW ── */}
+                {viewMode === "gantt" && (
+                    <div style={{ marginTop: 16 }}>
+                        {activeGanttProject ? (
+                            <GanttChart
+                                projectId={activeGanttProject}
+                                onTaskClick={(taskId) => {
+                                    const t = tasks.find(x => x.id === taskId);
+                                    if (t) openTaskModal(t);
+                                }}
+                            />
+                        ) : (
+                            <div className="global-kanban-empty">
+                                Chọn một dự án cụ thể để xem Gantt Chart
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ── KANBAN VIEW ── */}
                 {loading ? (
                     <div className="global-kanban-empty">
                         Đang tải dữ liệu...
                     </div>
-                ) : (
+                ) : viewMode === "kanban" && (
                     <div className="global-kanban-board">
                         {columns.map((column) => {
                             const columnTasks =
@@ -983,6 +1054,31 @@ function Kanban() {
                                                                     />
                                                                 </div>
                                                             </div>
+
+                                                            {/* Checklist progress */}
+                                                            {Number(task.checklist_total) > 0 && (
+                                                                <div style={{
+                                                                    display: 'flex', alignItems: 'center',
+                                                                    gap: 8, marginTop: 6
+                                                                }}>
+                                                                    <div style={{
+                                                                        flex: 1, height: 4,
+                                                                        background: 'rgba(255,255,255,0.08)',
+                                                                        borderRadius: 2, overflow: 'hidden'
+                                                                    }}>
+                                                                        <div style={{
+                                                                            width: `${Math.round((task.checklist_done / task.checklist_total) * 100)}%`,
+                                                                            height: '100%',
+                                                                            background: task.checklist_done === task.checklist_total ? '#16a34a' : '#2563eb',
+                                                                            borderRadius: 2,
+                                                                            transition: 'width 0.3s'
+                                                                        }} />
+                                                                    </div>
+                                                                    <span style={{ fontSize: 10, color: '#64748b', whiteSpace: 'nowrap' }}>
+                                                                        ✅ {task.checklist_done}/{task.checklist_total}
+                                                                    </span>
+                                                                </div>
+                                                            )}
 
                                                             <span
                                                                 className={`global-priority ${task.priority ||

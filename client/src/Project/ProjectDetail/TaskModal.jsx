@@ -4,6 +4,17 @@ import "./TaskModal.css";
 
 const API_URL = "http://localhost:5000/api/tasks";
 
+const emptyTask = {
+    title: "",
+    description: "",
+    assigned_to: "",
+    start_date: "",
+    end_date: "",
+    status: "CHUA_LAM",
+    priority: "TRUNG_BINH",
+    progress: 0
+};
+
 function TaskModal({
     open,
     task,
@@ -39,16 +50,6 @@ const canEditProgress =
     isManager ||
     (isMember && isTaskAssignee);
 
-    const emptyTask = {
-        title: "",
-        description: "",
-        assigned_to: "",
-        start_date: "",
-        end_date: "",
-        status: "CHUA_LAM",
-        priority: "TRUNG_BINH",
-        progress: 0
-    };
 
     const [formData, setFormData] = useState(emptyTask);
     const [message, setMessage] = useState("");
@@ -79,6 +80,7 @@ const canEditProgress =
         }
 
         setMessage("");
+         
     }, [task, open]);
 
     if (!open) {

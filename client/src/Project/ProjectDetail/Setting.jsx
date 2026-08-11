@@ -29,7 +29,7 @@ function Setting({
 
     const token = localStorage.getItem("token");
 
-    let currentUser = null;
+    let currentUser;
 
     try {
         currentUser = JSON.parse(

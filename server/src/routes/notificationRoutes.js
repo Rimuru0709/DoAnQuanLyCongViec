@@ -11,6 +11,43 @@ const {
     "../middlewares/authMiddleware"
 );
 
+const Notification = require("../models/notificationModel");
+
+/*
+|--------------------------------------------------------------------------
+| Lấy số thông báo chưa đọc (dùng cho bell badge)
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+    "/unread-count",
+    verifyToken,
+    (req, res) => {
+        Notification.getUnreadCount(req.user.id, (err, count) => {
+            if (err) return res.status(500).json({ success: false, count: 0 });
+            return res.status(200).json({ success: true, count });
+        });
+    }
+);
+
+/*
+|--------------------------------------------------------------------------
+| Lấy thông báo mới nhất (dùng cho dropdown bell)
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+    "/latest",
+    verifyToken,
+    (req, res) => {
+        const limit = Math.min(10, parseInt(req.query.limit, 10) || 5);
+        Notification.getLatestUnread(req.user.id, limit, (err, rows) => {
+            if (err) return res.status(500).json({ success: false, notifications: [] });
+            return res.status(200).json({ success: true, notifications: rows || [] });
+        });
+    }
+);
+
 /*
 |--------------------------------------------------------------------------
 | Lấy danh sách thông báo
@@ -35,6 +72,12 @@ router.put(
     notifController.readAllNotifications
 );
 
+router.patch(
+    "/read-all",
+    verifyToken,
+    notifController.readAllNotifications
+);
+
 /*
 |--------------------------------------------------------------------------
 | Xóa toàn bộ thông báo
@@ -54,6 +97,12 @@ router.delete(
 */
 
 router.put(
+    "/:id/read",
+    verifyToken,
+    notifController.readNotification
+);
+
+router.patch(
     "/:id/read",
     verifyToken,
     notifController.readNotification

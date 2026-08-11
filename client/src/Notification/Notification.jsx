@@ -15,7 +15,6 @@ import {
     FaTrashAlt
 } from "react-icons/fa";
 
-import Sidebar from "../Sidebar/Sidebar";
 import "./Notification.css";
 
 const API_URL =
@@ -269,9 +268,7 @@ function Notification() {
         useMemo(() => {
             return notifications.filter(
                 (notification) =>
-                    !Boolean(
-                        notification.is_read
-                    )
+                    !notification.is_read
             ).length;
         }, [notifications]);
 
@@ -696,8 +693,7 @@ function Notification() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
 
             <main className="main">
                 <header className="topbar">
@@ -826,9 +822,7 @@ function Notification() {
                                                     notification.id
                                                 }
                                                 className={`notif-item ${
-                                                    !Boolean(
-                                                        notification.is_read
-                                                    )
+                                                    !notification.is_read
                                                         ? "unread"
                                                         : ""
                                                 }`}
@@ -844,9 +838,7 @@ function Notification() {
                                                                 notification.title
                                                             }
 
-                                                            {!Boolean(
-                                                                notification.is_read
-                                                            ) && (
+                                                            {!notification.is_read && (
                                                                 <span className="unread-dot" />
                                                             )}
                                                         </h4>
@@ -866,9 +858,7 @@ function Notification() {
                                                 </div>
 
                                                 <div className="notif-actions">
-                                                    {!Boolean(
-                                                        notification.is_read
-                                                    ) && (
+                                                    {!notification.is_read && (
                                                         <button
                                                             type="button"
                                                             className="action-btn check-btn"

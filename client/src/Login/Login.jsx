@@ -85,71 +85,81 @@ function Login() {
                 return;
             }
 
-            localStorage.setItem(
-                "token",
-                data.token
-            );
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
 
-            localStorage.setItem(
-                "user",
-                JSON.stringify(data.user)
-            );
+            toast.success(`Xin chào ${data.user.full_name}! 👋`);
 
-            toast.success(
-                `Xin chào ${data.user.full_name}!`
-            );
-
-            navigate("/home", {
-                replace: true
-            });
+            navigate("/home", { replace: true });
         } catch (error) {
             console.error("Lỗi đăng nhập:", error);
-
-            showError(
-                "Không thể kết nối đến server"
-            );
+            showError("Không thể kết nối đến server");
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const features = [
+        {
+            icon: "📊",
+            colorClass: "blue",
+            text: "Theo dõi tiến độ dự án theo thời gian thực"
+        },
+        {
+            icon: "🎯",
+            colorClass: "green",
+            text: "Phân công công việc với Kanban Board kéo-thả"
+        },
+        {
+            icon: "👥",
+            colorClass: "purple",
+            text: "Cộng tác nhóm với phân quyền RBAC"
+        },
+        {
+            icon: "📈",
+            colorClass: "orange",
+            text: "Báo cáo & Dashboard thống kê tự động"
+        }
+    ];
+
     return (
         <div className="auth-page">
+            {/* Left Panel */}
             <div className="auth-left">
-                <h1>ProjectMaster</h1>
+                <div className="auth-brand">
+                    <div className="auth-brand-icon">P</div>
+                    <h1>ProjectMaster</h1>
+                </div>
+
+                <h2>Quản lý dự án<br />thông minh hơn</h2>
 
                 <p>
-                    Quản lý dự án, công việc và tiến độ nhóm
-                    một cách hiệu quả.
+                    Hệ thống quản lý công việc và theo dõi tiến độ
+                    dự án toàn diện, giúp đội nhóm làm việc hiệu quả
+                    và gắn kết hơn.
                 </p>
 
-                <div className="auth-feature">
-                    <span>✓</span>
-                    Theo dõi tiến độ dự án
-                </div>
-
-                <div className="auth-feature">
-                    <span>✓</span>
-                    Phân công công việc nhóm
-                </div>
-
-                <div className="auth-feature">
-                    <span>✓</span>
-                    Quản lý Kanban, Gantt, tài liệu
+                <div className="auth-features">
+                    {features.map((f, i) => (
+                        <div key={i} className="auth-feature">
+                            <div className={`auth-feature-icon ${f.colorClass}`}>
+                                {f.icon}
+                            </div>
+                            <span>{f.text}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
 
+            {/* Right Panel */}
             <div className="auth-right">
                 <form
                     className="login-card"
                     onSubmit={handleLogin}
                 >
+                    {/* Robot Mascot */}
                     <div
-                        className={`
-                            robot
-                            ${isPasswordFocus ? "secure" : ""}
-                            ${isSad ? "sad" : ""}
-                        `}
+                        className={`robot ${isPasswordFocus ? "secure" : ""} ${isSad ? "sad" : ""}`}
                     >
                         <div className="robot-head">
                             <div className="robot-screen">
@@ -157,81 +167,77 @@ function Login() {
                                     <span></span>
                                     <span></span>
                                 </div>
-
                                 <div className="robot-smile"></div>
                             </div>
                         </div>
-
                         <div className="robot-arm left"></div>
                         <div className="robot-arm right"></div>
-                        <div className="robot-leg left"></div>
-                        <div className="robot-leg right"></div>
                     </div>
 
-                    <h2>Đăng nhập</h2>
+                    {/* Card Header */}
+                    <div className="login-card-top">
+                        <h2>Đăng nhập</h2>
+                        <p className="auth-subtitle">
+                            Chào mừng bạn quay lại ProjectMaster 👋
+                        </p>
+                    </div>
 
-                    <p className="auth-subtitle">
-                        Chào mừng bạn quay lại ProjectMaster
-                    </p>
-
+                    {/* Error Message */}
                     {message && (
                         <div className="auth-message">
-                            {message}
+                            ⚠️ {message}
                         </div>
                     )}
 
-                    <label htmlFor="email">
-                        Email
-                    </label>
+                    {/* Email Field */}
+                    <div className="auth-form-group">
+                        <label htmlFor="email">
+                            Email
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="Nhập địa chỉ email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
+                            required
+                        />
+                    </div>
 
-                    <input
-                        id="email"
-                        type="email"
-                        placeholder="Nhập email"
-                        value={email}
-                        onChange={(e) =>
-                            setEmail(e.target.value)
-                        }
-                        autoComplete="email"
-                        required
-                    />
+                    {/* Password Field */}
+                    <div className="auth-form-group">
+                        <label htmlFor="password">
+                            Mật khẩu
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            placeholder="Nhập mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onFocus={() => setIsPasswordFocus(true)}
+                            onBlur={() => setIsPasswordFocus(false)}
+                            autoComplete="current-password"
+                            required
+                        />
+                    </div>
 
-                    <label htmlFor="password">
-                        Mật khẩu
-                    </label>
-
-                    <input
-                        id="password"
-                        type="password"
-                        placeholder="Nhập mật khẩu"
-                        value={password}
-                        onChange={(e) =>
-                            setPassword(e.target.value)
-                        }
-                        onFocus={() =>
-                            setIsPasswordFocus(true)
-                        }
-                        onBlur={() =>
-                            setIsPasswordFocus(false)
-                        }
-                        autoComplete="current-password"
-                        required
-                    />
-
+                    {/* Submit */}
                     <button
                         type="submit"
+                        className="btn-submit"
                         disabled={isSubmitting}
                     >
                         {isSubmitting
-                            ? "Đang đăng nhập..."
-                            : "Đăng nhập"}
+                            ? "⏳ Đang đăng nhập..."
+                            : "🚀 Đăng nhập"}
                     </button>
 
+                    {/* Register Link */}
                     <p className="auth-link">
                         Chưa có tài khoản?{" "}
-                        <Link to="/register">
-                            Đăng ký
-                        </Link>
+                        <Link to="/register">Đăng ký ngay</Link>
                     </p>
                 </form>
             </div>

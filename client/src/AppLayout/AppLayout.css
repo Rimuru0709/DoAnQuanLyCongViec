@@ -1,0 +1,60 @@
+/* =====================================================
+   APP LAYOUT — Three-Pane Shell
+   ===================================================== */
+
+:root {
+    --header-height: 58px;
+    --sidebar-width: 260px;
+}
+
+/* ── Shell wrapper ── */
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ── Body (sidebar + main) ── */
+.app-body {
+    display: flex;
+    flex: 1;
+    padding-top: var(--header-height);
+}
+
+/* ── Main workspace (content area) ── */
+.main-workspace {
+    flex: 1;
+    min-width: 0;
+    min-height: calc(100vh - var(--header-height));
+    overflow-x: hidden;
+    /* Radial background subtle glow */
+    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37,99,235,0.05) 0%, transparent 70%);
+}
+
+/* ── Sidebar must be fixed height under header ── */
+.app-body .sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Main workspace offset for fixed sidebar */
+.app-body .main-workspace {
+    margin-left: var(--sidebar-width);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .app-body .sidebar {
+        display: none;
+    }
+    .app-body .main-workspace {
+        margin-left: 0;
+    }
+    .app-header {
+        left: 0;
+    }
+}

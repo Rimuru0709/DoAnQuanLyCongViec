@@ -24,7 +24,6 @@ import {
     FaUserTie
 } from "react-icons/fa";
 
-import Sidebar from "../Sidebar/Sidebar";
 import "./Member.css";
 
 const MEMBER_API =
@@ -695,33 +694,6 @@ function Member() {
         );
     };
 
-    const handleProjectCheckbox = (
-        projectId
-    ) => {
-        const numericProjectId =
-            Number(projectId);
-
-        setMemberForm((previous) => {
-            const isSelected =
-                previous.project_ids.includes(
-                    numericProjectId
-                );
-
-            return {
-                ...previous,
-
-                project_ids: isSelected
-                    ? previous.project_ids.filter(
-                        (id) =>
-                            id !== numericProjectId
-                    )
-                    : [
-                        ...previous.project_ids,
-                        numericProjectId
-                    ]
-            };
-        });
-    };
 
     const validateMemberForm = () => {
         const fullName =
@@ -1035,8 +1007,7 @@ function Member() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
 
             <main className="member-page">
                 <div className="member-header">
@@ -1352,15 +1323,29 @@ function Member() {
 
                                                     <td>
                                                         <div className="member-task-cell">
-                                                            <strong>
+                                                            <strong style={{ display:'flex', alignItems:'center', gap:6 }}>
                                                                 Tổng: {Number(member.total_tasks) || 0}
+                                                                {Number(member.active_tasks) > 5 && (
+                                                                    <span style={{
+                                                                        fontSize:9, fontWeight:700, color:'#ef4444',
+                                                                        background:'rgba(220,38,38,0.15)',
+                                                                        padding:'1px 5px', borderRadius:4,
+                                                                        border:'1px solid rgba(220,38,38,0.3)',
+                                                                        letterSpacing:'0.02em'
+                                                                    }}>
+                                                                        ⚠ QUÁ TẢI
+                                                                    </span>
+                                                                )}
                                                             </strong>
 
                                                             <span>
                                                                 Hoàn thành: {Number(member.completed_tasks) || 0}
                                                             </span>
 
-                                                            <span>
+                                                            <span style={{
+                                                                color: Number(member.active_tasks) > 5 ? '#ef4444' : undefined,
+                                                                fontWeight: Number(member.active_tasks) > 5 ? 600 : 400
+                                                            }}>
                                                                 Đang làm: {Number(member.active_tasks) || 0}
                                                             </span>
                                                         </div>

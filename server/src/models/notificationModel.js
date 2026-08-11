@@ -242,11 +242,115 @@ const clearAll = (
     );
 };
 
+/*
+|--------------------------------------------------------------------------
+| Đếm số thông báo chưa đọc (dùng cho notification bell badge)
+|--------------------------------------------------------------------------
+*/
+
+const getUnreadCount = (
+    userId,
+    callback
+) => {
+    const sql = `
+        SELECT COUNT(*) AS count
+        FROM notifications
+        WHERE user_id = ?
+          AND is_read = 0
+    `;
+
+    db.query(
+        sql,
+        [Number(userId)],
+        (err, rows) => {
+            if (err) return callback(err, 0);
+            const count = (rows && rows[0]) ? Number(rows[0].count) : 0;
+            callback(null, count);
+        }
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Lấy 5 thông báo mới nhất chưa đọc (dùng cho dropdown bell)
+|--------------------------------------------------------------------------
+*/
+
+const getLatestUnread = (
+    userId,
+    limit = 5,
+    callback
+) => {
+    const sql = `
+        SELECT id, title, content, type, is_read, created_at
+        FROM notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+    `;
+
+    db.query(
+        sql,
+        [Number(userId), Math.min(20, limit)],
+        callback
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Tạo thông báo nhanh (dùng nội bộ trong controllers)
+|--------------------------------------------------------------------------
+*/
+
+const createForUser = (
+    userId,
+    title,
+    content,
+    type = "info",
+    appRef = null    // optional: Express app object để lấy io
+) => {
+    // Fire-and-forget: không callback, không block request
+    if (!userId || !title || !content) return;
+
+    const sql = `
+        INSERT INTO notifications (user_id, title, content, type, is_read)
+        VALUES (?, ?, ?, ?, 0)
+    `;
+
+    db.query(sql, [Number(userId), title, content, type], (err, result) => {
+        if (err) {
+            console.error("Lỗi tạo notification:", err.message);
+            return;
+        }
+
+        // Emit real-time socket nếu có io
+        try {
+            const io = appRef?.get?.("io");
+            if (io) {
+                io.to(`user:${userId}`).emit("notification:new", {
+                    id:         result.insertId,
+                    user_id:    Number(userId),
+                    title,
+                    content,
+                    type,
+                    is_read:    0,
+                    created_at: new Date().toISOString()
+                });
+            }
+        } catch (e) {
+            /* socket không ảnh hưởng đến logic chính */
+        }
+    });
+};
+
 module.exports = {
     getByUserId,
     create,
     markAsRead,
     markAllAsRead,
     deleteById,
-    clearAll
+    clearAll,
+    getUnreadCount,
+    getLatestUnread,
+    createForUser
 };

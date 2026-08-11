@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import "./Document.css";
-import Sidebar from "../Sidebar/Sidebar";
 import { 
     FaFileWord, FaFilePdf, FaFileExcel, FaFileImage, FaFileAlt,
     FaDownload, FaTrash, FaUpload, FaSearch, FaPlus, FaTimes, FaChevronDown 
@@ -264,8 +263,7 @@ function Document() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
             <main className="main">
                 <header className="topbar">
                     <h1>Tài liệu hệ thống</h1>

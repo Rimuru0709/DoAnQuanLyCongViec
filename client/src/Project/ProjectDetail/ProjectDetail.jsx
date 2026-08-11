@@ -1,5 +1,4 @@
 import "./ProjectDetail.css";
-import Sidebar from "../../Sidebar/Sidebar";
 import { useEffect, useState } from "react";
 import {
     useNavigate,
@@ -7,6 +6,7 @@ import {
 } from "react-router-dom";
 
 import TaskModal from "./TaskModal";
+import TaskDetailDrawer from "../../TaskDetailDrawer/TaskDetailDrawer";
 import Kanban from "./Kanban";
 import Gantt from "./Gantt";
 import Document from "./Document";
@@ -36,6 +36,10 @@ function ProjectDetail() {
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
 
+    // Task Detail Drawer (view/edit detail)
+    const [showDrawer, setShowDrawer] = useState(false);
+    const [drawerTaskId, setDrawerTaskId] = useState(null);
+
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteTaskId, setDeleteTaskId] = useState(null);
 
@@ -50,7 +54,7 @@ function ProjectDetail() {
     const tasksPerPage = 5;
     const token = localStorage.getItem("token");
 
-    let currentUser = null;
+    let currentUser;
 
     try {
         currentUser = JSON.parse(
@@ -238,6 +242,7 @@ function ProjectDetail() {
 
     useEffect(() => {
         loadPageData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const openAddTaskModal = () => {
@@ -254,28 +259,19 @@ function ProjectDetail() {
     };
 
     const openEditTaskModal = (task) => {
-        const isTaskAssignee =
-            Number(task.assigned_to) ===
-            Number(currentUser?.id);
-
-        if (
-            !canManageTasks &&
-            !isTaskAssignee
-        ) {
-            showToast(
-                "Bạn không có quyền cập nhật công việc này"
-            );
-
-            return;
-        }
-
-        setSelectedTask(task);
-        setShowTaskModal(true);
+        // Open the rich Task Detail Drawer for viewing/editing
+        setDrawerTaskId(task.id);
+        setShowDrawer(true);
     };
 
     const closeTaskModal = () => {
         setShowTaskModal(false);
         setSelectedTask(null);
+    };
+
+    const closeDrawer = () => {
+        setShowDrawer(false);
+        setDrawerTaskId(null);
     };
 
     const handleTaskSuccess = async () => {
@@ -534,7 +530,6 @@ function ProjectDetail() {
     if (loading) {
         return (
             <div className="detail-layout">
-                <Sidebar />
 
                 <div className="detail-page">
                     <h2>Đang tải dữ liệu...</h2>
@@ -546,7 +541,6 @@ function ProjectDetail() {
     if (error) {
         return (
             <div className="detail-layout">
-                <Sidebar />
 
                 <div className="detail-page">
                     <h2>Không thể mở dự án</h2>
@@ -568,7 +562,6 @@ function ProjectDetail() {
     if (!project) {
         return (
             <div className="detail-layout">
-                <Sidebar />
 
                 <div className="detail-page">
                     <h2>
@@ -581,7 +574,6 @@ function ProjectDetail() {
 
     return (
         <div className="detail-layout">
-            <Sidebar />
 
             {message && (
                 <div className="toast-success">
@@ -705,7 +697,7 @@ function ProjectDetail() {
                 </div>
 
                 {activeTab === "overview" && (
-                    <>
+                    <div className="page-content">
                         <div className="detail-grid">
                             <div className="detail-card progress-card">
                                 <h3>
@@ -932,7 +924,7 @@ function ProjectDetail() {
                                 </tbody>
                             </table>
                         </div>
-                    </>
+                    </div>
                 )}
 
                 {activeTab === "tasks" && (
@@ -1205,6 +1197,22 @@ function ProjectDetail() {
                         </div>
                     </div>
                 )}
+
+            {/* Task Detail Drawer (createPortal renders to document.body) */}
+            {showDrawer && drawerTaskId && (
+                <TaskDetailDrawer
+                    taskId={drawerTaskId}
+                    projectId={id}
+                    onClose={closeDrawer}
+                    onSaved={async () => {
+                        await Promise.all([loadTasks(), loadProject()]);
+                    }}
+                    onDeleted={async () => {
+                        closeDrawer();
+                        await Promise.all([loadTasks(), loadProject()]);
+                    }}
+                />
+            )}
         </div>
     );
 }

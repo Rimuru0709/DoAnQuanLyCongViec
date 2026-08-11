@@ -1,4 +1,4 @@
-import {
+﻿import {
     useEffect,
     useMemo,
     useRef,
@@ -10,7 +10,6 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-import Sidebar from "../Sidebar/Sidebar";
 import "./Calendar.css";
 
 const API_URL = "http://localhost:5000/api";
@@ -400,8 +399,7 @@ function Calendar() {
     };
 
     return (
-        <div className="app">
-            <Sidebar />
+        <div className="page-content">
 
             {message && (
                 <div className="toast-success">
