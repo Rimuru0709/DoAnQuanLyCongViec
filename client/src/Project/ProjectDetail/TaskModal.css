@@ -186,16 +186,140 @@
     text-align: center;
 }
 
-.btn-delete{
-    background:#ef4444;
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:9px;
-    cursor:pointer;
-    transition:.2s;
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: .2s;
 }
 
-.btn-delete:hover{
-    background:#dc2626;
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+/* =========================================================
+   TÌM KIẾM NGƯỜI PHỤ TRÁCH
+========================================================= */
+
+.assignee-search-box {
+    position: relative;
+    width: 100%;
+}
+
+/* Ô nhập tên */
+.assignee-search-box input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* Danh sách gợi ý */
+.assignee-dropdown {
+    position: absolute;
+
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+
+    z-index: 10000;
+
+    max-height: 190px;
+
+    overflow-y: auto;
+
+    background: #071527;
+
+    border: 1px solid #243b5a;
+    border-radius: 9px;
+
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+
+/* Từng thành viên */
+.assignee-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 4px;
+
+    padding: 10px 13px;
+
+    border-bottom: 1px solid #1f3654;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease;
+}
+
+.assignee-option:last-child {
+    border-bottom: none;
+}
+
+.assignee-option:hover {
+    background: #163252;
+}
+
+
+/* Tên thành viên */
+.assignee-option strong {
+    display: block;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    line-height: 1.3;
+}
+
+
+/* Email thành viên */
+.assignee-option small {
+    display: block;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+
+    line-height: 1.3;
+}
+
+
+/* Không tìm thấy */
+.assignee-empty {
+    padding: 12px 13px;
+
+    color: #94a3b8;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   SCROLLBAR DANH SÁCH NGƯỜI PHỤ TRÁCH
+========================================================= */
+
+.assignee-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.assignee-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.assignee-dropdown::-webkit-scrollbar-thumb {
+    background: #35516f;
+
+    border-radius: 999px;
+}
+
+.assignee-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
 }

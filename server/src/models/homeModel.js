@@ -536,14 +536,14 @@ const HomeModel = {
                     );
             }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ADMIN / MANAGER
-        |--------------------------------------------------------------------------
-        |
-        | Tính trung bình từ tiến độ dự án
-        |
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | ADMIN / MANAGER
+            |--------------------------------------------------------------------------
+            |
+            | Tính trung bình từ tiến độ dự án
+            |
+            */
 
         } else if (
             projects.length > 0
@@ -1069,10 +1069,10 @@ const HomeModel = {
                 POINT_COUNT === 1
                     ? 0
                     : index /
-                      (
-                          POINT_COUNT -
-                          1
-                      );
+                    (
+                        POINT_COUNT -
+                        1
+                    );
 
             const pointDate =
                 new Date(
@@ -1143,55 +1143,96 @@ const HomeModel = {
                 ).length;
 
             /*
-            |--------------------------------------------------------------------------
-            | 3. REMAINING ACTUAL TASKS
-            |--------------------------------------------------------------------------
-            |
-            | Số task thực tế chưa hoàn thành
-            | tại mốc thời gian này.
-            |
-            */
+|--------------------------------------------------------------------------
+| 3. REMAINING ACTUAL TASKS
+|--------------------------------------------------------------------------
+|
+| Tính khối lượng công việc thực tế còn lại
+| dựa trên progress của từng task.
+|
+| Ví dụ:
+| 0%   -> còn 1.0 task
+| 50%  -> còn 0.5 task
+| 80%  -> còn 0.2 task
+| 100% -> còn 0 task
+|
+*/
 
             const remainingActualTasks =
-                tasks.filter(
-                    (task) => {
+                tasks.reduce(
+                    (
+                        total,
+                        task
+                    ) => {
 
                         /*
-                         * Nếu chưa có completed_at:
-                         * task vẫn chưa hoàn thành.
+                         * Task chưa bắt đầu tại pointDate
+                         * thì vẫn tính là còn nguyên 1 task
                          */
 
+                        const startDate =
+                            normalizeStartDate(
+                                task.start_date
+                            );
+
                         if (
-                            !task.completed_at
+                            startDate &&
+                            startDate > pointDate
                         ) {
-                            return true;
+                            return total + 1;
                         }
 
-                        const completedAt =
-                            toDate(
-                                task.completed_at
+                        /*
+                         * Nếu task đã hoàn thành
+                         * trước hoặc đúng pointDate
+                         * thì không còn lại.
+                         */
+
+                        if (task.completed_at) {
+
+                            const completedAt =
+                                toDate(
+                                    task.completed_at
+                                );
+
+                            if (
+                                completedAt &&
+                                completedAt <= pointDate
+                            ) {
+                                return total;
+                            }
+                        }
+
+                        /*
+                         * Lấy tiến độ hiện tại
+                         */
+
+                        const progress =
+                            Math.min(
+                                100,
+                                Math.max(
+                                    0,
+                                    Number(
+                                        task.progress || 0
+                                    )
+                                )
                             );
 
                         /*
-                         * Nếu completed_at lỗi:
-                         * coi task vẫn chưa hoàn thành.
+                         * Tính phần còn lại
                          */
 
-                        if (!completedAt) {
-                            return true;
-                        }
-
-                        /*
-                         * Nếu hoàn thành sau pointDate,
-                         * tại pointDate task vẫn còn.
-                         */
+                        const remaining =
+                            1 -
+                            progress / 100;
 
                         return (
-                            completedAt >
-                            pointDate
+                            total +
+                            remaining
                         );
-                    }
-                ).length;
+                    },
+                    0
+                );
 
             /*
             |--------------------------------------------------------------------------
@@ -1210,7 +1251,11 @@ const HomeModel = {
 
                 remainingTasks,
 
-                remainingActualTasks
+                remainingActualTasks:
+                    Number(
+                        remainingActualTasks
+                            .toFixed(2)
+                    )
             });
         }
 
