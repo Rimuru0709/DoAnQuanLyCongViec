@@ -1322,6 +1322,7 @@ function ProjectDetail() {
                 <TaskModal
                     open={showTaskModal}
                     task={selectedTask}
+                    tasks={tasks}
                     projectId={project.id}
                     onClose={closeTaskModal}
                     onSuccess={async () => {

@@ -586,11 +586,20 @@
     overflow: visible;
 }
 
-/* Đường baseline */
+/* =========================================================
+   TASK BURNDOWN - COLORS
+========================================================= */
+
+/* =========================================================
+   BASELINE
+   Kế hoạch / nhiệm vụ còn lại cơ bản
+   Màu xanh dương
+========================================================= */
+
 .burndown-baseline-line {
     fill: none;
 
-    stroke: #94a3b8;
+    stroke: #3b82f6;
     stroke-width: 4;
 
     stroke-linecap: round;
@@ -599,7 +608,24 @@
     vector-effect: non-scaling-stroke;
 }
 
-/* Đường công việc còn lại */
+.burndown-baseline-dot {
+    fill: #3b82f6;
+
+    stroke: #0d1f35;
+    stroke-width: 3;
+
+    vector-effect: non-scaling-stroke;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   REMAINING
+   Các nhiệm vụ còn lại
+   Màu cam
+========================================================= */
+
 .burndown-remaining-line {
     fill: none;
 
@@ -612,17 +638,6 @@
     vector-effect: non-scaling-stroke;
 }
 
-/* Điểm baseline */
-.burndown-baseline-dot {
-    fill: #94a3b8;
-
-    stroke: #0d1f35;
-    stroke-width: 3;
-
-    vector-effect: non-scaling-stroke;
-}
-
-/* Điểm remaining */
 .burndown-remaining-dot {
     fill: #f97316;
 
@@ -634,57 +649,40 @@
     cursor: pointer;
 }
 
-/* =========================
-   TRỤC X
-========================= */
 
-.burndown-x-axis {
-    margin-top: 8px;
-    margin-left: 58px;
-    padding-right: 14px;
+/* =========================================================
+   ACTUAL
+   Các nhiệm vụ thực tế còn lại
+   Màu xám sáng
+========================================================= */
 
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
+.burndown-actual-line {
+    fill: none;
+
+    stroke: #94a3b8;
+    stroke-width: 4;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect: non-scaling-stroke;
 }
 
-.burndown-x-axis span {
-    flex: 1;
+.burndown-actual-dot {
+    fill: #94a3b8;
 
-    color: #9fb1c8;
+    stroke: #0d1f35;
+    stroke-width: 3;
 
-    font-size: 11px;
-    line-height: 1.3;
-    text-align: center;
+    vector-effect: non-scaling-stroke;
 
-    white-space: nowrap;
+    cursor: pointer;
 }
 
-/* =========================
-   CHÚ THÍCH
-========================= */
 
-.burndown-legend {
-    margin-top: 24px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    gap: 24px;
-}
-
-.burndown-legend>div {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-
-    color: #cddbea;
-
-    font-size: 12px;
-}
+/* =========================================================
+   LEGEND
+========================================================= */
 
 .legend-line {
     width: 34px;
@@ -695,82 +693,17 @@
     border-radius: 999px;
 }
 
+/* Baseline - xanh */
 .legend-line.baseline {
-    background: #94a3b8;
+    background: #3b82f6;
 }
 
+/* Remaining - cam */
 .legend-line.remaining {
     background: #f97316;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1000px) {
-    .task-burndown-card {
-        padding: 20px;
-    }
-
-    .burndown-chart {
-        min-height: 300px;
-        padding-left: 50px;
-    }
-
-    .burndown-x-axis {
-        margin-left: 50px;
-    }
-
-    .burndown-y-row>span {
-        width: 38px;
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 600px) {
-    .task-burndown-card {
-        padding: 18px 14px;
-    }
-
-    .burndown-chart {
-        min-width: 700px;
-        min-height: 300px;
-
-        padding-left: 48px;
-    }
-
-    .burndown-x-axis {
-        min-width: 700px;
-
-        margin-left: 48px;
-    }
-
-    .task-burndown-card {
-        overflow-x: auto;
-    }
-
-    .burndown-legend {
-        min-width: 700px;
-        justify-content: flex-start;
-    }
-}
-
-.burndown-actual-line {
-    fill: none;
-    stroke: #94a3b8;
-    stroke-width: 4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
-}
-
-.burndown-actual-dot {
-    fill: #94a3b8;
-    stroke: #0d1f35;
-    stroke-width: 3;
-    vector-effect: non-scaling-stroke;
-}
-
+/* Actual - xám */
 .legend-line.actual {
     background: #94a3b8;
 }
@@ -902,6 +835,304 @@
     line-height: 1.5;
 }
 
+/* =========================================================
+   FIX TASK BURNDOWN
+========================================================= */
+
+/* Vùng biểu đồ */
+.task-burndown-card .burndown-chart {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    height: 330px;
+    min-height: 330px;
+
+    margin-top: 20px;
+
+    padding: 0;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   TRỤC Y
+========================================================= */
+
+.task-burndown-card .burndown-y-axis {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    z-index: 1;
+
+    width: 100%;
+    height: 260px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    pointer-events: none;
+}
+
+.task-burndown-card .burndown-y-row {
+    position: relative;
+
+    width: 100%;
+    height: 0;
+
+    display: flex;
+    align-items: center;
+}
+
+.task-burndown-card .burndown-y-row > span {
+    width: 55px;
+
+    flex: 0 0 55px;
+
+    padding-right: 12px;
+
+    color: #dce8f7;
+
+    font-size: 13px;
+    text-align: right;
+
+    box-sizing: border-box;
+}
+
+.task-burndown-card .burndown-grid-line {
+    flex: 1;
+
+    height: 1px;
+
+    background: #314967;
+}
+
+
+/* =========================================================
+   SVG
+========================================================= */
+
+.task-burndown-card .burndown-svg-wrapper {
+    position: absolute !important;
+
+    top: 0 !important;
+    left: 55px !important;
+    right: 0 !important;
+
+    width: auto !important;
+    height: 260px !important;
+
+    z-index: 2;
+
+    overflow: hidden;
+}
+
+.task-burndown-card .burndown-svg {
+    display: block;
+
+    width: 100%;
+    height: 260px;
+
+    overflow: visible;
+}
+
+
+/* =========================================================
+   BASELINE - XANH
+========================================================= */
+
+.task-burndown-card .burndown-baseline-line {
+    fill: none;
+
+    stroke: #3b82f6 !important;
+    stroke-width: 4;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect: non-scaling-stroke;
+}
+
+.task-burndown-card .burndown-baseline-dot {
+    fill: #3b82f6 !important;
+
+    stroke: #0d1f35;
+    stroke-width: 3;
+
+    vector-effect: non-scaling-stroke;
+}
+
+
+/* =========================================================
+   REMAINING - CAM
+========================================================= */
+
+.task-burndown-card .burndown-remaining-line {
+    fill: none;
+
+    stroke: #f97316 !important;
+    stroke-width: 4;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect: non-scaling-stroke;
+}
+
+.task-burndown-card .burndown-remaining-dot {
+    fill: #f97316 !important;
+
+    stroke: #0d1f35;
+    stroke-width: 3;
+
+    vector-effect: non-scaling-stroke;
+}
+
+
+/* =========================================================
+   ACTUAL - XÁM
+========================================================= */
+
+.task-burndown-card .burndown-actual-line {
+    fill: none;
+
+    stroke: #94a3b8 !important;
+    stroke-width: 4;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect: non-scaling-stroke;
+}
+
+.task-burndown-card .burndown-actual-dot {
+    fill: #94a3b8 !important;
+
+    stroke: #0d1f35;
+    stroke-width: 3;
+
+    vector-effect: non-scaling-stroke;
+}
+
+
+/* =========================================================
+   TRỤC X - FIX NGÀY BỊ DÍNH
+========================================================= */
+
+.task-burndown-card .burndown-x-axis {
+    width: calc(100% - 55px) !important;
+
+    margin-top: 8px !important;
+    margin-left: 55px !important;
+    margin-right: 0 !important;
+
+    padding: 0 !important;
+
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+
+    gap: 0 !important;
+
+    box-sizing: border-box;
+}
+
+.task-burndown-card .burndown-x-axis > span {
+    flex: 1 1 0 !important;
+
+    min-width: 0;
+
+    display: block;
+
+    color: #9fb1c8;
+
+    font-size: 11px;
+    line-height: 1.3;
+
+    text-align: center !important;
+
+    white-space: nowrap;
+}
+
+/* Ngày đầu tiên sát trái */
+.task-burndown-card
+.burndown-x-axis
+> span:first-child {
+    text-align: left !important;
+}
+
+/* Ngày cuối cùng sát phải */
+.task-burndown-card
+.burndown-x-axis
+> span:last-child {
+    text-align: right !important;
+}
+
+
+/* =========================================================
+   LEGEND - FIX XẾP DỌC
+========================================================= */
+
+.task-burndown-card .burndown-legend {
+    width: 100% !important;
+
+    margin-top: 24px !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    flex-wrap: wrap !important;
+
+    gap: 28px !important;
+}
+
+.task-burndown-card .burndown-legend > div {
+    width: auto !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+
+    align-items: center !important;
+
+    gap: 9px !important;
+
+    color: #cddbea;
+
+    font-size: 12px;
+
+    white-space: nowrap;
+}
+
+.task-burndown-card .legend-line {
+    display: inline-block !important;
+
+    width: 34px !important;
+    height: 4px !important;
+
+    flex: 0 0 34px !important;
+
+    border-radius: 999px;
+}
+
+.task-burndown-card .legend-line.baseline {
+    background: #3b82f6 !important;
+}
+
+.task-burndown-card .legend-line.remaining {
+    background: #f97316 !important;
+}
+
+.task-burndown-card .legend-line.actual {
+    background: #94a3b8 !important;
+}
 /* =========================================================
    BIỂU ĐỒ TIẾN ĐỘ DỰ ÁN
 ========================================================= */

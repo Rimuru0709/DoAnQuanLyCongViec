@@ -1015,7 +1015,7 @@ function Project() {
                             />
 
                             <label>
-                                Chủ dự án (Owner)   
+                                Chủ dự án (Owner)
                             </label>
 
                             <input

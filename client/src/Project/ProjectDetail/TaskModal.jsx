@@ -7,6 +7,7 @@ const API_URL = "http://localhost:5000/api/tasks";
 function TaskModal({
     open,
     task,
+    tasks = [],
     projectId,
     onClose,
     onSuccess,
@@ -15,34 +16,36 @@ function TaskModal({
     const navigate = useNavigate();
     const isEdit = Boolean(task);
     const currentUser = JSON.parse(
-    localStorage.getItem("user")
-);
+        localStorage.getItem("user")
+    );
 
-const isAdmin =
-    currentUser?.role === "ADMIN";
+    const isAdmin =
+        currentUser?.role === "ADMIN";
 
-const isManager =
-    currentUser?.role === "MANAGER";
+    const isManager =
+        currentUser?.role === "MANAGER";
 
-const isMember =
-    currentUser?.role === "MEMBER";
+    const isMember =
+        currentUser?.role === "MEMBER";
 
-const isTaskAssignee =
-    Number(currentUser?.id) ===
-    Number(task?.assigned_to);
+    const isTaskAssignee =
+        Number(currentUser?.id) ===
+        Number(task?.assigned_to);
 
-const canEditAll =
-    isAdmin || isManager;
+    const canEditAll =
+        isAdmin || isManager;
 
-const canEditProgress =
-    isAdmin ||
-    isManager ||
-    (isMember && isTaskAssignee);
+    const canEditProgress =
+        isAdmin ||
+        isManager ||
+        (isMember && isTaskAssignee);
 
     const emptyTask = {
         title: "",
+        customTitle: "",
         description: "",
         assigned_to: "",
+        customAssignee: "",
         start_date: "",
         end_date: "",
         status: "CHUA_LAM",
@@ -53,15 +56,62 @@ const canEditProgress =
     const [formData, setFormData] = useState(emptyTask);
     const [message, setMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [members, setMembers] = useState([]);
+    const [assigneeSearch, setAssigneeSearch] = useState("");
+    const [showAssigneeList, setShowAssigneeList] = useState(false);
+
+    const loadProjectMembers = async () => {
+        const token = localStorage.getItem("token");
+
+        if (!token || !projectId) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `http://localhost:5000/api/members/project/${projectId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await parseResponse(response);
+
+            if (!response.ok) {
+                setMembers([]);
+                return;
+            }
+
+            setMembers(
+                Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.members)
+                        ? data.members
+                        : []
+            );
+        } catch (error) {
+            console.error(
+                "Lỗi tải thành viên dự án:",
+                error
+            );
+
+            setMembers([]);
+        }
+    };
 
     useEffect(() => {
         if (!open) {
             return;
         }
 
+        loadProjectMembers();
+
         if (task) {
             setFormData({
                 title: task.title || "",
+                customTitle: "",
                 description: task.description || "",
                 assigned_to: task.assigned_to || "",
                 start_date: task.start_date
@@ -74,8 +124,13 @@ const canEditProgress =
                 priority: task.priority || "TRUNG_BINH",
                 progress: Number(task.progress) || 0
             });
+
+            setAssigneeSearch(
+                task.assignee_name || ""
+            );
         } else {
             setFormData(emptyTask);
+            setAssigneeSearch("");
         }
 
         setMessage("");
@@ -109,6 +164,17 @@ const canEditProgress =
             return {};
         }
     };
+
+    const filteredMembers = members.filter(
+        (member) =>
+            member.full_name
+                ?.toLowerCase()
+                .includes(
+                    assigneeSearch
+                        .trim()
+                        .toLowerCase()
+                )
+    );
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -163,10 +229,13 @@ const canEditProgress =
             return;
         }
 
-        const title = formData.title.trim();
+        const title =
+            formData.title === "KHAC"
+                ? formData.customTitle.trim()
+                : formData.title.trim();
 
         if (!title) {
-            showMessage("Vui lòng nhập tên công việc");
+            showMessage("Vui lòng chọn hoặc nhập tên công việc");
             return;
         }
 
@@ -174,12 +243,116 @@ const canEditProgress =
             formData.start_date &&
             formData.end_date &&
             new Date(formData.end_date) <
-                new Date(formData.start_date)
+            new Date(formData.start_date)
         ) {
             showMessage(
                 "Deadline không được trước ngày bắt đầu"
             );
             return;
+        }
+
+        /*
+|--------------------------------------------------------------------------
+| KIỂM TRA TRÙNG LỊCH CÔNG VIỆC
+|--------------------------------------------------------------------------
+*/
+
+        if (
+            formData.assigned_to &&
+            formData.start_date &&
+            formData.end_date
+        ) {
+            const newStart =
+                new Date(formData.start_date);
+
+            const newEnd =
+                new Date(formData.end_date);
+
+            const assignedUserId =
+                Number(formData.assigned_to);
+
+            const conflictTask =
+                tasks.find((currentTask) => {
+
+                    /*
+                     * Khi sửa công việc:
+                     * không so sánh task với chính nó.
+                     */
+
+                    if (
+                        isEdit &&
+                        Number(currentTask.id) ===
+                        Number(task.id)
+                    ) {
+                        return false;
+                    }
+
+                    /*
+                     * Chỉ kiểm tra công việc
+                     * của cùng người phụ trách.
+                     */
+
+                    if (
+                        Number(currentTask.assigned_to) !==
+                        assignedUserId
+                    ) {
+                        return false;
+                    }
+
+                    /*
+                     * Bỏ qua công việc không có đủ ngày.
+                     */
+
+                    if (
+                        !currentTask.start_date ||
+                        !currentTask.end_date
+                    ) {
+                        return false;
+                    }
+
+                    /*
+                     * Có thể bỏ qua task đã hoàn thành.
+                     * Nếu bạn vẫn muốn tính task hoàn thành,
+                     * thì xóa đoạn này.
+                     */
+
+                    if (
+                        currentTask.status === "HOAN_THANH"
+                    ) {
+                        return false;
+                    }
+
+                    const oldStart =
+                        new Date(
+                            currentTask.start_date
+                        );
+
+                    const oldEnd =
+                        new Date(
+                            currentTask.end_date
+                        );
+
+                    /*
+                     * Hai khoảng thời gian bị trùng khi:
+                     *
+                     * newStart <= oldEnd
+                     * &&
+                     * newEnd >= oldStart
+                     */
+
+                    return (
+                        newStart <= oldEnd &&
+                        newEnd >= oldStart
+                    );
+                });
+
+            if (conflictTask) {
+                showMessage(
+                    `Người phụ trách đã có công việc "${conflictTask.title}" trong khoảng thời gian này`
+                );
+
+                return;
+            }
         }
 
         const assignedTo = formData.assigned_to
@@ -303,6 +476,19 @@ const canEditProgress =
         onDelete(task);
     };
 
+    const taskTitleOptions = [
+        "Phân tích yêu cầu",
+        "Thiết kế giao diện",
+        "Thiết kế cơ sở dữ liệu",
+        "Xây dựng Frontend",
+        "Xây dựng Backend",
+        "Xây dựng API",
+        "Kiểm thử chức năng",
+        "Sửa lỗi",
+        "Viết tài liệu",
+        "Triển khai hệ thống"
+    ];
+
     return (
         <div className="task-modal-overlay">
             {message && (
@@ -323,42 +509,131 @@ const canEditProgress =
                         Tên công việc
                     </label>
 
-                    <input
-    id="task-title"
-    type="text"
-    name="title"
-    value={formData.title}
-    onChange={handleChange}
-    required
-    disabled={!canEditAll}
-/>
+                    <select
+                        id="task-title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                        disabled={!canEditAll}
+                    >
+                        <option value="">
+                            -- Chọn công việc --
+                        </option>
 
-                    <label htmlFor="task-description">
-                        Mô tả
+                        {taskTitleOptions.map((title) => (
+                            <option
+                                key={title}
+                                value={title}
+                            >
+                                {title}
+                            </option>
+                        ))}
+
+                        <option value="KHAC">
+                            Khác...
+                        </option>
+                    </select>
+
+                    {formData.title === "KHAC" && (
+                        <>
+                            <label htmlFor="task-custom-title">
+                                Tên công việc khác
+                            </label>
+
+                            <input
+                                id="task-custom-title"
+                                type="text"
+                                name="customTitle"
+                                value={formData.customTitle}
+                                onChange={handleChange}
+                                placeholder="Nhập tên công việc..."
+                                required
+                                disabled={!canEditAll}
+                            />
+                        </>
+                    )}
+
+                    <label htmlFor="task-assignee-search">
+                        Người phụ trách
                     </label>
 
-                    <textarea
-    id="task-description"
-    name="description"
-    value={formData.description}
-    onChange={handleChange}
-    disabled={!canEditAll}
-/>
+                    <div className="assignee-search-box">
 
-                    <label htmlFor="task-assignee">
-                        ID người phụ trách
-                    </label>
+                        <input
+                            id="task-assignee-search"
+                            type="text"
+                            value={assigneeSearch}
+                            placeholder="Nhập tên người phụ trách..."
+                            disabled={!canEditAll}
 
-                    <input
-    id="task-assignee"
-    type="number"
-    name="assigned_to"
-    min="1"
-    value={formData.assigned_to}
-    onChange={handleChange}
-    placeholder="Ví dụ: 2"
-    disabled={!canEditAll}
-/>
+                            onFocus={() =>
+                                setShowAssigneeList(true)
+                            }
+
+                            onChange={(event) => {
+                                setAssigneeSearch(
+                                    event.target.value
+                                );
+
+                                setFormData({
+                                    ...formData,
+                                    assigned_to: ""
+                                });
+
+                                setShowAssigneeList(true);
+                            }}
+                        />
+
+                        {showAssigneeList &&
+                            assigneeSearch.trim() !== "" && (
+                                <div className="assignee-dropdown">
+
+                                    {filteredMembers.length === 0 ? (
+                                        <div className="assignee-empty">
+                                            Không tìm thấy thành viên
+                                        </div>
+                                    ) : (
+                                        filteredMembers.map(
+                                            (member) => (
+                                                <div
+                                                    key={member.id}
+                                                    className="assignee-option"
+
+                                                    onClick={() => {
+                                                        setFormData({
+                                                            ...formData,
+                                                            assigned_to:
+                                                                member.id
+                                                        });
+
+                                                        setAssigneeSearch(
+                                                            member.full_name
+                                                        );
+
+                                                        setShowAssigneeList(
+                                                            false
+                                                        );
+                                                    }}
+                                                >
+                                                    <strong>
+                                                        {member.full_name}
+                                                    </strong>
+
+                                                    {member.email && (
+                                                        <small>
+                                                            {member.email}
+                                                        </small>
+                                                    )}
+                                                </div>
+                                            )
+                                        )
+                                    )}
+
+                                </div>
+                            )}
+
+                    </div>
 
                     <div className="task-form-row">
                         <div>
@@ -367,13 +642,13 @@ const canEditProgress =
                             </label>
 
                             <input
-    id="task-start-date"
-    type="date"
-    name="start_date"
-    value={formData.start_date}
-    onChange={handleChange}
-    disabled={!canEditAll}
-/>
+                                id="task-start-date"
+                                type="date"
+                                name="start_date"
+                                value={formData.start_date}
+                                onChange={handleChange}
+                                disabled={!canEditAll}
+                            />
                         </div>
 
                         <div>
@@ -382,17 +657,17 @@ const canEditProgress =
                             </label>
 
                             <input
-    id="task-end-date"
-    type="date"
-    name="end_date"
-    min={
-        formData.start_date ||
-        undefined
-    }
-    value={formData.end_date}
-    onChange={handleChange}
-    disabled={!canEditAll}
-/>
+                                id="task-end-date"
+                                type="date"
+                                name="end_date"
+                                min={
+                                    formData.start_date ||
+                                    undefined
+                                }
+                                value={formData.end_date}
+                                onChange={handleChange}
+                                disabled={!canEditAll}
+                            />
                         </div>
                     </div>
 
@@ -401,12 +676,12 @@ const canEditProgress =
                     </label>
 
                     <select
-    id="task-status"
-    name="status"
-    value={formData.status}
-    onChange={handleChange}
-    disabled={!canEditProgress}
->
+                        id="task-status"
+                        name="status"
+                        value={formData.status}
+                        onChange={handleChange}
+                        disabled={!canEditProgress}
+                    >
                         <option value="CHUA_LAM">
                             Chưa làm
                         </option>
@@ -433,12 +708,12 @@ const canEditProgress =
                     </label>
 
                     <select
-    id="task-priority"
-    name="priority"
-    value={formData.priority}
-    onChange={handleChange}
-    disabled={!canEditAll}
->
+                        id="task-priority"
+                        name="priority"
+                        value={formData.priority}
+                        onChange={handleChange}
+                        disabled={!canEditAll}
+                    >
                         <option value="THAP">
                             Thấp
                         </option>
@@ -465,12 +740,12 @@ const canEditProgress =
                         value={formData.progress}
                         onChange={handleChange}
                         disabled={
-    !canEditProgress ||
-    formData.status === "CHUA_LAM" ||
-    formData.status === "DANG_REVIEW" ||
-    formData.status === "HOAN_THANH" ||
-    formData.status === "QUA_HAN"
-}
+                            !canEditProgress ||
+                            formData.status === "CHUA_LAM" ||
+                            formData.status === "DANG_REVIEW" ||
+                            formData.status === "HOAN_THANH" ||
+                            formData.status === "QUA_HAN"
+                        }
                     />
 
                     <div className="task-modal-actions">
